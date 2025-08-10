@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Registration Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-xl font-bold text-gray-900">Admin Dashboard</h1>
+                    </div>
+                    <div class="hidden md:block ml-10">
+                        <div class="flex items-baseline space-x-4">
+                            <a href="dashboard.html" class="bg-indigo-100 text-indigo-700 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
+                            <a href="users.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Users</a>
+                            <a href="invitations.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Invitations</a>
+                            <a href="admin-users.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Admin Users</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <!-- Mobile menu button -->
+                    <button id="mobileMenuBtn" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    
+                    <!-- User menu -->
+                    <div class="ml-3 relative">
+                        <div class="flex items-center space-x-4">
+                            <span id="adminUsername" class="text-sm text-gray-700"></span>
+                            <div class="relative">
+                                <button id="userMenuBtn" class="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <i class="fas fa-user-circle text-2xl"></i>
+                                </button>
+                                <div id="userDropdown" class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                                    <div class="py-1">
+                                        <a href="#" id="changePasswordBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Change Password</a>
+                                        <a href="#" id="logoutBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile menu -->
+        <div id="mobileMenu" class="hidden md:hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50">
+                <a href="dashboard.html" class="bg-indigo-100 text-indigo-700 block px-3 py-2 rounded-md text-base font-medium">Dashboard</a>
+                <a href="users.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">Users</a>
+                <a href="invitations.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">Invitations</a>
+                <a href="admin-users.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">Admin Users</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-users text-2xl text-blue-500"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Users</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="totalUsers">0</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-clock text-2xl text-yellow-500"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Pending Approvals</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="pendingApprovals">0</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-check-circle text-2xl text-green-500"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Approved Users</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="approvedUsers">0</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-crown text-2xl text-purple-500"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Active Subscriptions</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="activeSubscriptions">0</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white shadow rounded-lg mb-8">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Quick Actions</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <button id="createInvitationBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Create Invitation
+                    </button>
+                    <a href="users.html" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors text-center">
+                        <i class="fas fa-users mr-2"></i>Manage Users
+                    </a>
+                    <a href="invitations.html" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors text-center">
+                        <i class="fas fa-envelope mr-2"></i>View Invitations
+                    </a>
+                    <a href="admin-users.html" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors text-center">
+                        <i class="fas fa-user-shield mr-2"></i>Admin Users
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Sections -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Recent Users -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Users</h3>
+                    <div class="overflow-hidden">
+                        <div id="recentUsersContainer" class="space-y-3">
+                            <!-- Recent users will be loaded here -->
+                        </div>
+                        <div class="mt-4">
+                            <a href="users.html" class="text-indigo-600 hover:text-indigo-500 text-sm font-medium">View all users →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Invitations -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Invitations</h3>
+                    <div class="overflow-hidden">
+                        <div id="recentInvitationsContainer" class="space-y-3">
+                            <!-- Recent invitations will be loaded here -->
+                        </div>
+                        <div class="mt-4">
+                            <a href="invitations.html" class="text-indigo-600 hover:text-indigo-500 text-sm font-medium">View all invitations →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Invitation Modal -->
+    <div id="invitationModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Create Invitation</h3>
+                    <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="invitationForm" class="space-y-4">
+                    <div>
+                        <label for="inviteeName" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                        <input type="text" id="inviteeName" name="name" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="inviteeEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="inviteeEmail" name="email" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div id="invitationError" class="hidden bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md text-sm">
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="submit" id="createInviteBtn"
+                                class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                            <span id="createInviteBtnText">Create Invitation</span>
+                            <i id="createInviteBtnSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                        </button>
+                        <button type="button" id="cancelInviteBtn"
+                                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Change Password</h3>
+                    <button id="closePasswordModalBtn" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="changePasswordForm" class="space-y-4">
+                    <div>
+                        <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                        <input type="password" id="currentPassword" name="current_password" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                        <input type="password" id="newPassword" name="new_password" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" name="confirm_password" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div id="passwordError" class="hidden bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md text-sm">
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="submit" id="changePasswordSubmitBtn"
+                                class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                            <span id="changePasswordBtnText">Change Password</span>
+                            <i id="changePasswordBtnSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                        </button>
+                        <button type="button" id="cancelPasswordBtn"
+                                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
