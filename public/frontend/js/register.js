@@ -8,8 +8,8 @@ document.addEventListener('DOMContentLoaded', function() {
 function checkExistingSession() {
     const sessionToken = localStorage.getItem('user_session_token');
     if (sessionToken) {
-        // User is already logged in, redirect to dashboard
-        window.location.href = 'dashboard.html';
+        // User is already logged in, redirect to main page
+        window.location.href = 'index.html';
     }
 }
 
@@ -56,15 +56,27 @@ function showInvitationRequired() {
 
 function showRegistrationForm(invitation) {
     // Hide invitation required message and show registration form
-    document.getElementById('invitationRequired').classList.add('hidden');
-    document.getElementById('registerForm').classList.remove('hidden');
+    const invitationRequired = document.getElementById('invitationRequired');
+    const registerForm = document.getElementById('registerForm');
+    
+    // Force hide invitation required message
+    if (invitationRequired) {
+        invitationRequired.style.display = 'none';
+        invitationRequired.classList.add('hidden');
+    }
+    
+    // Force show registration form
+    if (registerForm) {
+        registerForm.style.display = 'block';
+        registerForm.classList.remove('hidden');
+    }
     
     // Set invitation code
     document.getElementById('invitationCode').value = invitation.invitation_code;
     
     // Prepopulate name and email fields
     document.getElementById('fullName').value = invitation.invited_name;
-    document.getElementById('fullName').readOnly = true;
+    // Allow name editing, but make email readonly
     document.getElementById('email').value = invitation.invited_email;
     document.getElementById('email').readOnly = true;
     
@@ -105,8 +117,8 @@ function initializeEventListeners() {
 
     // Handle form submission
     registerForm.addEventListener('submit', handleRegistration);
-
-    // Success modal
+    
+    // Success modal - proceed to profile
     document.getElementById('proceedToProfile').addEventListener('click', function() {
         window.location.href = 'profile.html';
     });

@@ -39,8 +39,8 @@ try {
     $stmt->execute([$username]);
     $admin = $stmt->fetch();
     
-    // Use MD5 for password verification
-    if (!$admin || md5($password) !== $admin['password']) {
+    // Use password_verify for secure password verification
+    if (!$admin || !password_verify($password, $admin['password'])) {
         http_response_code(401);
         echo json_encode(['error' => 'Invalid credentials']);
         exit;

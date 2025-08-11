@@ -131,12 +131,30 @@ try {
                 exit;
             }
             
-            // Check if username or email already exists
-            $stmt = $db->prepare("SELECT id FROM admin_users WHERE username = ? OR email = ?");
-            $stmt->execute([$username, $email]);
+            // Check if username already exists in admin_users
+            $stmt = $db->prepare("SELECT id FROM admin_users WHERE username = ?");
+            $stmt->execute([$username]);
             if ($stmt->fetch()) {
                 http_response_code(400);
-                echo json_encode(['error' => 'Username or email already exists']);
+                echo json_encode(['error' => 'Username already exists']);
+                exit;
+            }
+            
+            // Check if email already exists in admin_users
+            $stmt = $db->prepare("SELECT id FROM admin_users WHERE email = ?");
+            $stmt->execute([$email]);
+            if ($stmt->fetch()) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Email already exists in admin users']);
+                exit;
+            }
+            
+            // Check if email already exists in regular users
+            $stmt = $db->prepare("SELECT id FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            if ($stmt->fetch()) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Email already exists as a regular user']);
                 exit;
             }
             

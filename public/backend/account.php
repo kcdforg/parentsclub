@@ -35,7 +35,7 @@ try {
         case 'GET':
             // Get account information
             $stmt = $db->prepare("
-                SELECT u.*, p.full_name, p.profile_completed
+                SELECT u.*, p.full_name, p.profile_completed, u.user_type
                 FROM users u 
                 LEFT JOIN user_profiles p ON u.id = p.user_id 
                 WHERE u.id = ?

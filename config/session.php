@@ -20,6 +20,9 @@ class SessionManager {
         $sessionId = bin2hex(random_bytes(32));
         $expiresAt = date('Y-m-d H:i:s', time() + (24 * 60 * 60)); // 24 hours
         
+        // Clean old sessions for this user to prevent multiple sessions
+        $this->cleanUserSessions($userType, $userId);
+        
         $stmt = $this->db->prepare("
             INSERT INTO sessions (id, user_type, user_id, data, expires_at) 
             VALUES (?, ?, ?, ?, ?)
@@ -54,6 +57,11 @@ class SessionManager {
     public function cleanExpiredSessions() {
         $stmt = $this->db->prepare("DELETE FROM sessions WHERE expires_at <= NOW()");
         $stmt->execute();
+    }
+    
+    public function cleanUserSessions($userType, $userId) {
+        $stmt = $this->db->prepare("DELETE FROM sessions WHERE user_type = ? AND user_id = ?");
+        $stmt->execute([$userType, $userId]);
     }
     
     public function getUserFromSession($sessionId) {

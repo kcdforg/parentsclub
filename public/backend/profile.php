@@ -8,8 +8,8 @@ require_once '../../config/database.php';
 require_once '../../config/session.php';
 
 // Authenticate user
-$headers = getallheaders();
-$authHeader = $headers['Authorization'] ?? '';
+$headers = function_exists('getallheaders') ? getallheaders() : [];
+$authHeader = $headers['Authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
 
 if (!$authHeader || !preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
     http_response_code(401);
@@ -99,26 +99,110 @@ try {
                 exit;
             }
             
+            // Check if DOB is today's date (prevent default submission)
+            $today = date('Y-m-d');
+            if ($dateOfBirth === $today) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Please enter your actual date of birth, not today\'s date']);
+                exit;
+            }
+            
+            // Validate age (must be 18 or older)
+            $dobTimestamp = strtotime($dateOfBirth);
+            $todayTimestamp = strtotime($today);
+            $ageInSeconds = $todayTimestamp - $dobTimestamp;
+            $ageInYears = floor($ageInSeconds / (365.25 * 24 * 3600)); // Account for leap years
+            
+            if ($ageInYears < 18) {
+                http_response_code(400);
+                echo json_encode(['error' => 'You must be at least 18 years old to complete your profile']);
+                exit;
+            }
+            
             if (!preg_match('/^\d{6}$/', $pinCode)) {
                 http_response_code(400);
                 echo json_encode(['error' => 'PIN code must be 6 digits']);
                 exit;
             }
             
-            if (!preg_match('/^\+?[\d\s\-\(\)]+$/', $phone)) {
+            // Enhanced phone validation
+            if (!preg_match('/^\+\d{1,4}\d{7,15}$/', $phone)) {
                 http_response_code(400);
-                echo json_encode(['error' => 'Invalid phone number format']);
+                echo json_encode(['error' => 'Invalid phone number format. Must include country code and be 7-15 digits.']);
                 exit;
             }
             
-            // Validate age (must be at least 18)
-            $dobDate = new DateTime($dateOfBirth);
-            $today = new DateTime();
-            $age = $today->diff($dobDate)->y;
+            // Validate specific country formats
+            if (preg_match('/^\+91(\d{10})$/', $phone, $matches)) {
+                // Indian number: must start with 6-9
+                if (!preg_match('/^[6-9]/', $matches[1])) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Indian mobile number must start with 6, 7, 8, or 9']);
+                    exit;
+                }
+            } elseif (preg_match('/^\+1(\d+)$/', $phone, $matches)) {
+                // US/Canada: must be exactly 10 digits
+                if (strlen($matches[1]) !== 10) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'US/Canada phone number must be exactly 10 digits']);
+                    exit;
+                }
+            } elseif (preg_match('/^\+44(\d+)$/', $phone, $matches)) {
+                // UK: must be exactly 10 digits
+                if (strlen($matches[1]) !== 10) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'UK phone number must be exactly 10 digits']);
+                    exit;
+                }
+            } elseif (preg_match('/^\+61(\d+)$/', $phone, $matches)) {
+                // Australia: must be exactly 9 digits
+                if (strlen($matches[1]) !== 9) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Australian phone number must be exactly 9 digits']);
+                    exit;
+                }
+            } elseif (preg_match('/^\+81(\d+)$/', $phone, $matches)) {
+                // Japan: must be 10-11 digits
+                $length = strlen($matches[1]);
+                if ($length < 10 || $length > 11) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Japanese phone number must be 10-11 digits']);
+                    exit;
+                }
+            }
             
-            if ($age < 18) {
+            // Validate age (must be at least 18)
+            try {
+                $dobDate = new DateTime($dateOfBirth);
+                $today = new DateTime();
+                $age = $today->diff($dobDate)->y;
+                
+                if ($age < 18) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'You must be at least 18 years old']);
+                    exit;
+                }
+                
+                // Check if date is not in the future
+                if ($dobDate > $today) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Date of birth cannot be in the future']);
+                    exit;
+                }
+            } catch (Exception $e) {
                 http_response_code(400);
-                echo json_encode(['error' => 'You must be at least 18 years old']);
+                echo json_encode(['error' => 'Invalid date format']);
+                exit;
+            }
+            
+            // Check for duplicate phone numbers (exclude current user)
+            $stmt = $db->prepare("SELECT up.user_id, u.email FROM user_profiles up JOIN users u ON up.user_id = u.id WHERE up.phone = ? AND up.user_id != ?");
+            $stmt->execute([$phone, $user['id']]);
+            $existingPhone = $stmt->fetch();
+            
+            if ($existingPhone) {
+                http_response_code(400);
+                echo json_encode(['error' => 'This phone number is already registered by another user']);
                 exit;
             }
             
@@ -147,6 +231,27 @@ try {
                 $message = 'Profile created successfully';
             }
             
+            // Update user table to mark profile as completed and set type as 'Enrolled'
+            $stmt = $db->prepare("UPDATE users SET profile_completed = 1, user_type = 'Enrolled' WHERE id = ?");
+            $stmt->execute([$user['id']]);
+            
+            // Cross-invite expiration logic: when user adds phone number during profile completion,
+            // expire any pending phone invitations for this phone number that weren't used by this user
+            $stmt = $db->prepare("
+                UPDATE invitations 
+                SET status = 'expired' 
+                WHERE invited_phone = ? AND status = 'pending' AND expires_at > NOW() AND used_by != ?
+            ");
+            $stmt->execute([$phone, $user['id']]);
+            
+            // Also expire any pending email invitations for this user's email that weren't used by this user
+            $stmt = $db->prepare("
+                UPDATE invitations 
+                SET status = 'expired' 
+                WHERE invited_email = ? AND status = 'pending' AND expires_at > NOW() AND used_by != ?
+            ");
+            $stmt->execute([$user['email'], $user['id']]);
+            
             echo json_encode([
                 'success' => true,
                 'message' => $message
@@ -160,7 +265,7 @@ try {
     
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Internal server error']);
-    error_log("Profile API error: " . $e->getMessage());
+    echo json_encode(['error' => 'Internal server error: ' . $e->getMessage()]);
+    error_log("Profile API error: " . $e->getMessage() . " in " . $e->getFile() . " on line " . $e->getLine());
 }
 ?>

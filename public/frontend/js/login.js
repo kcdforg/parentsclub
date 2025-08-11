@@ -7,8 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
 function checkExistingSession() {
     const sessionToken = localStorage.getItem('user_session_token');
     if (sessionToken) {
-        // User is already logged in, redirect to dashboard
-        window.location.href = 'dashboard.html';
+        // User is already logged in, redirect to main page
+        window.location.href = 'index.html';
     }
 }
 
@@ -109,7 +109,7 @@ async function handleLogin(e) {
             if (!data.user.profile_completed) {
                 window.location.href = 'profile.html';
             } else {
-                window.location.href = 'dashboard.html';
+                window.location.href = 'index.html';
             }
         } else {
             showError(data.error || 'Login failed');
@@ -140,23 +140,35 @@ async function handlePasswordReset() {
     hideResetSuccess();
 
     try {
-        // Simulate password reset request
-        // In a real application, this would call a password reset API
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        const response = await fetch('../backend/forgot_password.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: email
+            })
+        });
+
+        const data = await response.json();
         
-        // Show success message
-        showResetSuccess();
-        document.getElementById('resetEmail').value = '';
-        
-        // Auto-close modal after 3 seconds
-        setTimeout(() => {
-            document.getElementById('forgotPasswordModal').classList.add('hidden');
-            resetForgotPasswordForm();
-        }, 3000);
+        if (data.success) {
+            // Show success message
+            showResetSuccess(data.message);
+            document.getElementById('resetEmail').value = '';
+            
+            // Auto-close modal after 5 seconds to give user time to read
+            setTimeout(() => {
+                document.getElementById('forgotPasswordModal').classList.add('hidden');
+                resetForgotPasswordForm();
+            }, 5000);
+        } else {
+            showResetError(data.error || 'Failed to send reset request. Please try again.');
+        }
         
     } catch (error) {
         console.error('Password reset error:', error);
-        showResetError('Failed to send reset instructions. Please try again.');
+        showResetError('Failed to send reset request. Please try again.');
     } finally {
         setResetLoading(false);
     }
@@ -205,8 +217,12 @@ function hideResetError() {
     document.getElementById('resetError').classList.add('hidden');
 }
 
-function showResetSuccess() {
-    document.getElementById('resetSuccess').classList.remove('hidden');
+function showResetSuccess(message) {
+    const successElement = document.getElementById('resetSuccess');
+    if (message) {
+        successElement.textContent = message;
+    }
+    successElement.classList.remove('hidden');
 }
 
 function hideResetSuccess() {

@@ -73,6 +73,7 @@ try {
             
             $subscriptionType = $input['subscription_type'] ?? 'annual';
             $paymentMethod = $input['payment_method'] ?? 'placeholder';
+            $paymentDetails = $input['payment_details'] ?? null;
             
             // Check if user already has an active subscription
             $stmt = $db->prepare("
@@ -91,26 +92,82 @@ try {
             $startDate = date('Y-m-d');
             $endDate = date('Y-m-d', strtotime('+1 year'));
             
-            // For now, we'll create a pending subscription
-            // In a real application, this would integrate with a payment gateway
+            // For demo payment, immediately activate the subscription
+            $status = ($paymentMethod === 'credit_card') ? 'active' : 'pending';
+            
             $stmt = $db->prepare("
                 INSERT INTO subscriptions (user_id, subscription_type, status, start_date, end_date, amount, payment_method)
-                VALUES (?, ?, 'pending', ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             ");
-            $stmt->execute([$user['id'], $subscriptionType, $startDate, $endDate, $amount, $paymentMethod]);
+            $stmt->execute([$user['id'], $subscriptionType, $status, $startDate, $endDate, $amount, $paymentMethod]);
             
             $subscriptionId = $db->lastInsertId();
             
+            // If subscription is active, update user type to 'Member'
+            if ($status === 'active') {
+                $stmt = $db->prepare("UPDATE users SET user_type = 'Member' WHERE id = ?");
+                $stmt->execute([$user['id']]);
+            }
+            
             echo json_encode([
                 'success' => true,
-                'message' => 'Subscription created successfully',
+                'message' => $status === 'active' ? 'Payment processed and subscription activated!' : 'Subscription created successfully',
                 'subscription_id' => $subscriptionId,
                 'amount' => $amount,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
-                'status' => 'pending',
-                'note' => 'This is a placeholder for payment integration. In production, this would process payment and activate the subscription.'
+                'status' => $status,
+                'payment_method' => $paymentMethod
             ]);
+            break;
+            
+        case 'PUT':
+            // Handle subscription activation or updates
+            $input = json_decode(file_get_contents('php://input'), true);
+            $action = $input['action'] ?? null;
+            
+            if ($action === 'activate') {
+                $subscriptionId = $input['subscription_id'] ?? null;
+                
+                if (!$subscriptionId) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Subscription ID is required']);
+                    exit;
+                }
+                
+                // Verify the subscription belongs to the user
+                $stmt = $db->prepare("
+                    SELECT id FROM subscriptions 
+                    WHERE id = ? AND user_id = ?
+                ");
+                $stmt->execute([$subscriptionId, $user['id']]);
+                if (!$stmt->fetch()) {
+                    http_response_code(404);
+                    echo json_encode(['error' => 'Subscription not found']);
+                    exit;
+                }
+                
+                // Activate the subscription
+                $stmt = $db->prepare("
+                    UPDATE subscriptions 
+                    SET status = 'active', start_date = CURDATE() 
+                    WHERE id = ? AND user_id = ?
+                ");
+                $stmt->execute([$subscriptionId, $user['id']]);
+                
+                // Update user type to 'Member'
+                $stmt = $db->prepare("UPDATE users SET user_type = 'Member' WHERE id = ?");
+                $stmt->execute([$user['id']]);
+                
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Subscription activated successfully'
+                ]);
+                
+            } else {
+                http_response_code(400);
+                echo json_encode(['error' => 'Invalid action']);
+            }
             break;
             
         default:

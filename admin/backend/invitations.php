@@ -162,11 +162,31 @@ function createInvitation() {
         
         $db = Database::getInstance()->getConnection();
         
+        // Check if email already exists as a registered user
+        $userCheckSql = "SELECT COUNT(*) FROM users WHERE email = ?";
+        $userCheckStmt = $db->prepare($userCheckSql);
+        $userCheckStmt->execute([$email]);
+        if ($userCheckStmt->fetchColumn() > 0) {
+            http_response_code(400);
+            echo json_encode(['error' => 'This email is already registered as a user']);
+            return;
+        }
+        
+        // Check if email already exists as an admin user
+        $adminCheckSql = "SELECT COUNT(*) FROM admin_users WHERE email = ?";
+        $adminCheckStmt = $db->prepare($adminCheckSql);
+        $adminCheckStmt->execute([$email]);
+        if ($adminCheckStmt->fetchColumn() > 0) {
+            http_response_code(400);
+            echo json_encode(['error' => 'This email is already registered as an admin user']);
+            return;
+        }
+        
         // Check if email already has a pending invitation
-        $checkSql = "SELECT COUNT(*) FROM invitations WHERE invited_email = ? AND status = 'pending'";
-        $checkStmt = $db->prepare($checkSql);
-        $checkStmt->execute([$email]);
-        if ($checkStmt->fetchColumn() > 0) {
+        $inviteCheckSql = "SELECT COUNT(*) FROM invitations WHERE invited_email = ? AND status = 'pending'";
+        $inviteCheckStmt = $db->prepare($inviteCheckSql);
+        $inviteCheckStmt->execute([$email]);
+        if ($inviteCheckStmt->fetchColumn() > 0) {
             http_response_code(400);
             echo json_encode(['error' => 'This email already has a pending invitation']);
             return;

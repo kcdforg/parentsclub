@@ -33,6 +33,13 @@ try {
     // Get dashboard statistics
     $stats = [];
     
+    // Validate admin session is still valid
+    if (!$admin || !$admin['is_active']) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Admin account is not active']);
+        exit;
+    }
+    
     // Total users
     $stmt = $db->query("SELECT COUNT(*) as total FROM users WHERE is_active = 1");
     $stats['total_users'] = $stmt->fetch()['total'];

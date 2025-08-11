@@ -18,30 +18,46 @@ try {
     
     if (!$input || !isset($input['email']) || !isset($input['password'])) {
         http_response_code(400);
-        echo json_encode(['error' => 'Email and password are required']);
+        echo json_encode(['error' => 'Email/Phone and password are required']);
         exit;
     }
     
-    $email = trim(strtolower($input['email']));
+    $emailOrPhone = trim($input['email']); // Can be email or phone
     $password = $input['password'];
     
-    if (empty($email) || empty($password)) {
+    if (empty($emailOrPhone) || empty($password)) {
         http_response_code(400);
-        echo json_encode(['error' => 'Email and password cannot be empty']);
+        echo json_encode(['error' => 'Email/Phone and password cannot be empty']);
         exit;
     }
     
     $db = Database::getInstance()->getConnection();
     
-    // Get user with profile information
-    $stmt = $db->prepare("
-        SELECT u.*, p.profile_completed, p.full_name 
-        FROM users u 
-        LEFT JOIN user_profiles p ON u.id = p.user_id 
-        WHERE u.email = ? AND u.is_active = 1
-    ");
-    $stmt->execute([$email]);
-    $user = $stmt->fetch();
+    // Check if input looks like a phone number (starts with + and contains only digits)
+    $isPhoneNumber = preg_match('/^\+\d+$/', $emailOrPhone);
+    
+    if ($isPhoneNumber) {
+        // Login with phone number
+        $stmt = $db->prepare("
+            SELECT u.*, p.profile_completed, p.full_name 
+            FROM users u 
+            LEFT JOIN user_profiles p ON u.id = p.user_id 
+            WHERE p.phone = ? AND u.is_active = 1
+        ");
+        $stmt->execute([$emailOrPhone]);
+        $user = $stmt->fetch();
+    } else {
+        // Login with email (convert to lowercase for consistency)
+        $email = strtolower($emailOrPhone);
+        $stmt = $db->prepare("
+            SELECT u.*, p.profile_completed, p.full_name 
+            FROM users u 
+            LEFT JOIN user_profiles p ON u.id = p.user_id 
+            WHERE u.email = ? AND u.is_active = 1
+        ");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
+    }
     
     if (!$user || !password_verify($password, $user['password'])) {
         http_response_code(401);

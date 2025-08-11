@@ -79,6 +79,13 @@ try {
         exit;
     }
     
+    // Validate that the invitation hasn't been tampered with
+    if (empty($invitation['invited_email']) || empty($invitation['invited_name'])) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Invalid invitation data']);
+        exit;
+    }
+    
     // Return valid invitation details
     echo json_encode([
         'success' => true,

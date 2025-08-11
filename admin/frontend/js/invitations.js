@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Generate the full invitation link
             const baseUrl = window.location.origin;
-            const invitationLink = `${baseUrl}/public/frontend/register.html?invite=${invitation.invitation_code}`;
+            const invitationLink = `${baseUrl}/regapp2/public/frontend/register.html?invitation=${invitation.invitation_code}`;
 
             row.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Generate the full invitation link
         const baseUrl = window.location.origin;
-        const invitationLink = `${baseUrl}/public/frontend/register.html?invite=${invitation.invitation_code}`;
+        const invitationLink = `${baseUrl}/regapp2/public/frontend/register.html?invitation=${invitation.invitation_code}`;
 
         // Populate the modal
         const detailsContent = document.getElementById('invitationDetailsContent');
@@ -593,7 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const baseUrl = window.location.origin;
         const allLinks = currentInvitations
             .filter(inv => inv.status === 'pending') // Only copy pending invitations
-            .map(inv => `${inv.invited_name} (${inv.invited_email}): ${baseUrl}/public/frontend/register.html?invite=${inv.invitation_code}`)
+            .map(inv => `${inv.invited_name} (${inv.invited_email}): ${baseUrl}/regapp2/public/frontend/register.html?invitation=${inv.invitation_code}`)
             .join('\n\n');
 
         if (allLinks === '') {

@@ -160,7 +160,7 @@ try {
             
             // Create invitation link
             $baseUrl = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
-            $invitationLink = $baseUrl . '/public/frontend/register.html?invitation=' . $invitationCode;
+            $invitationLink = $baseUrl . '/regapp2/public/frontend/register.html?invitation=' . $invitationCode;
             
             echo json_encode([
                 'success' => true,

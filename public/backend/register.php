@@ -61,12 +61,21 @@ try {
     
     $db = Database::getInstance()->getConnection();
     
-    // Check if email already exists
+    // Check if email already exists in users table
     $stmt = $db->prepare("SELECT id FROM users WHERE email = ?");
     $stmt->execute([$email]);
     if ($stmt->fetch()) {
         http_response_code(400);
         echo json_encode(['error' => 'Email already registered']);
+        exit;
+    }
+    
+    // Check if email already exists in admin_users table
+    $stmt = $db->prepare("SELECT id FROM admin_users WHERE email = ?");
+    $stmt->execute([$email]);
+    if ($stmt->fetch()) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Email already exists as an admin user']);
         exit;
     }
     
@@ -87,10 +96,22 @@ try {
         exit;
     }
     
-    // Verify email matches invitation
-    if (strtolower($invitation['invited_email']) !== $email) {
+    // Verify email or phone matches invitation
+    $invitationMatches = false;
+    
+    if ($invitation['invitation_type'] === 'email') {
+        if (strtolower($invitation['invited_email']) === $email) {
+            $invitationMatches = true;
+        }
+    } elseif ($invitation['invitation_type'] === 'phone') {
+        if ($invitation['invited_phone'] === $email) { // Note: $email variable is used for both email and phone in registration
+            $invitationMatches = true;
+        }
+    }
+    
+    if (!$invitationMatches) {
         http_response_code(400);
-        echo json_encode(['error' => 'Email does not match invitation']);
+        echo json_encode(['error' => 'Email/Phone does not match invitation']);
         exit;
     }
     
@@ -102,17 +123,21 @@ try {
     $nextNumber = $stmt->fetch()['next_number'];
     $enrollmentNumber = 'ENR' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
     
+    // Generate user number
+    $stmt = $db->query("SELECT COALESCE(MAX(user_number), 0) + 1 as next_user_number FROM users");
+    $nextUserNumber = $stmt->fetch()['next_user_number'];
+    
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
     
     $db->beginTransaction();
     
     try {
-        // Create user
+        // Create user (set type as 'Registered')
         $stmt = $db->prepare("
-            INSERT INTO users (email, password, enrollment_number, referred_by_type, referred_by_id, approval_status) 
-            VALUES (?, ?, ?, ?, ?, 'pending')
+            INSERT INTO users (email, password, enrollment_number, user_number, referred_by_type, referred_by_id, approval_status, user_type) 
+            VALUES (?, ?, ?, ?, ?, ?, 'pending', 'Registered')
         ");
-        $stmt->execute([$email, $hashedPassword, $enrollmentNumber, $referredByType, $referredById]);
+        $stmt->execute([$email, $hashedPassword, $enrollmentNumber, $nextUserNumber, $referredByType, $referredById]);
         $userId = $db->lastInsertId();
         
         // Create partial profile with name
@@ -129,6 +154,32 @@ try {
             WHERE id = ?
         ");
         $stmt->execute([$userId, $invitation['id']]);
+        
+        // Implement cross-invite expiration logic
+        // If user registered with email invite and has a phone, expire any pending phone invites for that phone
+        // If user registered with phone invite and provides email, expire any pending email invites for that email
+        
+        if ($invitation['invitation_type'] === 'email' && !empty($invitation['invited_phone'])) {
+            // User registered via email invite, expire any pending phone invites for same phone
+            $stmt = $db->prepare("
+                UPDATE invitations 
+                SET status = 'expired' 
+                WHERE invited_phone = ? AND status = 'pending' AND expires_at > NOW() AND id != ?
+            ");
+            $stmt->execute([$invitation['invited_phone'], $invitation['id']]);
+            
+        } elseif ($invitation['invitation_type'] === 'phone' && !empty($invitation['invited_email'])) {
+            // User registered via phone invite, expire any pending email invites for same email
+            $stmt = $db->prepare("
+                UPDATE invitations 
+                SET status = 'expired' 
+                WHERE invited_email = ? AND status = 'pending' AND expires_at > NOW() AND id != ?
+            ");
+            $stmt->execute([$invitation['invited_email'], $invitation['id']]);
+        }
+        
+        // Additional cross-expiration: when user completes registration, if they later add
+        // phone/email during profile completion, we'll handle that in profile.php
         
         $db->commit();
         
@@ -148,6 +199,7 @@ try {
                 'id' => $userId,
                 'email' => $email,
                 'enrollment_number' => $enrollmentNumber,
+                'user_number' => $nextUserNumber,
                 'full_name' => $fullName,
                 'approval_status' => 'pending',
                 'profile_completed' => false
