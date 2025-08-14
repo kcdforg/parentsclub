@@ -1,3 +1,5 @@
+import { apiFetch } from './api.js';
+
 // Reset Password functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Get token from URL
@@ -116,19 +118,14 @@ document.addEventListener('DOMContentLoaded', function() {
         hideSuccess();
         
         try {
-            const response = await fetch('../backend/reset_password.php', {
+            const data = await apiFetch('reset_password.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
                 body: JSON.stringify({
                     token: token,
                     new_password: newPassword,
                     confirm_password: confirmPassword
                 })
             });
-            
-            const data = await response.json();
             
             if (data.success) {
                 showSuccess(data.message || 'Password reset successfully!');

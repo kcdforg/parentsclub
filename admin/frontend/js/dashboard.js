@@ -1,3 +1,5 @@
+import { apiFetch } from './api.js';
+
 // Admin dashboard functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Check authentication
@@ -9,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Global variables
-let sessionToken = localStorage.getItem('admin_session_token');
+let sessionToken = localStorage.getItem('admin_session_token'); // This will be removed once admin-nav.js handles it fully.
 let currentAdmin = JSON.parse(localStorage.getItem('admin_user') || '{}');
 
 function checkAuth() {
@@ -54,24 +56,9 @@ function initializeEventListeners() {
 
 async function loadDashboardData() {
     try {
-        const response = await fetch('../backend/dashboard.php', {
-            headers: {
-                'Authorization': `Bearer ${sessionToken}`
-            }
+        const data = await apiFetch('dashboard.php', {
+            method: 'GET'
         });
-
-        if (!response.ok) {
-            if (response.status === 401) {
-                // Session expired
-                localStorage.removeItem('admin_session_token');
-                localStorage.removeItem('admin_user');
-                window.location.href = 'login.html';
-                return;
-            }
-            throw new Error('Failed to load dashboard data');
-        }
-
-        const data = await response.json();
         
         if (data.success) {
             updateStats(data.stats);
@@ -210,20 +197,10 @@ async function handleCreateInvitation(e) {
             expiry_days: 3 // 72 hours = 3 days
         };
         
-        const response = await fetch('../backend/invitations.php', {
+        const data = await apiFetch('invitations.php', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${sessionToken}`
-            },
-            body: JSON.stringify({ 
-                name, 
-                phone: countryCode + phoneNumber,
-                expiry_days: parseInt(formData.get('expiry_days'))
-            })
+            body: JSON.stringify(invitationData)
         });
-        
-        const data = await response.json();
         
         if (data.success) {
             document.getElementById('invitationModal').classList.add('hidden');
@@ -277,11 +254,28 @@ function setInvitationLoading(loading) {
 function showNotification(message, type = 'info') {
     // Create notification element
     const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 p-4 rounded-md shadow-lg z-50 ${type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'} text-white`;
+    notification.className = `fixed top-4 right-4 max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 z-50`;
+    
+    const bgColor = type === 'success' ? 'bg-green-50' : type === 'error' ? 'bg-red-50' : 'bg-blue-50';
+    const textColor = type === 'success' ? 'text-green-800' : type === 'error' ? 'text-red-800' : 'text-blue-800';
+    const iconColor = type === 'success' ? 'text-green-400' : type === 'error' ? 'text-red-400' : 'text-blue-400';
+    const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+    
     notification.innerHTML = `
-        <div class="flex items-center">
-            <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}-circle mr-2"></i>
-            <span>${message}</span>
+        <div class="p-4">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas ${icon} ${iconColor}"></i>
+                </div>
+                <div class="ml-3 w-0 flex-1">
+                    <p class="text-sm font-medium ${textColor}">${message}</p>
+                </div>
+                <div class="ml-4 flex-shrink-0 flex">
+                    <button class="rounded-md inline-flex ${textColor} hover:${textColor} focus:outline-none" onclick="this.parentElement.parentElement.parentElement.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
         </div>
     `;
     
@@ -289,6 +283,8 @@ function showNotification(message, type = 'info') {
     
     // Auto remove after 3 seconds
     setTimeout(() => {
-        notification.remove();
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
     }, 3000);
 }

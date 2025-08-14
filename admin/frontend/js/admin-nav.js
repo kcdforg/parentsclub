@@ -1,3 +1,5 @@
+import { apiFetch } from './api.js';
+
 // Common admin navigation functionality
 // This script should be included in all admin pages for consistent navigation behavior
 
@@ -11,6 +13,8 @@
     
     function initializeAdminNavigation() {
         // Check authentication first
+        // The apiFetch function will handle redirection on 401, so explicit check here is less critical
+        // But we keep it for immediate client-side redirection if token is missing from localStorage
         const sessionToken = localStorage.getItem('admin_session_token');
         if (!sessionToken) {
             window.location.href = 'login.html';
@@ -85,26 +89,24 @@
     }
     
     async function handleLogout() {
-        const sessionToken = localStorage.getItem('admin_session_token');
-        
         try {
-            // Call logout API
-            await fetch('../backend/logout.php', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${sessionToken}`,
-                    'Content-Type': 'application/json'
-                }
+            // Call logout API using apiFetch
+            await apiFetch('logout.php', {
+                method: 'POST'
             });
+            
+            // Clear local storage and redirect only if apiFetch didn't already redirect (e.g. 401 handled by apiFetch)
+            localStorage.removeItem('admin_session_token');
+            localStorage.removeItem('admin_user');
+            window.location.href = 'login.html';
+
         } catch (error) {
             console.error('Logout error:', error);
-            // Continue with logout even if API call fails
-        }
-        
-        // Clear local storage and redirect
+            // Even if API call fails, attempt to clear local storage and redirect to prevent being stuck
         localStorage.removeItem('admin_session_token');
         localStorage.removeItem('admin_user');
         window.location.href = 'login.html';
+        }
     }
     
     function showChangePasswordModal() {
@@ -117,7 +119,7 @@
             initializeChangePasswordModal();
         } else {
             // Modal doesn't exist, redirect to dashboard where it's available
-            alert('Change password functionality is available on the dashboard page.');
+            showModal('Info', 'Change password functionality is available on the dashboard page.');
             window.location.href = 'dashboard.html#change-password';
         }
     }
@@ -186,15 +188,10 @@
         if (passwordError) passwordError.classList.add('hidden');
         
         try {
-            const sessionToken = localStorage.getItem('admin_session_token');
             const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
             
-            const response = await fetch('../backend/admin_users.php', {
+            const data = await apiFetch('admin_users.php', {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionToken}`
-                },
                 body: JSON.stringify({
                     admin_id: adminUser.id,
                     action: 'change_password',
@@ -203,10 +200,8 @@
                 })
             });
             
-            const data = await response.json();
-            
             if (data.success) {
-                alert('Password changed successfully!');
+                showToast('Password changed successfully!', 'success');
                 document.getElementById('changePasswordModal').classList.add('hidden');
                 document.getElementById('changePasswordForm').reset();
             } else {
@@ -231,7 +226,171 @@
         }
     }
     
-    // Expose logout function globally for any page that might need it
+    /**
+     * Shows a custom modal dialog.
+     * @param {string} title - The title of the modal.
+     * @param {string} message - The message content of the modal.
+     * @param {boolean} isError - If true, styles as an error modal.
+     */
+    function showModal(title, message, isError = false, showCancel = false) {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('globalModal');
+            const modalTitle = document.getElementById('globalModalTitle');
+            const modalMessage = document.getElementById('globalModalMessage');
+            const modalIcon = document.getElementById('globalModalIcon');
+            const modalOkBtn = document.getElementById('globalModalOkBtn');
+            const modalConfirmBtn = document.getElementById('globalModalConfirmBtn');
+            const modalCancelBtn = document.getElementById('globalModalCancelBtn');
+
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+
+            // Set icon and background based on error state
+            if (isError) {
+                modalIcon.innerHTML = '<i class="fas fa-times-circle text-red-600 text-xl"></i>';
+                modalIcon.classList.remove('bg-blue-100', 'bg-green-100');
+                modalIcon.classList.add('bg-red-100');
+            } else {
+                modalIcon.innerHTML = '<i class="fas fa-info-circle text-blue-600 text-xl"></i>';
+                modalIcon.classList.remove('bg-red-100', 'bg-green-100');
+                modalIcon.classList.add('bg-blue-100');
+            }
+
+            // Show/hide buttons based on showCancel
+            if (showCancel) {
+                modalOkBtn.classList.add('hidden');
+                modalConfirmBtn.classList.remove('hidden');
+                modalCancelBtn.classList.remove('hidden');
+            } else {
+                modalOkBtn.classList.remove('hidden');
+                modalConfirmBtn.classList.add('hidden');
+                modalCancelBtn.classList.add('hidden');
+            }
+
+            // Clear previous listeners
+            const cloneOkBtn = modalOkBtn.cloneNode(true);
+            modalOkBtn.parentNode.replaceChild(cloneOkBtn, modalOkBtn);
+
+            const cloneConfirmBtn = modalConfirmBtn.cloneNode(true);
+            modalConfirmBtn.parentNode.replaceChild(cloneConfirmBtn, modalConfirmBtn);
+
+            const cloneCancelBtn = modalCancelBtn.cloneNode(true);
+            modalCancelBtn.parentNode.replaceChild(cloneCancelBtn, modalCancelBtn);
+            
+            console.log(`showModal called: Title="${title}", Message="${message}", isError=${isError}, showCancel=${showCancel}`);
+
+            // Add new listeners
+            cloneOkBtn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+                resolve(true); // For simple OK modals
+            });
+
+            cloneConfirmBtn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+                resolve(true); // For confirmation, resolves true for "Confirm"
+            });
+
+            cloneCancelBtn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+                resolve(false); // For confirmation, resolves false for "Cancel"
+            });
+
+            modal.classList.remove('hidden');
+            
+            // Close modal when clicking outside
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                    resolve(false); // If clicked outside, treat as cancel for confirmation modals
+                }
+            });
+        });
+    }
+
+    /**
+     * Shows a non-blocking toast notification.
+     * @param {string} message - The message content of the toast.
+     * @param {'success' | 'error' | 'info'} type - The type of toast (e.g., 'success', 'error', 'info').
+     */
+    function showToast(message, type = 'info') {
+        console.log(`showToast called: Message="${message}", Type="${type}"`);
+        const toastContainer = document.getElementById('toastContainer');
+
+        if (!toastContainer) {
+            console.error('Toast container not found. Cannot show toast:', message);
+            // Fallback to alert if toast container is not available
+            // alert(`Toast: ${message}`);
+            return;
+        }
+
+        const toast = document.createElement('div');
+        toast.className = 'flex items-center w-full max-w-xs p-4 rounded-lg shadow-md text-gray-500 bg-white';
+        toast.style.opacity = '0'; // Start invisible
+        toast.style.transition = 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out';
+        toast.style.transform = 'translateX(100%)'; // Start off-screen
+
+        let iconClass = '';
+        let textClass = '';
+        switch (type) {
+            case 'success':
+                iconClass = 'fas fa-check-circle text-green-500';
+                textClass = 'text-green-800';
+                break;
+            case 'error':
+                iconClass = 'fas fa-times-circle text-red-500';
+                textClass = 'text-red-800';
+                break;
+            case 'info':
+            default:
+                iconClass = 'fas fa-info-circle text-blue-500';
+                textClass = 'text-blue-800';
+                break;
+        }
+
+        toast.innerHTML = `
+            <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 ${textClass.replace('text-', 'bg-')} rounded-lg">
+                <i class="${iconClass}"></i>
+            </div>
+            <div class="ml-3 text-sm font-normal text-gray-900">${message}</div>
+            <button type="button" class="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8" aria-label="Close">
+                <span class="sr-only">Close</span>
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+
+        const closeButton = toast.querySelector('button');
+        closeButton.addEventListener('click', () => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            toast.addEventListener('transitionend', () => toast.remove());
+        });
+
+        toastContainer.appendChild(toast);
+
+        // Animate in
+        setTimeout(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(0)';
+        }, 100);
+
+        // Auto-hide
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            toast.addEventListener('transitionend', () => toast.remove());
+        }, 3000);
+    }
+
+    // Expose logout and modal/toast functions globally for any page that might need them
     window.adminLogout = handleLogout;
+    window.showModal = showModal;
+    window.showToast = showToast;
+
+    // Call this if the change password modal is on the current page
+    // This will only be called if the element with id 'changePasswordModal' exists.
+    // Ensure this is called AFTER the DOM is fully loaded.
+    document.addEventListener('DOMContentLoaded', () => {
+        initializeChangePasswordModal();
+    });
     
 })();

@@ -1,3 +1,5 @@
+import { apiFetch } from './api.js';
+
 document.addEventListener('DOMContentLoaded', function() {
     // Check authentication
     const sessionToken = localStorage.getItem('user_session_token');
@@ -64,20 +66,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function checkUserEligibility() {
         try {
-            const response = await fetch('../backend/account.php', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${sessionToken}`,
-                    'Content-Type': 'application/json'
-                }
+            const data = await apiFetch('account.php', {
+                method: 'GET'
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch user data');
-            }
+            userData = data; // Assuming data directly contains user info from API
 
-            userData = await response.json();
-            
             // Update user greeting
             const userGreeting = document.getElementById('userGreeting');
             if (userGreeting) {
@@ -108,19 +102,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 search: currentSearch
             });
 
-            const response = await fetch(`../backend/invitations.php?${params}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${sessionToken}`,
-                    'Content-Type': 'application/json'
-                }
+            const data = await apiFetch(`invitations.php?${params}`, {
+                method: 'GET'
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to load invitations');
-            }
-
-            const data = await response.json();
             
             if (data.success) {
                 // Check if user has permission to invite
@@ -480,16 +464,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            const response = await fetch('../backend/invitations.php', {
+            const data = await apiFetch('invitations.php', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${sessionToken}`,
-                    'Content-Type': 'application/json'
-                },
                 body: JSON.stringify(invitationData)
             });
-
-            const data = await response.json();
 
             if (data.success) {
                 // Show success and invitation link
@@ -638,15 +616,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const response = await fetch(`../backend/invitations.php?id=${invitationId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${sessionToken}`,
-                    'Content-Type': 'application/json'
-                }
+            const data = await apiFetch(`invitations.php?id=${invitationId}`, {
+                method: 'DELETE'
             });
-
-            const data = await response.json();
 
             if (data.success) {
                 showNotification('Invitation deleted successfully', 'success');
@@ -665,33 +637,17 @@ document.addEventListener('DOMContentLoaded', function() {
 // Logout function
 async function logout() {
     try {
-        const sessionToken = localStorage.getItem('user_session_token');
-        if (sessionToken) {
-            const response = await fetch('../backend/logout.php', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${sessionToken}`
-                }
-            });
+        await apiFetch('logout.php', {
+            method: 'POST'
+        });
+        
+        // Server logout successful, now clear local data
+        localStorage.removeItem('user_session_token');
+        localStorage.removeItem('user_data');
+        
+        // Redirect to login
+        window.location.href = 'login.html';
 
-            // Wait for response and check if successful
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    // Server logout successful, now clear local data
-                    localStorage.removeItem('user_session_token');
-                    localStorage.removeItem('user_data');
-                    
-                    // Redirect to login
-                    window.location.href = 'login.html';
-                    return;
-                } else {
-                    throw new Error(data.error || 'Logout failed');
-                }
-            } else {
-                throw new Error(`Server error: ${response.status}`);
-            }
-        }
     } catch (error) {
         console.error('Logout error:', error);
         

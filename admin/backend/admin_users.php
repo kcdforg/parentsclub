@@ -158,7 +158,7 @@ try {
                 exit;
             }
             
-            $hashedPassword = md5($password);
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
             
             $stmt = $db->prepare("
                 INSERT INTO admin_users (username, password, email, created_by) 
@@ -252,13 +252,13 @@ try {
                 $stmt->execute([$adminId]);
                 $currentAdmin = $stmt->fetch();
                 
-                if (!$currentAdmin || md5($currentPassword) !== $currentAdmin['password']) {
+                if (!$currentAdmin || !password_verify($currentPassword, $currentAdmin['password'])) {
                     http_response_code(400);
                     echo json_encode(['error' => 'Current password is incorrect']);
                     exit;
                 }
                 
-                $hashedPassword = md5($newPassword);
+                $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
                 $stmt = $db->prepare("UPDATE admin_users SET password = ? WHERE id = ?");
                 $stmt->execute([$hashedPassword, $adminId]);
                 

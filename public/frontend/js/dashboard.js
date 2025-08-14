@@ -1,5 +1,7 @@
+import { apiFetch } from './api.js';
+
 // Dashboard functionality
-let sessionToken = '';
+let sessionToken = ''; // This will eventually be removed as apiFetch handles it
 let userData = {};
 
 // Initialize dashboard
@@ -87,28 +89,20 @@ async function refreshUserData() {
     }
 
     try {
-        const response = await fetch('../backend/account.php', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${sessionToken}`
-            }
+        const data = await apiFetch('account.php', {
+            method: 'GET'
         });
-
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success) {
-                userData = data.account;
-                
-                // Update localStorage with fresh data
-                const currentUserData = JSON.parse(localStorage.getItem('user_data') || '{}');
-                const updatedUserData = { ...currentUserData, ...userData };
-                localStorage.setItem('user_data', JSON.stringify(updatedUserData));
-                updateUI();
-            } else {
-                console.error('Failed to fetch user data:', data.error);
-            }
+        
+        if (data.success) {
+            userData = data.account;
+            
+            // Update localStorage with fresh data
+            const currentUserData = JSON.parse(localStorage.getItem('user_data') || '{}');
+            const updatedUserData = { ...currentUserData, ...userData };
+            localStorage.setItem('user_data', JSON.stringify(updatedUserData));
+            updateUI();
         } else {
-            console.error('Failed to fetch user data:', response.statusText);
+            console.error('Failed to fetch user data:', data.error);
         }
     } catch (error) {
         console.error('Error fetching user data:', error);
@@ -250,29 +244,20 @@ async function handleLogout() {
     }
 
     try {
-        const response = await fetch('../backend/logout.php', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${sessionToken}`
-            }
+        const data = await apiFetch('logout.php', {
+            method: 'POST'
         });
 
-        // Wait for response and check if successful
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success) {
-                // Server logout successful, now clear local data
-                localStorage.removeItem('user_session_token');
-                localStorage.removeItem('user_data');
-                
-                // Redirect to login
-                window.location.href = 'login.html';
-                return;
-            } else {
-                throw new Error(data.error || 'Logout failed');
-            }
+        if (data.success) {
+            // Server logout successful, now clear local data
+            localStorage.removeItem('user_session_token');
+            localStorage.removeItem('user_data');
+            
+            // Redirect to login
+            window.location.href = 'login.html';
+            return;
         } else {
-            throw new Error(`Server error: ${response.status}`);
+            throw new Error(data.error || 'Logout failed');
         }
     } catch (error) {
         console.error('Logout error:', error);

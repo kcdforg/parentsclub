@@ -1,3 +1,5 @@
+import { apiFetch } from './api.js';
+
 // Invitations management functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Check authentication
@@ -15,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
         status: '',
         search: ''
     };
+    let lastCreatedInvitationId = null; // New variable to store the ID of the last created invitation
 
     // DOM elements
     const statusFilter = document.getElementById('statusFilter');
@@ -82,24 +85,51 @@ document.addEventListener('DOMContentLoaded', function() {
         invitationModal.classList.remove('hidden');
         invitationForm.reset();
         invitationError.classList.add('hidden');
+        // Ensure the createInviteBtn is ready for form submission
+        createInviteBtn.type = 'submit';
+        createInviteBtnText.textContent = 'Create Invitation';
+        createInviteBtnSpinner.classList.add('hidden'); // Ensure spinner is hidden
+        createInviteBtn.disabled = false; // Ensure button is enabled
+        cancelInviteBtn.classList.remove('hidden'); // Ensure cancel button is visible
+        // Remove the 'close' event listener if it was previously added
+        createInviteBtn.removeEventListener('click', closeInvitationModalAndHighlight);
     });
 
     copyAllLinksBtn.addEventListener('click', function() {
         copyAllInvitationLinks();
     });
 
-    closeModalBtn.addEventListener('click', function() {
+    // Centralized modal close logic for highlight timing
+    function closeInvitationModalAndHighlight() {
         invitationModal.classList.add('hidden');
-    });
+        invitationForm.reset();
+        // Reset message area to hidden and error state for next time
+        invitationError.classList.add('hidden', 'bg-red-50', 'border-red-200', 'text-red-700');
+        invitationError.classList.remove('bg-green-50', 'border-green-200', 'text-green-700');
+        // Reset button state
+        createInviteBtn.type = 'submit';
+        createInviteBtnText.textContent = 'Create Invitation';
+        cancelInviteBtn.classList.remove('hidden');
 
-    cancelInviteBtn.addEventListener('click', function() {
-        invitationModal.classList.add('hidden');
-    });
+        if (lastCreatedInvitationId) {
+            // Ensure invitations are reloaded to show the new row, then highlight
+            currentPage = 1; // Set current page to 1 to ensure the new invitation is loaded
+            loadInvitations().then(() => {
+                lastCreatedInvitationId = null; // Clear the ID after highlighting
+            });
+        } else {
+            // If no new invitation was created, just reload without highlighting
+            loadInvitations();
+        }
+    }
+
+    closeModalBtn.addEventListener('click', closeInvitationModalAndHighlight);
+    cancelInviteBtn.addEventListener('click', closeInvitationModalAndHighlight);
 
     // Close modal when clicking outside
     invitationModal.addEventListener('click', function(e) {
         if (e.target === invitationModal) {
-            invitationModal.classList.add('hidden');
+            closeInvitationModalAndHighlight();
         }
     });
 
@@ -133,22 +163,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 search: currentFilters.search
             });
 
-            const response = await fetch(`../backend/invitations.php?${params}`, {
-                headers: {
-                    'Authorization': `Bearer ${sessionToken}`
-                }
+            const data = await apiFetch(`invitations.php?${params}`, {
+                method: 'GET'
             });
-
-            if (!response.ok) {
-                if (response.status === 401) {
-                    localStorage.removeItem('admin_session_token');
-                    window.location.href = 'login.html';
-                    return;
-                }
-                throw new Error('Failed to load invitations');
-            }
-
-            const data = await response.json();
             
             if (data.success) {
                 currentInvitations = data.invitations; // Store invitations in currentInvitations
@@ -180,6 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         invitations.forEach(invitation => {
             const row = document.createElement('tr');
+            row.id = `invitation-${invitation.id}`; // Add ID to the row
             row.className = 'hover:bg-gray-50';
             
             const statusClass = getStatusClass(invitation.status);
@@ -210,12 +228,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${invitation.invitation_code.length > 20 ? invitation.invitation_code.substring(0, 20) + '...' : invitation.invitation_code}
                         </div>
                         <div class="text-xs text-gray-500 mt-1">${invitation.invited_by_type}</div>
-                        <button onclick="copyToClipboard('${invitation.invitation_code}')" class="text-xs text-indigo-600 hover:text-indigo-800 hover:underline mt-1">
-                            <i class="fas fa-copy"></i> Copy Code
-                        </button>
                     </div>
                 </td>
-                <td class="px-3 py-4 whitespace-nowrap">
+                <td class="px-3 py-4 whitespace-nowrap invitation-link-cell">
                     <div class="max-w-xs">
                         <div class="bg-gray-50 p-2 rounded border text-sm text-gray-900 break-all font-mono text-xs" title="${invitationLink}">
                             <span class="url-short">${invitationLink.length > 50 ? invitationLink.substring(0, 50) + '...' : invitationLink}</span>
@@ -337,21 +352,31 @@ document.addEventListener('DOMContentLoaded', function() {
             showLoading(true);
             invitationError.classList.add('hidden');
 
-            const response = await fetch('../backend/invitations.php', {
+            const data = await apiFetch('invitations.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionToken}`
-                },
                 body: JSON.stringify(invitationData)
             });
 
-            const data = await response.json();
-
             if (data.success) {
-                invitationModal.classList.add('hidden');
-                showSuccess('Invitation created successfully!');
-                loadInvitations();
+                // Display success message in the modal
+                invitationError.textContent = 'Invitation created successfully!';
+                invitationError.classList.remove('hidden', 'bg-red-50', 'border-red-200', 'text-red-700');
+                invitationError.classList.add('bg-green-50', 'border-green-200', 'text-green-700');
+
+                // Change create button to Close
+                createInviteBtn.type = 'button';
+                createInviteBtnText.textContent = 'Close';
+                createInviteBtnSpinner.classList.add('hidden');
+                cancelInviteBtn.classList.add('hidden');
+
+                // Store the invitation ID to be used after modal closure
+                lastCreatedInvitationId = data.invitation_id;
+
+                // Add the close listener to the button. It will be removed when the modal opens again.
+                createInviteBtn.addEventListener('click', closeInvitationModalAndHighlight);
+
+                // loadInvitations(); // This is now handled by closeInvitationModalAndHighlight
+                
             } else {
                 showFormError(data.error || 'Failed to create invitation');
             }
@@ -359,7 +384,8 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error creating invitation:', error);
             showFormError('Failed to create invitation. Please try again.');
         } finally {
-            showLoading(false);
+            // Loading state remains active until form is closed or another action
+            showLoading(false); // This will be handled by the 'Close' button now
         }
     }
 
@@ -384,14 +410,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Show success message
     function showSuccess(message) {
-        // You can implement a toast notification system here
-        alert(message);
+        // This function is still used by resendInvitation, etc., not for createInvitation success anymore
+        window.showToast(message, 'success');
     }
 
     // Show error message
     function showError(message) {
-        // You can implement a toast notification system here
-        alert(message);
+        window.showModal('Error', message, true);
     }
 
     // Global functions for onclick handlers
@@ -475,15 +500,47 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('invitationDetailsModal').classList.remove('hidden');
     };
 
-    window.resendInvitation = function(invitationId) {
+    window.resendInvitation = async function(invitationId) {
         // Implement resend invitation functionality
-        console.log('Resend invitation:', invitationId);
+        console.log('Resending invitation:', invitationId);
+        try {
+            const data = await apiFetch('invitations.php', {
+                method: 'POST',
+                body: JSON.stringify({ action: 'resend', invitation_id: invitationId })
+            });
+            if (data.success) {
+                window.showToast('Invitation resend successfully!', 'success');
+            } else {
+                showError(data.error || 'Failed to resend invitation');
+            }
+        } catch (error) {
+            console.error('Error resending invitation:', error);
+            showError('Failed to resend invitation. Network error.');
+        }
     };
 
-    window.deleteInvitation = function(invitationId) {
-        if (confirm('Are you sure you want to delete this invitation?')) {
-            // Implement delete invitation functionality
-            console.log('Delete invitation:', invitationId);
+    window.deleteInvitation = async function(invitationId) {
+        const confirmed = await window.showModal('Confirm Deletion', 'Are you sure you want to delete this invitation? This action cannot be undone.', false, true);
+        
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            const data = await apiFetch(`invitations.php?id=${invitationId}`, {
+                method: 'DELETE'
+            });
+
+            if (data.success) {
+                window.showToast('Invitation deleted successfully', 'success');
+                loadInvitations(); // Reload the list
+            } else {
+                showError(data.error || 'Failed to delete invitation');
+            }
+
+        } catch (error) {
+            console.error('Error deleting invitation:', error);
+            showError('Failed to delete invitation. Please try again.');
         }
     };
 
@@ -657,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function() {
             copyAllLinksBtn.classList.add('bg-green-600');
         }, 3000);
         
-        showSuccess(`Copied ${count} invitation links to clipboard!`);
+        window.showToast(`Copied ${count} invitation links to clipboard!`, 'success');
     }
     
     // Helper function to show copy all error feedback
@@ -674,4 +731,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         showError('Failed to copy all links to clipboard. Please try again.');
     }
+
+    // Helper to highlight a row and display link
+    /* Removed highlightAndDisplayLink function */
+
+    // Replace window.showToast with an empty function or remove its usage where it was previously used for success message after creation
+    window.showToast = function(message, type) {
+        console.log(`Toast (now inline): ${message}, Type: ${type}`);
+    };
 }); 

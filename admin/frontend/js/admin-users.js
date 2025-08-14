@@ -1,3 +1,5 @@
+import { apiFetch } from './api.js';
+
 // Admin users management functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Check authentication
@@ -144,23 +146,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 search: currentFilters.search
             });
 
-            const response = await fetch(`../backend/admin_users.php?${params}`, {
-                headers: {
-                    'Authorization': `Bearer ${sessionToken}`
-                }
+            const data = await apiFetch(`admin_users.php?${params}`, {
+                method: 'GET'
             });
 
-            if (!response.ok) {
-                if (response.status === 401) {
-                    localStorage.removeItem('admin_session_token');
-                    window.location.href = 'login.html';
-                    return;
-                }
-                throw new Error('Failed to load admin users');
-            }
-
-            const data = await response.json();
-            
             if (data.success) {
                 displayAdminUsers(data.admin_users);
                 updatePagination(data.pagination);
@@ -287,16 +276,10 @@ document.addEventListener('DOMContentLoaded', function() {
             showCreateLoading(true);
             createAdminError.classList.add('hidden');
 
-            const response = await fetch('../backend/admin_users.php', {
+            const data = await apiFetch('admin_users.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionToken}`
-                },
                 body: JSON.stringify(adminData)
             });
-
-            const data = await response.json();
 
             if (data.success) {
                 createAdminModal.classList.add('hidden');
@@ -327,16 +310,10 @@ document.addEventListener('DOMContentLoaded', function() {
             showEditLoading(true);
             editAdminError.classList.add('hidden');
 
-            const response = await fetch('../backend/admin_users.php', {
+            const data = await apiFetch('admin_users.php', {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionToken}`
-                },
                 body: JSON.stringify(adminData)
             });
-
-            const data = await response.json();
 
             if (data.success) {
                 editAdminModal.classList.add('hidden');
@@ -392,13 +369,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show success message
     function showSuccess(message) {
         // You can implement a toast notification system here
-        alert(message);
+        window.showToast(message, 'success');
     }
 
     // Show error message
     function showError(message) {
         // You can implement a toast notification system here
-        alert(message);
+        window.showModal('Error', message, true);
     }
 
     // Global functions for onclick handlers
@@ -413,24 +390,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.toggleAdminStatus = async function(adminId, activate) {
         const action = activate ? 'activate' : 'deactivate';
-        if (confirm(`Are you sure you want to ${action} this admin user?`)) {
+        const confirmed = await window.showModal('Confirm Action', `Are you sure you want to ${action} this admin user?`, false, true);
+        
+        if (confirmed) {
             try {
-                const response = await fetch('../backend/admin_users.php', {
+                const data = await apiFetch('admin_users.php', {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${sessionToken}`
-                    },
                     body: JSON.stringify({
                         admin_id: adminId,
                         action: 'toggle_status'
                     })
                 });
 
-                const data = await response.json();
-
                 if (data.success) {
-                    showSuccess(data.message);
+                    window.showToast(data.message, 'success');
                     loadAdminUsers();
                 } else {
                     showError(data.error || 'Failed to update admin status');
@@ -443,23 +416,19 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     window.deleteAdminUser = async function(adminId) {
-        if (confirm('Are you sure you want to delete this admin user? This action cannot be undone.')) {
+        const confirmed = await window.showModal('Confirm Deletion', 'Are you sure you want to delete this admin user? This action cannot be undone.', false, true);
+        
+        if (confirmed) {
             try {
-                const response = await fetch('../backend/admin_users.php', {
+                const data = await apiFetch('admin_users.php', {
                     method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${sessionToken}`
-                    },
                     body: JSON.stringify({
                         admin_id: adminId
                     })
                 });
 
-                const data = await response.json();
-
                 if (data.success) {
-                    showSuccess(data.message);
+                    window.showToast(data.message, 'success');
                     loadAdminUsers();
                 } else {
                     showError(data.error || 'Failed to delete admin user');

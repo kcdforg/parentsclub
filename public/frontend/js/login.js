@@ -1,3 +1,5 @@
+import { apiFetch } from './api.js';
+
 // User login functionality
 document.addEventListener('DOMContentLoaded', function() {
     checkExistingSession();
@@ -94,18 +96,13 @@ async function handleLogin(e) {
     hideError();
 
     try {
-        const response = await fetch('../backend/login.php', {
+        const data = await apiFetch('login.php', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
                 phone: countryCode + phoneNumber,
                 password: password
             })
         });
-
-        const data = await response.json();
 
         if (data.success) {
             // Store session token and user data
@@ -148,18 +145,13 @@ async function handlePasswordReset() {
     hideResetSuccess();
 
     try {
-        const response = await fetch('../backend/forgot_password.php', {
+        const data = await apiFetch('forgot_password.php', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
                 phone: countryCode + phoneNumber
             })
         });
 
-        const data = await response.json();
-        
         if (data.success) {
             // Show success message
             showResetSuccess(data.message);

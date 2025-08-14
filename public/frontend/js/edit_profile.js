@@ -1,4 +1,5 @@
 import { parsePhoneNumber } from './utils.js';
+import { apiFetch } from './api.js';
 
 // Define countries and states data
 const countries = [
@@ -21,6 +22,7 @@ const indianStates = [
     'Arunachal Pradesh',
     'Assam',
     'Bihar',
+    'BENGALURU',
     'Chhattisgarh',
     'Goa',
     'Gujarat',
@@ -143,25 +145,18 @@ function checkAuthentication() {
 
 async function loadExistingProfile() {
     try {
-        const response = await fetch('../backend/profile.php', {
-            headers: {
-                'Authorization': `Bearer ${sessionToken}`
-            }
+        const data = await apiFetch('profile.php', {
+            method: 'GET'
         });
 
-        if (response.ok) {
-            const data = await response.json();
-            console.log('API response data in loadExistingProfile (Edit Profile flow):', data);
-            
-            if (data.success && data.profile) {
-                console.log('Profile data to populate (Edit Profile flow):', data.profile);
-                populateForm(data.profile);
-                // Store initial form state after populating
-                initialFormState = getFormCurrentState();
-                setHasChanges(false);
-            }
-        } else if (response.status === 403) {
-            console.error('Error response status in loadExistingProfile (Add Personal Info flow):', response.status);
+        console.log('API response data in loadExistingProfile (Edit Profile flow):', data);
+        
+        if (data.success && data.profile) {
+            console.log('Profile data to populate (Edit Profile flow):', data.profile);
+            populateForm(data.profile);
+            // Store initial form state after populating
+            initialFormState = getFormCurrentState();
+            setHasChanges(false);
         }
     } catch (error) {
         console.error('Error loading profile (Add Personal Info flow):', error);
@@ -458,7 +453,7 @@ function initializeEventListeners() {
             if (hasChanges && !confirm('You have unsaved changes. Are you sure you want to cancel?')) {
                 return;
             }
-            window.location.reload(); // Reloads the page to revert changes
+            window.location.reload(); // Reloads the current page to revert changes
         });
     }
 
@@ -640,16 +635,11 @@ async function handleProfileSubmission(e) {
     hideSuccess();
 
     try {
-        const response = await fetch('../backend/profile.php', {
+        const data = await apiFetch('profile.php', {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${sessionToken}`
-            },
             body: JSON.stringify(profileData)
         });
 
-        const data = await response.json();
         console.log('Profile API response:', data);
 
         if (data.success) {
@@ -780,27 +770,15 @@ async function handleLogout() {
     }
 
     try {
-        const response = await fetch('../backend/logout.php', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${sessionToken}`
-            }
+        await apiFetch('logout.php', {
+            method: 'POST'
         });
 
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success) {
-                localStorage.removeItem('user_session_token');
-                localStorage.removeItem('user_data');
-                
-                window.location.href = 'login.html';
-                return;
-            } else {
-                throw new Error(data.error || 'Logout failed');
-            }
-        } else {
-            throw new Error(`Server error: ${response.status}`);
-        }
+        localStorage.removeItem('user_session_token');
+        localStorage.removeItem('user_data');
+        
+        window.location.href = 'login.html';
+
     } catch (error) {
         console.error('Logout error:', error);
         

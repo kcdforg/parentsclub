@@ -1,3 +1,5 @@
+import { apiFetch } from './api.js';
+
 // Users management functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Check authentication
@@ -86,23 +88,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 search: currentFilters.search
             });
 
-            const response = await fetch(`../backend/users.php?${params}`, {
-                headers: {
-                    'Authorization': `Bearer ${sessionToken}`
-                }
+            const data = await apiFetch(`users.php?${params}`, {
+                method: 'GET'
             });
 
-            if (!response.ok) {
-                if (response.status === 401) {
-                    localStorage.removeItem('admin_session_token');
-                    window.location.href = 'login.html';
-                    return;
-                }
-                throw new Error('Failed to load users');
-            }
-
-            const data = await response.json();
-            
             if (data.success) {
                 displayUsers(data.users);
                 updatePagination(data.pagination);
@@ -307,7 +296,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show error message
     function showError(message) {
         // You can implement a toast notification system here
-        alert(message);
+        window.showModal('Error', message, true);
     }
 
     // Global functions for onclick handlers
@@ -322,18 +311,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load user details and show modal
     async function loadUserDetails(userId) {
         try {
-            const response = await fetch(`../backend/user_details.php?id=${userId}`, {
-                headers: {
-                    'Authorization': `Bearer ${sessionToken}`
-                }
+            const data = await apiFetch(`user_details.php?id=${userId}`, {
+                method: 'GET'
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to load user details');
-            }
-
-            const data = await response.json();
-            
             if (data.success) {
                 displayUserDetails(data.user);
                 document.getElementById('userDetailsModal').classList.remove('hidden');
@@ -445,12 +426,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const notes = document.getElementById('approvalNotes').value;
         
         try {
-            const response = await fetch('../backend/users.php', {
+            const data = await apiFetch('users.php', {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionToken}`
-                },
                 body: JSON.stringify({
                     user_id: parseInt(userId),
                     status: status,
@@ -458,12 +435,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
             });
 
-            const data = await response.json();
-            
             if (data.success) {
                 document.getElementById('approvalModal').classList.add('hidden');
                 loadUsers(); // Reload the users list
-                showSuccess('User status updated successfully');
+                window.showToast(data.message, 'success');
             } else {
                 showError(data.error || 'Failed to update user status');
             }
@@ -476,7 +451,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Success message function
     function showSuccess(message) {
         // Simple alert for now - you can enhance this with better notifications
-        alert(message);
+        window.showToast(message, 'success');
     }
 
     // Tab functionality
@@ -582,13 +557,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 search: resetCurrentFilters.search
             });
 
-            const response = await fetch(`../backend/password_reset_requests.php?${params}`, {
-                headers: {
-                    'Authorization': `Bearer ${sessionToken}`
-                }
+            const data = await apiFetch(`password_reset_requests.php?${params}`, {
+                method: 'GET'
             });
-
-            const data = await response.json();
             
             if (data.success) {
                 displayPasswordResetRequests(data.requests);
@@ -727,26 +698,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Global functions for button handlers
     window.handleResetAction = async function(requestId, action) {
         try {
-            const response = await fetch('../backend/password_reset_requests.php', {
+            const data = await apiFetch('password_reset_requests.php', {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionToken}`
-                },
                 body: JSON.stringify({
                     request_id: requestId,
                     action: action
                 })
             });
-
-            const data = await response.json();
             
             if (data.success) {
                 if (action === 'approve' && data.reset_link) {
                     showResetLink(data.reset_link, data.user_email);
                 }
                 loadPasswordResetRequests();
-                showSuccess(data.message);
+                window.showToast(data.message, 'success');
             } else {
                 showError(data.error || `Failed to ${action} reset request`);
             }
@@ -787,13 +752,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.resendInvitation = function(invitationId) {
         // This would integrate with the invitations API
-        showSuccess('Invitation resend functionality would be implemented here');
+        window.showToast('Invitation resend functionality would be implemented here', 'info');
     };
 
-    window.cancelInvitation = function(invitationId) {
-        if (confirm('Are you sure you want to cancel this invitation?')) {
+    window.cancelInvitation = async function(invitationId) {
+        const confirmed = await window.showModal('Confirm Cancellation', 'Are you sure you want to cancel this invitation? This action cannot be undone.', false, true);
+        
+        if (confirmed) {
             // This would integrate with the invitations API
-            showSuccess('Invitation cancellation functionality would be implemented here');
+            window.showToast('Invitation cancellation functionality would be implemented here', 'info');
+            // Example: try { await apiFetch(...); showToast(...); loadInvitations(); } catch (error) { showError(...); }
         }
     };
 }); 

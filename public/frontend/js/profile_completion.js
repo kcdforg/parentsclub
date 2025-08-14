@@ -1,4 +1,5 @@
 import { parsePhoneNumber } from './utils.js';
+import { apiFetch } from './api.js';
 
 // Define countries and states data
 const countries = [
@@ -21,6 +22,7 @@ const indianStates = [
     'Arunachal Pradesh',
     'Assam',
     'Bihar',
+    'BENGALURU',
     'Chhattisgarh',
     'Goa',
     'Gujarat',
@@ -148,32 +150,20 @@ function checkAuthentication() {
 
 async function loadExistingProfile() {
     try {
-        const response = await fetch('../backend/profile.php', {
-            headers: {
-                'Authorization': `Bearer ${sessionToken}`
-            }
+        const data = await apiFetch('profile.php', {
+            method: 'GET'
         });
 
-        if (response.ok) {
-            const data = await response.json();
-            console.log('API response data in loadExistingProfile (Add Personal Info flow):', data);
-            
-            if (data.success && data.profile) {
-                // FOR PROFILE COMPLETION FLOW: If profile is already completed, redirect.
-                if (data.profile.profile_completed) {
-                    window.location.href = 'dashboard.html';
-                    return;
-                }
-                console.log('Profile data to populate (Add Personal Info flow):', data.profile);
-                populateForm(data.profile);
+        console.log('API response data in loadExistingProfile (Add Personal Info flow):', data);
+        
+        if (data.success && data.profile) {
+            // FOR PROFILE COMPLETION FLOW: If profile is already completed, redirect.
+            if (data.profile.profile_completed) {
+                window.location.href = 'dashboard.html';
+                return;
             }
-        } else if (response.status === 403) {
-            // FOR PROFILE COMPLETION FLOW: If backend explicitly says profile is completed, redirect.
-            console.log('Backend 403: Profile already completed, redirecting to dashboard.');
-            window.location.href = 'dashboard.html';
-            return;
-        } else {
-            console.error('Error response status in loadExistingProfile (Add Personal Info flow):', response.status);
+            console.log('Profile data to populate (Add Personal Info flow):', data.profile);
+            populateForm(data.profile);
         }
     } catch (error) {
         console.error('Error loading profile (Add Personal Info flow):', error);
@@ -591,16 +581,11 @@ async function handleProfileSubmission(e) {
     hideSuccess();
 
     try {
-        const response = await fetch('../backend/profile.php', {
+        const data = await apiFetch('profile.php', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${sessionToken}`
-            },
             body: JSON.stringify(profileData)
         });
 
-        const data = await response.json();
         console.log('Profile API response:', data);
 
         if (data.success) {
@@ -723,27 +708,15 @@ async function handleLogout() {
     }
 
     try {
-        const response = await fetch('../backend/logout.php', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${sessionToken}`
-            }
+        await apiFetch('logout.php', {
+            method: 'POST'
         });
 
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success) {
-                localStorage.removeItem('user_session_token');
-                localStorage.removeItem('user_data');
-                
-                window.location.href = 'login.html';
-                return;
-            } else {
-                throw new Error(data.error || 'Logout failed');
-            }
-        } else {
-            throw new Error(`Server error: ${response.status}`);
-        }
+        localStorage.removeItem('user_session_token');
+        localStorage.removeItem('user_data');
+        
+        window.location.href = 'login.html';
+
     } catch (error) {
         console.error('Logout error:', error);
         

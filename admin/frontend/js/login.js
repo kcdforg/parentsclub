@@ -1,6 +1,9 @@
+import { apiFetch } from './api.js';
+
 // Admin login functionality
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('loginForm');
+    console.log('loginForm element:', loginForm); // Added for debugging
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
     const togglePasswordBtn = document.getElementById('togglePassword');
@@ -44,18 +47,13 @@ document.addEventListener('DOMContentLoaded', function() {
         hideError();
 
         try {
-            const response = await fetch('../backend/login.php', {
+            const data = await apiFetch('login.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
                 body: JSON.stringify({
                     username: username,
                     password: password
                 })
             });
-
-            const data = await response.json();
 
             if (data.success) {
                 // Store session token
@@ -99,13 +97,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function verifySession(token) {
         try {
-            const response = await fetch('../backend/dashboard.php', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+            const data = await apiFetch('dashboard.php', {
+                method: 'GET'
             });
 
-            if (response.ok) {
+            if (data.success) {
                 // Token is valid, redirect to dashboard
                 window.location.href = 'dashboard.html';
             } else {

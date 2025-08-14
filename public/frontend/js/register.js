@@ -1,3 +1,5 @@
+import { apiFetch } from './api.js';
+
 // Registration functionality
 // import { parsePhoneNumber } from './utils.js'; // No longer needed as phone is not taken directly on this page
 document.addEventListener('DOMContentLoaded', function() {
@@ -10,8 +12,12 @@ function checkExistingSession() {
     const userSessionToken = localStorage.getItem('user_session_token');
     const adminSessionToken = localStorage.getItem('admin_session_token');
 
-    if (adminSessionToken) {
-        // Admin is logged in, redirect to admin dashboard
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const invitationCode = urlParams.get('invitation');
+
+    // If there's an admin session AND no invitation code in URL, redirect to admin dashboard
+    if (adminSessionToken && !invitationCode) {
         window.location.href = '../../admin/frontend/dashboard.html';
     } else if (userSessionToken) {
         // User is already logged in, redirect to user dashboard
@@ -34,8 +40,9 @@ async function checkInvitation() {
     
     try {
         console.log('Making API request to validate invitation...');
-        const response = await fetch(`../backend/invitation.php?code=${encodeURIComponent(invitationCode)}`);
-        const data = await response.json();
+        const data = await apiFetch(`invitation.php?code=${encodeURIComponent(invitationCode)}`, {
+            method: 'GET'
+        });
         
         console.log('Invitation check response:', data);
         
@@ -239,15 +246,10 @@ async function handleRegistration(e) {
         
         console.log('Sending registration request:', { ...requestBody, password: '[HIDDEN]' });
 
-        const response = await fetch('../backend/register.php', {
+        const data = await apiFetch('register.php', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify(requestBody)
         });
-
-        const data = await response.json();
         
         console.log('Registration response:', data);
 
