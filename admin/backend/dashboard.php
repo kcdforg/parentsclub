@@ -62,7 +62,7 @@ try {
     
     // Recent users (last 10)
     $stmt = $db->query("
-        SELECT u.id, u.email, u.enrollment_number, u.approval_status, u.created_at,
+        SELECT u.id, u.enrollment_number, u.approval_status, u.created_at,
                p.full_name, p.phone
         FROM users u 
         LEFT JOIN user_profiles p ON u.id = p.user_id

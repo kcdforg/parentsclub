@@ -15,6 +15,14 @@ function checkAuthentication() {
         window.location.href = 'login.html';
         return;
     }
+    
+    // Check if profile is completed
+    const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+    if (!userData.profile_completed) {
+        // Redirect to profile completion page
+        window.location.href = 'profile_completion.html';
+        return;
+    }
 }
 
 function initializeEventListeners() {
@@ -62,6 +70,7 @@ function loadUserData() {
     const storedData = localStorage.getItem('user_data');
     if (storedData) {
         userData = JSON.parse(storedData);
+        
         updateUI();
     }
     
@@ -89,6 +98,7 @@ async function refreshUserData() {
             const data = await response.json();
             if (data.success) {
                 userData = data.account;
+                
                 // Update localStorage with fresh data
                 const currentUserData = JSON.parse(localStorage.getItem('user_data') || '{}');
                 const updatedUserData = { ...currentUserData, ...userData };
@@ -110,6 +120,18 @@ async function refreshUserData() {
 }
 
 function updateUI() {
+    // Check if profile is completed
+    if (!userData.profile_completed) {
+        // Show profile completion notice and hide main content
+        document.getElementById('profileCompletionNotice').classList.remove('hidden');
+        document.querySelector('main').style.display = 'none';
+        return;
+    }
+    
+    // Hide profile completion notice and show main content
+    document.getElementById('profileCompletionNotice').classList.add('hidden');
+    document.querySelector('main').style.display = 'block';
+    
     // Update navigation
     const userName = document.getElementById('userName');
     const welcomeName = document.getElementById('welcomeName');

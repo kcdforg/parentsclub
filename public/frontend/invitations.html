@@ -32,7 +32,7 @@
                         <a href="dashboard.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">
                             <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                         </a>
-                        <a href="profile.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">
+                        <a href="edit_profile.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">
                             <i class="fas fa-user mr-2"></i>Profile
                         </a>
                         <a href="subscription.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">
@@ -61,7 +61,7 @@
                 <a href="dashboard.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">
                     <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                 </a>
-                <a href="profile.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">
+                <a href="edit_profile.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">
                     <i class="fas fa-user mr-2"></i>Profile
                 </a>
                 <a href="subscription.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">
@@ -143,6 +143,8 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invitee</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expires</th>
@@ -211,13 +213,19 @@
                     <div id="phoneSection" class="hidden">
                         <label for="inviteePhone" class="block text-sm font-medium text-gray-700">Phone Number</label>
                         <div class="flex">
-                            <select id="countryCodeInvite" class="px-3 py-2 border border-gray-300 rounded-l-md focus:ring-primary focus:border-primary bg-gray-50">
+                            <select id="countryCodeInvite" name="invited_phone_country_code" class="px-3 py-2 border border-gray-300 rounded-l-md focus:ring-primary focus:border-primary bg-gray-50">
                                 <option value="+91">🇮🇳 +91</option>
                                 <option value="+1">🇺🇸 +1</option>
                                 <option value="+44">🇬🇧 +44</option>
                                 <option value="+61">🇦🇺 +61</option>
+                                <option value="+81">🇯🇵 +81</option>
+                                <option value="+49">🇩🇪 +49</option>
+                                <option value="+33">🇫🇷 +33</option>
+                                <option value="+39">🇮🇹 +39</option>
+                                <option value="+34">🇪🇸 +34</option>
+                                <option value="+86">🇨🇳 +86</option>
                             </select>
-                            <input type="tel" id="inviteePhone" name="inviteePhone" maxlength="10" 
+                            <input type="tel" id="inviteePhone" name="invited_phone_number" maxlength="10" 
                                    placeholder="Enter 10-digit number"
                                    class="flex-1 px-3 py-2 border-t border-r border-b border-gray-300 rounded-r-md focus:ring-primary focus:border-primary">
                         </div>
@@ -239,13 +247,19 @@
                         <div id="crossPhoneSection">
                             <label for="crossPhone" class="block text-sm font-medium text-gray-600">Phone (for reference)</label>
                             <div class="flex">
-                                <select id="crossCountryCode" class="px-3 py-2 border border-gray-300 rounded-l-md focus:ring-primary focus:border-primary bg-gray-50">
+                                <select id="crossCountryCode" name="cross_phone_country_code" class="px-3 py-2 border border-gray-300 rounded-l-md focus:ring-primary focus:border-primary bg-gray-50">
                                     <option value="+91">🇮🇳 +91</option>
                                     <option value="+1">🇺🇸 +1</option>
                                     <option value="+44">🇬🇧 +44</option>
                                     <option value="+61">🇦🇺 +61</option>
+                                    <option value="+81">🇯🇵 +81</option>
+                                    <option value="+49">🇩🇪 +49</option>
+                                    <option value="+33">🇫🇷 +33</option>
+                                    <option value="+39">🇮🇹 +39</option>
+                                    <option value="+34">🇪🇸 +34</option>
+                                    <option value="+86">🇨🇳 +86</option>
                                 </select>
-                                <input type="tel" id="crossPhone" name="crossPhone" maxlength="10" 
+                                <input type="tel" id="crossPhone" name="cross_phone_number" maxlength="10" 
                                        placeholder="Enter 10-digit number"
                                        class="flex-1 px-3 py-2 border-t border-r border-b border-gray-300 rounded-r-md focus:ring-primary focus:border-primary">
                             </div>

@@ -5,10 +5,15 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function checkExistingSession() {
-    const sessionToken = localStorage.getItem('user_session_token');
-    if (sessionToken) {
-        // User is already logged in, redirect to main page
-        window.location.href = 'index.html';
+    const userSessionToken = localStorage.getItem('user_session_token');
+    const adminSessionToken = localStorage.getItem('admin_session_token');
+
+    if (adminSessionToken) {
+        // Admin is logged in, redirect to admin dashboard
+        window.location.href = '../../admin/frontend/dashboard.html';
+    } else if (userSessionToken) {
+        // User is logged in, redirect to user dashboard
+        window.location.href = 'dashboard.html';
     }
 }
 
@@ -69,17 +74,19 @@ async function handleLogin(e) {
     e.preventDefault();
     
     const formData = new FormData(e.target);
-    const email = formData.get('email').trim();
+    const countryCode = document.getElementById('countryCode').value;
+    const phoneNumber = formData.get('phone').trim();
     const password = formData.get('password');
 
     // Basic validation
-    if (!email || !password) {
+    if (!phoneNumber || !password) {
         showError('Please fill in all fields');
         return;
     }
 
-    if (!isValidEmail(email)) {
-        showError('Please enter a valid email address');
+    // Validate phone number (10 digits)
+    if (!/^\d{10}$/.test(phoneNumber)) {
+        showError('Please enter a valid 10-digit phone number');
         return;
     }
 
@@ -93,7 +100,7 @@ async function handleLogin(e) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                email: email,
+                phone: countryCode + phoneNumber,
                 password: password
             })
         });
@@ -107,9 +114,9 @@ async function handleLogin(e) {
             
             // Redirect based on user status
             if (!data.user.profile_completed) {
-                window.location.href = 'profile.html';
+                window.location.href = 'profile_completion.html';
             } else {
-                window.location.href = 'index.html';
+                window.location.href = 'dashboard.html';
             }
         } else {
             showError(data.error || 'Login failed');
@@ -123,15 +130,16 @@ async function handleLogin(e) {
 }
 
 async function handlePasswordReset() {
-    const email = document.getElementById('resetEmail').value.trim();
+    const countryCode = document.getElementById('resetCountryCode').value;
+    const phoneNumber = document.getElementById('resetPhone').value.trim();
     
-    if (!email) {
-        showResetError('Please enter your email address');
+    if (!phoneNumber) {
+        showResetError('Please enter your phone number');
         return;
     }
 
-    if (!isValidEmail(email)) {
-        showResetError('Please enter a valid email address');
+    if (!isValidPhone(phoneNumber)) {
+        showResetError('Please enter a valid 10-digit phone number');
         return;
     }
 
@@ -146,7 +154,7 @@ async function handlePasswordReset() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                email: email
+                phone: countryCode + phoneNumber
             })
         });
 
@@ -155,7 +163,7 @@ async function handlePasswordReset() {
         if (data.success) {
             // Show success message
             showResetSuccess(data.message);
-            document.getElementById('resetEmail').value = '';
+            document.getElementById('resetPhone').value = '';
             
             // Auto-close modal after 5 seconds to give user time to read
             setTimeout(() => {
@@ -175,9 +183,10 @@ async function handlePasswordReset() {
 }
 
 // Helper functions
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+function isValidPhone(phone) {
+    // Validate 10-digit phone number
+    const phoneRegex = /^\d{10}$/;
+    return phoneRegex.test(phone);
 }
 
 function showError(message) {
@@ -246,7 +255,7 @@ function setResetLoading(loading) {
 }
 
 function resetForgotPasswordForm() {
-    document.getElementById('resetEmail').value = '';
+    document.getElementById('resetPhone').value = '';
     hideResetError();
     hideResetSuccess();
     setResetLoading(false);

@@ -147,11 +147,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="flex items-center">
                         <div class="flex-shrink-0 h-10 w-10">
                             <div class="h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center">
-                                <span class="text-white font-medium">${user.email.charAt(0).toUpperCase()}</span>
+                                <span class="text-white font-medium">${(user.email || user.phone || 'U').charAt(0).toUpperCase()}</span>
                             </div>
                         </div>
                         <div class="ml-4">
-                            <div class="text-sm font-medium text-gray-900">${user.email}</div>
+                            <div class="text-sm font-medium text-gray-900">${user.email || user.phone || 'No contact info'}</div>
                             <div class="text-sm text-gray-500">${user.enrollment_number || 'No enrollment'}</div>
                         </div>
                     </div>

@@ -55,8 +55,9 @@ function listUsers() {
         }
         
         if ($searchFilter) {
-            $whereConditions[] = "(up.full_name LIKE ? OR u.email LIKE ? OR u.enrollment_number LIKE ?)";
+            $whereConditions[] = "(up.full_name LIKE ? OR u.email LIKE ? OR up.phone LIKE ? OR u.enrollment_number LIKE ?)";
             $searchTerm = "%{$searchFilter}%";
+            $params[] = $searchTerm;
             $params[] = $searchTerm;
             $params[] = $searchTerm;
             $params[] = $searchTerm;
@@ -141,7 +142,7 @@ function listUsers() {
                 
                 SELECT 
                     CONCAT('inv_', i.id) as id,
-                    i.invited_email as email,
+                    i.invited_phone as phone,
                     NULL as enrollment_number,
                     NULL as user_number,
                     i.invited_by_type as referred_by_type,

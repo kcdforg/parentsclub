@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <div class="ml-4">
                             <div class="text-sm font-medium text-gray-900">${invitation.invited_name}</div>
-                            <div class="text-sm text-gray-500">${invitation.invited_email}</div>
+                            <div class="text-sm text-gray-500">${invitation.invited_phone || 'No phone'}</div>
                         </div>
                     </div>
                 </td>
@@ -318,10 +318,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Create invitation
     async function createInvitation() {
         const formData = new FormData(invitationForm);
+        const countryCode = document.getElementById('countryCode').value;
+        const phoneNumber = formData.get('phone').trim();
+        
+        // Validate phone number (10 digits)
+        if (!/^\d{10}$/.test(phoneNumber)) {
+            showFormError('Please enter a valid 10-digit phone number');
+            return;
+        }
+        
         const invitationData = {
             name: formData.get('name'),
-            email: formData.get('email'),
-            expiry_days: parseInt(formData.get('expiry_days'))
+            phone: countryCode + phoneNumber,
+            expiry_days: 3 // 72 hours = 3 days
         };
 
         try {
@@ -410,8 +419,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             <p class="text-sm text-gray-900">${invitation.invited_name}</p>
                         </div>
                         <div>
-                            <label class="text-xs font-medium text-gray-500">Email</label>
-                            <p class="text-sm text-gray-900">${invitation.invited_email}</p>
+                            <label class="text-xs font-medium text-gray-500">Phone</label>
+                            <p class="text-sm text-gray-900">${invitation.invited_phone || 'No phone'}</p>
                         </div>
                     </div>
                 </div>
@@ -593,7 +602,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const baseUrl = window.location.origin;
         const allLinks = currentInvitations
             .filter(inv => inv.status === 'pending') // Only copy pending invitations
-            .map(inv => `${inv.invited_name} (${inv.invited_email}): ${baseUrl}/regapp2/public/frontend/register.html?invitation=${inv.invitation_code}`)
+            .map(inv => `${inv.invited_name} (${inv.invited_phone || 'No phone'}): ${baseUrl}/regapp2/public/frontend/register.html?invitation=${inv.invitation_code}`)
             .join('\n\n');
 
         if (allLinks === '') {

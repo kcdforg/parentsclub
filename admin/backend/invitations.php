@@ -39,6 +39,9 @@ function listInvitations() {
 
         $db = Database::getInstance()->getConnection();
         
+        // Check and update expired invitations
+        checkExpiredInvitations($db);
+        
         // Get query parameters
         $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
         $limit = 10;
@@ -57,7 +60,7 @@ function listInvitations() {
         }
         
         if ($searchFilter) {
-            $whereConditions[] = "(i.invited_name LIKE ? OR i.invited_email LIKE ?)";
+            $whereConditions[] = "(i.invited_name LIKE ? OR i.invited_phone LIKE ?)";
             $searchTerm = "%{$searchFilter}%";
             $params[] = $searchTerm;
             $params[] = $searchTerm;
@@ -137,75 +140,75 @@ function createInvitation() {
 
         $input = json_decode(file_get_contents('php://input'), true);
         
-        if (!isset($input['name']) || !isset($input['email']) || !isset($input['expiry_days'])) {
+        if (!isset($input['name']) || !isset($input['phone'])) {
             http_response_code(400);
-            echo json_encode(['error' => 'Name, email, and expiry days are required']);
+            echo json_encode(['error' => 'Name and phone are required']);
             return;
         }
         
         $name = trim($input['name']);
-        $email = trim($input['email']);
-        $expiryDays = intval($input['expiry_days']);
+        $phone = trim($input['phone']);
         
         // Validate input
-        if (empty($name) || empty($email) || $expiryDays < 1) {
+        if (empty($name) || empty($phone)) {
             http_response_code(400);
             echo json_encode(['error' => 'Invalid input data']);
             return;
         }
         
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        // Validate phone number format (country code + 7-15 digits)
+        if (!preg_match('/^\+\d{1,4}\d{7,15}$/', $phone)) {
             http_response_code(400);
-            echo json_encode(['error' => 'Invalid email format']);
+            echo json_encode(['error' => 'Invalid phone number format. Must include country code and be 7-15 digits.']);
             return;
         }
         
         $db = Database::getInstance()->getConnection();
         
-        // Check if email already exists as a registered user
-        $userCheckSql = "SELECT COUNT(*) FROM users WHERE email = ?";
+        // Check if phone already exists as a registered user
+        $userCheckSql = "SELECT COUNT(*) FROM users WHERE phone = ?";
         $userCheckStmt = $db->prepare($userCheckSql);
-        $userCheckStmt->execute([$email]);
+        $userCheckStmt->execute([$phone]);
         if ($userCheckStmt->fetchColumn() > 0) {
             http_response_code(400);
-            echo json_encode(['error' => 'This email is already registered as a user']);
+            echo json_encode(['error' => 'This phone number is already registered as a user']);
             return;
         }
         
-        // Check if email already exists as an admin user
-        $adminCheckSql = "SELECT COUNT(*) FROM admin_users WHERE email = ?";
-        $adminCheckStmt = $db->prepare($adminCheckSql);
-        $adminCheckStmt->execute([$email]);
-        if ($adminCheckStmt->fetchColumn() > 0) {
+        // Check if phone already exists in user profiles
+        $profileCheckSql = "SELECT COUNT(*) FROM user_profiles WHERE phone = ?";
+        $profileCheckStmt = $db->prepare($profileCheckSql);
+        $profileCheckStmt->execute([$phone]);
+        if ($profileCheckStmt->fetchColumn() > 0) {
             http_response_code(400);
-            echo json_encode(['error' => 'This email is already registered as an admin user']);
+            echo json_encode(['error' => 'This phone number is already registered in a user profile']);
             return;
         }
         
-        // Check if email already has a pending invitation
-        $inviteCheckSql = "SELECT COUNT(*) FROM invitations WHERE invited_email = ? AND status = 'pending'";
+        // Check if phone already has a pending invitation
+        $inviteCheckSql = "SELECT COUNT(*) FROM invitations WHERE invited_phone = ? AND status = 'pending'";
         $inviteCheckStmt = $db->prepare($inviteCheckSql);
-        $inviteCheckStmt->execute([$email]);
+        $inviteCheckStmt->execute([$phone]);
         if ($inviteCheckStmt->fetchColumn() > 0) {
             http_response_code(400);
-            echo json_encode(['error' => 'This email already has a pending invitation']);
+            echo json_encode(['error' => 'This phone number already has a pending invitation']);
             return;
         }
         
         // Generate unique invitation code
         $invitationCode = generateUniqueInvitationCode($db);
         
-        // Calculate expiry date
-        $expiresAt = date('Y-m-d H:i:s', strtotime("+{$expiryDays} days"));
+        // Calculate expiry date (72 hours from now)
+        $expiresAt = date('Y-m-d H:i:s', strtotime("+3 days"));
         
         // Create invitation
-        $sql = "INSERT INTO invitations (invitation_code, invited_name, invited_email, invited_by_type, invited_by_id, expires_at) 
+        $sql = "INSERT INTO invitations (invitation_code, invited_name, invited_phone, invited_by_type, invited_by_id, expires_at) 
                 VALUES (?, ?, ?, 'admin', ?, ?)";
         $stmt = $db->prepare($sql);
         $stmt->execute([
             $invitationCode,
             $name,
-            $email,
+            $phone,
             $session['user_id'],
             $expiresAt
         ]);
@@ -288,6 +291,23 @@ function generateUniqueInvitationCode($db) {
     } while ($stmt->fetchColumn() > 0);
     
     return $code;
+}
+
+// Function to check and update expired invitations
+function checkExpiredInvitations($db) {
+    try {
+        // Find invitations that are past their 72-hour expiry
+        $sql = "UPDATE invitations SET status = 'expired' 
+                WHERE status = 'pending' 
+                AND expires_at < NOW()";
+        $stmt = $db->prepare($sql);
+        $stmt->execute();
+        
+        return $stmt->rowCount();
+    } catch (Exception $e) {
+        error_log("Error checking expired invitations: " . $e->getMessage());
+        return 0;
+    }
 }
 
 function getAuthorizationToken() {

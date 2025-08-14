@@ -16,47 +16,44 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 try {
     $input = json_decode(file_get_contents('php://input'), true);
     
-    if (!$input || !isset($input['email']) || !isset($input['password'])) {
+    if (!$input || !isset($input['phone']) || !isset($input['password'])) {
         http_response_code(400);
-        echo json_encode(['error' => 'Email/Phone and password are required']);
+        echo json_encode(['error' => 'Phone and password are required']);
         exit;
     }
     
-    $emailOrPhone = trim($input['email']); // Can be email or phone
+    $phone = trim($input['phone']); // Full phone number with country code
     $password = $input['password'];
     
-    if (empty($emailOrPhone) || empty($password)) {
+    if (empty($phone) || empty($password)) {
         http_response_code(400);
-        echo json_encode(['error' => 'Email/Phone and password cannot be empty']);
+        echo json_encode(['error' => 'Phone and password cannot be empty']);
         exit;
     }
     
     $db = Database::getInstance()->getConnection();
     
-    // Check if input looks like a phone number (starts with + and contains only digits)
-    $isPhoneNumber = preg_match('/^\+\d+$/', $emailOrPhone);
+    // Validate phone number format (country code + 7-15 digits)
+    if (!preg_match('/^\+\d{1,4}\d{7,15}$/', $phone)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Invalid phone number format. Must include country code and be 7-15 digits.']);
+        exit;
+    }
     
-    if ($isPhoneNumber) {
-        // Login with phone number
-        $stmt = $db->prepare("
-            SELECT u.*, p.profile_completed, p.full_name 
-            FROM users u 
-            LEFT JOIN user_profiles p ON u.id = p.user_id 
-            WHERE p.phone = ? AND u.is_active = 1
-        ");
-        $stmt->execute([$emailOrPhone]);
-        $user = $stmt->fetch();
-    } else {
-        // Login with email (convert to lowercase for consistency)
-        $email = strtolower($emailOrPhone);
-        $stmt = $db->prepare("
-            SELECT u.*, p.profile_completed, p.full_name 
-            FROM users u 
-            LEFT JOIN user_profiles p ON u.id = p.user_id 
-            WHERE u.email = ? AND u.is_active = 1
-        ");
-        $stmt->execute([$email]);
-        $user = $stmt->fetch();
+    // Login with phone number - check both users table and user_profiles table
+    $stmt = $db->prepare("
+        SELECT u.*, p.profile_completed, p.full_name 
+        FROM users u 
+        LEFT JOIN user_profiles p ON u.id = p.user_id 
+        WHERE (u.phone = ? OR p.phone = ?) AND u.is_active = 1
+    ");
+    $stmt->execute([$phone, $phone]);
+    $user = $stmt->fetch();
+    
+    if (!$user) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Phone number not found. Please check your phone number or contact support.']);
+        exit;
     }
     
     if (!$user || !password_verify($password, $user['password'])) {
@@ -92,6 +89,7 @@ try {
         'user' => [
             'id' => $user['id'],
             'email' => $user['email'],
+            'phone' => $user['phone'],
             'enrollment_number' => $user['enrollment_number'],
             'user_number' => $user['user_number'],
             'approval_status' => $user['approval_status'],

@@ -16,33 +16,22 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 try {
     $input = json_decode(file_get_contents('php://input'), true);
     
-    if (!$input || !isset($input['email']) || !isset($input['password']) || !isset($input['full_name'])) {
+    if (!$input || !isset($input['password']) || !isset($input['invitation_code'])) {
         http_response_code(400);
-        echo json_encode(['error' => 'Email, password, and full name are required']);
+        echo json_encode(['error' => 'Password and invitation code are required']);
         exit;
     }
     
-    $fullName = trim($input['full_name']);
-    $email = trim(strtolower($input['email']));
     $password = $input['password'];
-    $invitationCode = $input['invitation_code'] ?? null;
+    $invitationCode = $input['invitation_code'];
+    
+    // No longer expecting full_name, email, or phone directly from registration form
+    // These will come from the invitation itself.
     
     // Validate input
-    if (empty($fullName) || empty($email) || empty($password)) {
+    if (empty($password)) {
         http_response_code(400);
-        echo json_encode(['error' => 'Full name, email and password cannot be empty']);
-        exit;
-    }
-    
-    if (strlen($fullName) < 2) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Full name must be at least 2 characters']);
-        exit;
-    }
-    
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Invalid email format']);
+        echo json_encode(['error' => 'Password cannot be empty']);
         exit;
     }
     
@@ -52,7 +41,7 @@ try {
         exit;
     }
     
-    // Require invitation code for registration
+    // Require invitation code for registration (already checked above, but keep validation concise)
     if (empty($invitationCode)) {
         http_response_code(400);
         echo json_encode(['error' => 'Invitation code is required for registration']);
@@ -61,31 +50,10 @@ try {
     
     $db = Database::getInstance()->getConnection();
     
-    // Check if email already exists in users table
-    $stmt = $db->prepare("SELECT id FROM users WHERE email = ?");
-    $stmt->execute([$email]);
-    if ($stmt->fetch()) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Email already registered']);
-        exit;
-    }
-    
-    // Check if email already exists in admin_users table
-    $stmt = $db->prepare("SELECT id FROM admin_users WHERE email = ?");
-    $stmt->execute([$email]);
-    if ($stmt->fetch()) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Email already exists as an admin user']);
-        exit;
-    }
-    
-    $referredByType = null;
-    $referredById = null;
-    
-    // Validate invitation code
+    // Validate invitation code and retrieve invitation details
     $stmt = $db->prepare("
         SELECT * FROM invitations 
-        WHERE invitation_code = ? AND status = 'pending' AND expires_at > NOW()
+        WHERE invitation_code = ? AND status = 'pending'
     ");
     $stmt->execute([$invitationCode]);
     $invitation = $stmt->fetch();
@@ -96,23 +64,58 @@ try {
         exit;
     }
     
-    // Verify email or phone matches invitation
-    $invitationMatches = false;
+    // Check if invitation has expired (72 hours from creation)
+    $invitationAge = time() - strtotime($invitation['created_at']);
+    $maxAge = 72 * 3600; // 72 hours in seconds
     
-    if ($invitation['invitation_type'] === 'email') {
-        if (strtolower($invitation['invited_email']) === $email) {
-            $invitationMatches = true;
+    if ($invitationAge > $maxAge) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Invitation has expired after 72 hours. Please request a new invitation.']);
+        exit;
+    }
+    
+    // Get invited email, phone, and name from the validated invitation
+    $invitedEmail = $invitation['invited_email'] ?? null;
+    $invitedPhone = $invitation['invited_phone'] ?? null;
+    $invitedName = $invitation['invited_name'] ?? 'New User'; // Default name if not provided in invite
+    
+    // Ensure either invited email or phone is available in the invitation
+    if (empty($invitedEmail) && empty($invitedPhone)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Invitation is missing required contact information (email or phone)']);
+        exit;
+    }
+    
+    // Check for duplicate email/phone using data from invitation
+    // Check if email already exists in users table
+    if (!empty($invitedEmail)) {
+        $stmt = $db->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt->execute([$invitedEmail]);
+        if ($stmt->fetch()) {
+            http_response_code(400);
+            echo json_encode(['error' => 'The email address from this invitation is already registered.']);
+            exit;
         }
-    } elseif ($invitation['invitation_type'] === 'phone') {
-        if ($invitation['invited_phone'] === $email) { // Note: $email variable is used for both email and phone in registration
-            $invitationMatches = true;
+        
+        // Check if email already exists in admin_users table
+        $stmt = $db->prepare("SELECT id FROM admin_users WHERE email = ?");
+        $stmt->execute([$invitedEmail]);
+        if ($stmt->fetch()) {
+            http_response_code(400);
+            echo json_encode(['error' => 'The email address from this invitation exists as an admin user.']);
+            exit;
         }
     }
     
-    if (!$invitationMatches) {
+    // Check if phone already exists in users table
+    if (!empty($invitedPhone)) {
+        $stmt = $db->prepare("SELECT id FROM users WHERE phone = ?");
+        $stmt->execute([$invitedPhone]);
+        if ($stmt->fetch()) {
         http_response_code(400);
-        echo json_encode(['error' => 'Email/Phone does not match invitation']);
+            echo json_encode(['error' => 'The phone number from this invitation is already registered.']);
         exit;
+    }
     }
     
     $referredByType = $invitation['invited_by_type'];
@@ -127,25 +130,34 @@ try {
     $stmt = $db->query("SELECT COALESCE(MAX(user_number), 0) + 1 as next_user_number FROM users");
     $nextUserNumber = $stmt->fetch()['next_user_number'];
     
+    // Log number generation for debugging
+    error_log("Number generation - Enrollment: $enrollmentNumber, User: $nextUserNumber");
+    
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
     
     $db->beginTransaction();
     
     try {
-        // Create user (set type as 'Registered')
+        // Create user with user_type as 'registered' (has password through invite)
         $stmt = $db->prepare("
-            INSERT INTO users (email, password, enrollment_number, user_number, referred_by_type, referred_by_id, approval_status, user_type) 
-            VALUES (?, ?, ?, ?, ?, ?, 'pending', 'Registered')
+            INSERT INTO users (email, phone, password, enrollment_number, user_number, referred_by_type, referred_by_id, approval_status, user_type) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 'registered')
         ");
-        $stmt->execute([$email, $hashedPassword, $enrollmentNumber, $nextUserNumber, $referredByType, $referredById]);
+        $stmt->execute([$invitedEmail, $invitedPhone, $hashedPassword, $enrollmentNumber, $nextUserNumber, $referredByType, $referredById]);
         $userId = $db->lastInsertId();
         
-        // Create partial profile with name
+        // Log user creation for debugging
+        error_log("User created - ID: $userId, Email: $invitedEmail, Phone: $invitedPhone, Enrollment: $enrollmentNumber");
+        
+        // Create partial profile with invited name. Other fields are empty/default.
         $stmt = $db->prepare("
             INSERT INTO user_profiles (user_id, full_name, date_of_birth, address, pin_code, phone, profile_completed) 
             VALUES (?, ?, '1900-01-01', '', '', '', FALSE)
         ");
-        $stmt->execute([$userId, $fullName]);
+        $stmt->execute([$userId, $invitedName]);
+        
+        // Log profile creation for debugging
+        error_log("User profile created - User ID: $userId, Name: $invitedName");
         
         // Mark invitation as used
         $stmt = $db->prepare("
@@ -155,65 +167,63 @@ try {
         ");
         $stmt->execute([$userId, $invitation['id']]);
         
-        // Implement cross-invite expiration logic
-        // If user registered with email invite and has a phone, expire any pending phone invites for that phone
-        // If user registered with phone invite and provides email, expire any pending email invites for that email
-        
-        if ($invitation['invitation_type'] === 'email' && !empty($invitation['invited_phone'])) {
-            // User registered via email invite, expire any pending phone invites for same phone
-            $stmt = $db->prepare("
-                UPDATE invitations 
-                SET status = 'expired' 
-                WHERE invited_phone = ? AND status = 'pending' AND expires_at > NOW() AND id != ?
-            ");
-            $stmt->execute([$invitation['invited_phone'], $invitation['id']]);
-            
-        } elseif ($invitation['invitation_type'] === 'phone' && !empty($invitation['invited_email'])) {
-            // User registered via phone invite, expire any pending email invites for same email
-            $stmt = $db->prepare("
-                UPDATE invitations 
-                SET status = 'expired' 
-                WHERE invited_email = ? AND status = 'pending' AND expires_at > NOW() AND id != ?
-            ");
-            $stmt->execute([$invitation['invited_email'], $invitation['id']]);
-        }
-        
-        // Additional cross-expiration: when user completes registration, if they later add
-        // phone/email during profile completion, we'll handle that in profile.php
+        // Log invitation update for debugging
+        error_log("Invitation marked as used - Invitation ID: {$invitation['id']}, Used by: $userId");
         
         $db->commit();
         
-        // Create session for the new user
-        $sessionManager = SessionManager::getInstance();
-        $sessionId = $sessionManager->createSession('user', $userId, [
-            'email' => $email,
-            'enrollment_number' => $enrollmentNumber,
-            'full_name' => $fullName
-        ]);
+        // Log successful transaction for debugging
+        error_log("Database transaction committed successfully for user: $userId");
         
-        echo json_encode([
+        // Create session for the new user
+        try {
+            $sessionManager = SessionManager::getInstance();
+            $sessionId = $sessionManager->createSession('user', $userId, [
+                'email' => $invitedEmail,
+                'enrollment_number' => $enrollmentNumber,
+                'full_name' => $invitedName
+            ]);
+        } catch (Exception $sessionError) {
+            error_log("Session creation error: " . $sessionError->getMessage());
+            // Continue with registration even if session creation fails
+            $sessionId = null;
+        }
+        
+        $response = [
             'success' => true,
             'message' => 'Registration successful',
-            'session_token' => $sessionId,
             'user' => [
                 'id' => $userId,
-                'email' => $email,
+                'email' => $invitedEmail,
+                'phone' => $invitedPhone,
                 'enrollment_number' => $enrollmentNumber,
                 'user_number' => $nextUserNumber,
-                'full_name' => $fullName,
+                'full_name' => $invitedName,
                 'approval_status' => 'pending',
+                'user_type' => 'registered',
                 'profile_completed' => false
             ]
-        ]);
+        ];
+        
+        if ($sessionId) {
+            $response['session_token'] = $sessionId;
+        }
+        
+        echo json_encode($response);
+        
+        // Log successful registration for debugging
+        error_log("Registration completed successfully for user: $userId");
         
     } catch (Exception $e) {
         $db->rollBack();
+        error_log("Database transaction rolled back for user registration: " . $e->getMessage());
         throw $e;
     }
     
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Registration failed']);
+    echo json_encode(['error' => 'Registration failed: ' . $e->getMessage()]);
     error_log("Registration error: " . $e->getMessage());
+    error_log("Registration error trace: " . $e->getTraceAsString());
 }
 ?>

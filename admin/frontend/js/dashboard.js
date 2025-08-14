@@ -110,7 +110,7 @@ function displayRecentUsers(users) {
                     </div>
                     <div class="ml-3">
                         <p class="text-sm font-medium text-gray-900">${user.full_name || 'N/A'}</p>
-                        <p class="text-xs text-gray-500">${user.email}</p>
+                        <p class="text-xs text-gray-500">${user.phone || 'No phone'}</p>
                     </div>
                 </div>
             </div>
@@ -142,7 +142,7 @@ function displayRecentInvitations(invitations) {
                     </div>
                     <div class="ml-3">
                         <p class="text-sm font-medium text-gray-900">${invitation.invited_name}</p>
-                        <p class="text-xs text-gray-500">${invitation.invited_email}</p>
+                        <p class="text-xs text-gray-500">${invitation.invited_phone || 'No phone'}</p>
                     </div>
                 </div>
             </div>
@@ -186,10 +186,17 @@ async function handleCreateInvitation(e) {
     
     const formData = new FormData(e.target);
     const name = formData.get('name').trim();
-    const email = formData.get('email').trim();
+    const countryCode = document.getElementById('countryCode').value;
+    const phoneNumber = formData.get('phone').trim();
     
-    if (!name || !email) {
+    if (!name || !phoneNumber) {
         showInvitationError('Please fill in all fields');
+        return;
+    }
+    
+    // Validate phone number (10 digits)
+    if (!/^\d{10}$/.test(phoneNumber)) {
+        showInvitationError('Please enter a valid 10-digit phone number');
         return;
     }
     
@@ -197,13 +204,23 @@ async function handleCreateInvitation(e) {
     hideInvitationError();
     
     try {
+        const invitationData = { 
+            name, 
+            phone: countryCode + phoneNumber,
+            expiry_days: 3 // 72 hours = 3 days
+        };
+        
         const response = await fetch('../backend/invitations.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${sessionToken}`
             },
-            body: JSON.stringify({ name, email })
+            body: JSON.stringify({ 
+                name, 
+                phone: countryCode + phoneNumber,
+                expiry_days: parseInt(formData.get('expiry_days'))
+            })
         });
         
         const data = await response.json();
@@ -252,6 +269,8 @@ function setInvitationLoading(loading) {
         spinner.classList.add('hidden');
     }
 }
+
+
 
 // Password-related helper functions are now handled by admin-nav.js
 

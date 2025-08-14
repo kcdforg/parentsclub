@@ -323,17 +323,6 @@
                 }
             });
         });
-
-        // Check if user is already logged in
-        const sessionToken = localStorage.getItem('user_session_token') || localStorage.getItem('admin_session_token');
-        if (sessionToken) {
-            // Redirect to appropriate dashboard
-            if (localStorage.getItem('admin_session_token')) {
-                window.location.href = '../../admin/frontend/dashboard.html';
-            } else {
-                window.location.href = 'dashboard.html';
-            }
-        }
     </script>
 </body>
 </html>

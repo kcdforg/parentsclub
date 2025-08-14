@@ -37,7 +37,7 @@
                 </div>
 
                 <!-- Invitation Required Message -->
-                <div id="invitationRequired" class="text-center py-8">
+                <div id="invitationRequired" class="text-center py-8 hidden">
                     <div class="mx-auto h-20 w-20 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
                         <i class="fas fa-envelope text-yellow-600 text-3xl"></i>
                     </div>
@@ -60,31 +60,76 @@
                             <p class="text-sm text-blue-600" id="invitedBy"></p>
                         </div>
                     </div>
+                    <div class="mt-3 pt-3 border-t border-blue-200">
+                        <div class="flex items-center text-amber-700">
+                            <i class="fas fa-clock mr-2"></i>
+                            <p class="text-xs">⚠️ <strong>Important:</strong> This invitation expires after 72 hours. Complete your profile within this time to activate your account.</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Registration Form -->
-                <form id="registerForm" class="space-y-6 hidden">
+                <form id="registerForm" class="space-y-6">
                     <input type="hidden" id="invitationCode" name="invitation_code">
                     
-                    <div>
-                        <label for="fullName" class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                        <div class="relative">
-                            <input type="text" id="fullName" name="full_name" required
-                                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                                   placeholder="Enter your full name">
-                            <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <!-- Removed name and email/phone fields as per new requirement -->
+                    <!--
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                            <div class="relative">
+                                <input type="text" id="firstName" name="first_name" required
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                       placeholder="Enter your first name">
+                                <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="secondName" class="block text-sm font-medium text-gray-700 mb-2">Second Name</label>
+                            <div class="relative">
+                                <input type="text" id="secondName" name="second_name"
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                       placeholder="Enter your second name (optional)">
+                                <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
                         </div>
                     </div>
-                    
+
                     <div>
-                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address (Optional)</label>
                         <div class="relative">
-                            <input type="email" id="email" name="email" required
+                            <input type="email" id="email" name="email"
                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                                   placeholder="Enter your email address">
+                                   placeholder="Enter your email address (optional)">
                             <i class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                         </div>
                     </div>
+
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone Number (Optional)</label>
+                        <div class="flex">
+                            <select id="countryCode" name="country_code"
+                                    class="px-3 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50">
+                                <option value="+91" selected>🇮🇳 +91</option>
+                                <option value="+1">🇺🇸 +1</option>
+                                <option value="+44">🇬🇧 +44</option>
+                                <option value="+61">🇦🇺 +61</option>
+                                <option value="+81">🇯🇵 +81</option>
+                                <option value="+49">🇩🇪 +49</option>
+                                <option value="+33">🇫🇷 +33</option>
+                                <option value="+39">🇮🇹 +39</option>
+                                <option value="+34">🇪🇸 +34</option>
+                                <option value="+86">🇨🇳 +86</option>
+                            </select>
+                            <input type="tel" id="phone" name="phone"
+                                   class="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                   placeholder="9876543210" maxlength="10">
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <span id="phoneHelp">🇮🇳 Enter 10 digits starting with 6, 7, 8, or 9</span>
+                        </p>
+                    </div>
+                    -->
 
                     <div>
                         <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
@@ -173,6 +218,7 @@
         </div>
     </div>
 
-    <script src="js/register.js"></script>
+    <script src="js/utils.js" type="module"></script>
+    <script src="js/register.js" type="module"></script>
 </body>
 </html>

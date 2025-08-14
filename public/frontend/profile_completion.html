@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complete Profile - Registration Portal</title>
+    <title>Profile Completion - Registration Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script>
@@ -21,7 +21,7 @@
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
     <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b border-gray-200">
+    <nav class="bg-white shadow-sm border-b border-gray-200 hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
@@ -31,7 +31,7 @@
                     <div class="hidden md:block ml-10">
                         <div class="flex items-baseline space-x-4">
                             <a href="dashboard.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
-                            <a href="profile.html" class="bg-primary text-white px-3 py-2 rounded-md text-sm font-medium">Profile</a>
+                            <a href="edit_profile.html" class="bg-primary text-white px-3 py-2 rounded-md text-sm font-medium">Profile</a>
                             <a href="subscription.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Subscription</a>
                         </div>
                     </div>
@@ -55,12 +55,11 @@
         <div id="mobileMenu" class="hidden md:hidden">
             <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                 <a href="dashboard.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">Dashboard</a>
-                <a href="profile.html" class="bg-primary text-white block px-3 py-2 rounded-md text-base font-medium">Profile</a>
+                <a href="edit_profile.html" class="bg-primary text-white block px-3 py-2 rounded-md text-base font-medium">Profile</a>
                 <a href="subscription.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">Subscription</a>
             </div>
         </div>
     </nav>
-
     <div class="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-2xl w-full space-y-8">
             <div class="bg-white rounded-2xl shadow-xl p-8">
@@ -71,6 +70,14 @@
                     </div>
                     <h2 class="text-3xl font-bold text-gray-900">Complete Your Profile</h2>
                     <p class="text-gray-600 mt-2">Please provide your personal information to continue</p>
+                    
+                    <!-- 72-hour expiry notice -->
+                    <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div class="flex items-center justify-center text-amber-700">
+                            <i class="fas fa-clock mr-2"></i>
+                            <p class="text-sm">⚠️ <strong>Time-sensitive:</strong> Your invitation expires after 72 hours. Complete your profile within this time to activate your account.</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Progress Indicator -->
@@ -87,15 +94,42 @@
                 <!-- Profile Form -->
                 <form id="profileForm" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="md:col-span-2">
-                            <label for="fullName" class="block text-sm font-medium text-gray-700 mb-2">
-                                Full Name <span class="text-red-500">*</span>
+                        <div>
+                            <label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">
+                                First Name <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
-                                <input type="text" id="fullName" name="full_name" required
+                                <input type="text" id="firstName" name="first_name" required
                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                                       placeholder="Enter your full name">
+                                       placeholder="Enter your first name">
                                 <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="secondName" class="block text-sm font-medium text-gray-700 mb-2">
+                                Second Name
+                            </label>
+                            <div class="relative">
+                                <input type="text" id="secondName" name="second_name"
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                       placeholder="Enter your second name (optional)">
+                                <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="gender" class="block text-sm font-medium text-gray-700 mb-2">
+                                Gender <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <select id="gender" name="gender" required
+                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white">
+                                    <option value="" disabled selected>Select your gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Others">Others</option>
+                                </select>
+                                <i class="fas fa-venus-mars absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
                         </div>
 
@@ -139,18 +173,49 @@
                             </p>
                         </div>
 
-                        <div class="md:col-span-2">
-                            <label for="address" class="block text-sm font-medium text-gray-700 mb-2">
-                                Address <span class="text-red-500">*</span>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                                Email Address (Optional)
                             </label>
                             <div class="relative">
-                                <textarea id="address" name="address" required rows="3"
-                                          class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors resize-none"
-                                          placeholder="Enter your complete address"></textarea>
-                                <i class="fas fa-map-marker-alt absolute left-3 top-4 text-gray-400"></i>
+                                <input type="email" id="email" name="email"
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                       placeholder="Enter your email address (optional)">
+                                <i class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
                         </div>
 
+                        <div class="md:col-span-2">
+                            <label for="addressLine1" class="block text-sm font-medium text-gray-700 mb-2">
+                                Address Line 1 <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <input type="text" id="addressLine1" name="address_line1" required
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                       placeholder="Address Line 1">
+                                <i class="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="addressLine2" class="block text-sm font-medium text-gray-700 mb-2">
+                                Address Line 2
+                            </label>
+                            <div class="relative">
+                                <input type="text" id="addressLine2" name="address_line2"
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                       placeholder="Address Line 2 (Optional)">
+                                <i class="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="city" class="block text-sm font-medium text-gray-700 mb-2">City <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <input type="text" id="city" name="city" required
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                       placeholder="City">
+                                <i class="fas fa-city absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
                         <div>
                             <label for="pinCode" class="block text-sm font-medium text-gray-700 mb-2">
                                 PIN Code <span class="text-red-500">*</span>
@@ -163,8 +228,28 @@
                             </div>
                             <p class="text-xs text-gray-500 mt-1">6-digit postal code</p>
                         </div>
-
                         <div>
+                            <label for="state" class="block text-sm font-medium text-gray-700 mb-2">State <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <select id="state" name="state" required
+                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white">
+                                    <!-- States will be populated by JavaScript -->
+                                </select>
+                                <i class="fas fa-map-marked-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="country" class="block text-sm font-medium text-gray-700 mb-2">Country <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <select id="country" name="country" required
+                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white">
+                                    <!-- Countries will be populated by JavaScript -->
+                                </select>
+                                <i class="fas fa-globe absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+
+                        <div class="hidden">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Enrollment Number</label>
                             <div class="relative">
                                 <input type="text" id="enrollmentNumber" readonly
@@ -191,10 +276,10 @@
                     <div class="flex flex-col sm:flex-row gap-4">
                         <button type="submit" id="saveProfileBtn"
                                 class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-6 rounded-lg transition-colors focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                            <span id="saveProfileBtnText">Complete Profile</span>
+                            <span id="saveProfileBtnText">Submit</span>
                             <i id="saveProfileBtnSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
                         </button>
-                        <button type="button" id="skipBtn"
+                        <button type="button" id="cancelBtn"
                                 class="sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors">
                             Skip for Now
                         </button>
@@ -227,19 +312,20 @@
                 <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
                     <i class="fas fa-check text-green-600 text-xl"></i>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Profile Completed!</h3>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Information Added!</h3>
                 <div class="mt-2 px-7 py-3">
                     <p class="text-sm text-gray-500 mb-4">
-                        Your profile has been submitted for admin approval. You'll be notified once your account is approved.
+                        Your personal information has been submitted. You'll be notified once your account is approved.
                     </p>
                     <button id="goToDashboard" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full">
-                        Continue to Profile
+                        Continue to Dashboard
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="js/profile.js"></script>
+    <script src="js/utils.js" type="module"></script>
+    <script src="js/profile_completion.js" type="module"></script>
 </body>
 </html>

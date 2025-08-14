@@ -85,10 +85,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Check if user can create invitations
-            const canInvite = userData.user_type === 'Approved' || userData.user_type === 'Member';
-            const isApproved = userData.approval_status === 'approved';
+            const canInvite = userData.approval_status === 'approved';
 
-            if (!canInvite || !isApproved) {
+            if (!canInvite) {
                 // Show access notice and disable create button
                 document.getElementById('accessNotice').classList.remove('hidden');
                 document.getElementById('createInvitationBtn').disabled = true;
@@ -202,6 +201,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                 </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${invitation.invited_email || '-'}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${invitation.invited_phone || '-'}
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     ${statusBadge}
                 </td>
@@ -237,24 +242,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function getInviteeContactDisplay(invitation) {
-        const type = invitation.invitation_type || 'email';
-        
-        if (type === 'email') {
-            let display = `<i class="fas fa-envelope mr-1"></i>${invitation.invited_email}`;
-            if (invitation.invited_phone) {
-                display += `<br><i class="fas fa-phone mr-1 text-gray-400"></i><span class="text-gray-400">${invitation.invited_phone}</span>`;
-            }
-            return display;
-        } else if (type === 'phone') {
-            let display = `<i class="fas fa-phone mr-1"></i>${invitation.invited_phone}`;
-            if (invitation.invited_email) {
-                display += `<br><i class="fas fa-envelope mr-1 text-gray-400"></i><span class="text-gray-400">${invitation.invited_email}</span>`;
-            }
-            return display;
-        }
-        
-        // Fallback for old invitations without type
-        return `<i class="fas fa-envelope mr-1"></i>${invitation.invited_email || 'N/A'}`;
+        // No longer needed as email and phone are separate columns
+        return ''; 
     }
 
     function getActionButtons(invitation) {
@@ -446,8 +435,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     invitationData.invited_phone = crossCountryCode + crossPhone.replace(/\D/g, '');
                 }
             } else if (invitationType === 'phone') {
-                const phone = formData.get('inviteePhone');
-                const countryCode = document.getElementById('countryCodeInvite').value;
+                const phone = formData.get('invited_phone_number');
+                const countryCode = formData.get('invited_phone_country_code');
                 invitationData.invited_phone = countryCode + phone.replace(/\D/g, '');
                 // Add cross-reference email if provided
                 const crossEmail = formData.get('crossEmail');
@@ -470,9 +459,24 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             if (invitationType === 'phone') {
-                const phoneDigits = formData.get('inviteePhone').replace(/\D/g, '');
-                if (phoneDigits.length !== 10) {
-                    throw new Error('Phone number must be exactly 10 digits');
+                const phoneDigits = formData.get('invited_phone_number').replace(/\D/g, '');
+                // New: Validate invited phone number based on its digits and selected country code
+                const invitedPhoneCountryCode = formData.get('invited_phone_country_code');
+                let phoneMaxLength = 10; // Default for India
+                
+                if (invitedPhoneCountryCode === '+1' || invitedPhoneCountryCode === '+44') {
+                    phoneMaxLength = 10;
+                } else if (invitedPhoneCountryCode === '+61') {
+                    phoneMaxLength = 9;
+                } else if (invitedPhoneCountryCode === '+81') {
+                    phoneMaxLength = 11;
+                }
+                
+                if (phoneDigits.length !== phoneMaxLength && !(invitedPhoneCountryCode === '+81' && (phoneDigits.length === 10 || phoneDigits.length === 11))) {
+                    throw new Error(`Phone number must be exactly ${phoneMaxLength} digits for selected country code.`);
+                }
+                if (invitedPhoneCountryCode === '+91' && !/^[6-9]/.test(phoneDigits)) {
+                    throw new Error('Indian mobile number must start with 6, 7, 8, or 9');
                 }
             }
 
