@@ -606,7 +606,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.viewInvitation = function(invitationCode) {
         const baseUrl = window.location.origin;
-        const invitationLink = `${baseUrl}/regapp2/public/frontend/register.html?invitation=${invitationCode}`;
+        const invitationLink = `${baseUrl}/regapp2/public/frontend/invitation.html?invitation=${invitationCode}`;
         showInvitationLink(invitationLink, 'View invitation link');
     };
 

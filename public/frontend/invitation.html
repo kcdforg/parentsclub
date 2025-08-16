@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processing Invitation - Registration Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full space-y-8">
+        <div class="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <!-- Processing Animation -->
+            <div class="mx-auto h-16 w-16 bg-indigo-600 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-spinner fa-spin text-white text-2xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Processing Invitation</h2>
+            <p class="text-gray-600">Please wait while we verify your invitation...</p>
+            
+            <!-- Fallback for users with JavaScript disabled -->
+            <noscript>
+                <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p class="text-sm text-yellow-800">
+                        JavaScript is required. Please enable JavaScript or 
+                        <a href="register.html" class="text-indigo-600 hover:text-indigo-500 underline">click here to register manually</a>.
+                    </p>
+                </div>
+            </noscript>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Invitation Redirect Handler
+         * Replaces the PHP redirect with JavaScript logic
+         */
+        (function() {
+            'use strict';
+            
+            // Get invitation code from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const invitationCode = urlParams.get('invitation');
+            
+            // Redirect logic
+            if (invitationCode && invitationCode.trim() !== '') {
+                // Valid invitation code - redirect to registration with invitation
+                const registerUrl = `register.html?invitation=${encodeURIComponent(invitationCode)}`;
+                
+                // Add a small delay for better UX (show the processing message briefly)
+                setTimeout(() => {
+                    window.location.href = registerUrl;
+                }, 1000);
+                
+            } else {
+                // No invitation code - redirect to homepage
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+                
+                // Update the message to inform user
+                document.querySelector('h2').textContent = 'Invalid Invitation';
+                document.querySelector('p').textContent = 'No valid invitation code found. Redirecting to homepage...';
+                document.querySelector('.fa-spinner').className = 'fas fa-exclamation-triangle text-white text-2xl';
+                document.querySelector('.bg-indigo-600').className = 'mx-auto h-16 w-16 bg-yellow-500 rounded-full flex items-center justify-center mb-4';
+            }
+        })();
+    </script>
+</body>
+</html>

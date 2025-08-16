@@ -359,7 +359,7 @@ function createInvitation() {
         
         // Create invitation link
         $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
-        $invitationLink = $baseUrl . '/regapp2/public/frontend/register.html?invitation=' . $invitationCode;
+        $invitationLink = $baseUrl . '/regapp2/public/frontend/invitation.html?invitation=' . $invitationCode;
         
         echo json_encode([
             'success' => true,
