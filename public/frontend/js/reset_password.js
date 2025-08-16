@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Redirect to login after success
                 setTimeout(() => {
-                    window.location.href = 'login.html';
+                    window.location.href = 'login.php';
                 }, 3000);
             } else {
                 showError(data.error || 'Failed to reset password. Please try again.');

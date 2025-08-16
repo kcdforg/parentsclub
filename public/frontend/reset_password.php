@@ -1,3 +1,9 @@
+<?php
+session_start();
+// No login check needed for reset password page as it's publicly accessible
+
+// Include reusable components if needed, but not header/footer for this simple page
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -90,7 +96,7 @@
 
                 <!-- Back to Login -->
                 <div class="mt-6 text-center">
-                    <a href="login.html" class="text-indigo-600 hover:text-indigo-500 text-sm font-medium">
+                    <a href="login.php" class="text-indigo-600 hover:text-indigo-500 text-sm font-medium">
                         <i class="fas fa-arrow-left mr-2"></i>
                         Back to Login
                     </a>

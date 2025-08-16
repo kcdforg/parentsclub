@@ -71,11 +71,20 @@ function listUsers() {
             SELECT COUNT(*) FROM (
                 SELECT u.id FROM users u LEFT JOIN user_profiles up ON u.id = up.user_id {$whereClause}
                 UNION ALL
-                SELECT CONCAT('inv_', i.id) as id FROM invitations i WHERE i.status = 'pending' AND i.expires_at > NOW()
+                SELECT CONCAT('inv_', i.id) as id FROM invitations i WHERE i.status = 'pending' AND i.expires_at > NOW() AND (i.invited_name LIKE ? OR i.invited_phone LIKE ? OR i.invited_email LIKE ?)
             ) combined_users
         ";
         $countStmt = $db->prepare($countSql);
-        $countStmt->execute($params);
+        
+        // Combine params for count query
+        $countParams = $params;
+        if ($searchFilter) {
+            $countParams[] = "%{$searchFilter}%";
+            $countParams[] = "%{$searchFilter}%";
+            $countParams[] = "%{$searchFilter}%";
+        }
+        
+        $countStmt->execute($countParams);
         $totalUsers = $countStmt->fetchColumn();
         
         // Get users with pagination including both registered users and invited users
@@ -84,6 +93,7 @@ function listUsers() {
                 SELECT 
                     u.id,
                     u.email,
+                    u.phone_number as phone,
                     u.enrollment_number,
                     u.user_number,
                     u.referred_by_type,
@@ -142,6 +152,7 @@ function listUsers() {
                 
                 SELECT 
                     CONCAT('inv_', i.id) as id,
+                    i.invited_email as email,
                     i.invited_phone as phone,
                     NULL as enrollment_number,
                     NULL as user_number,
@@ -178,17 +189,23 @@ function listUsers() {
                 LEFT JOIN admin_users admin_inv_ref ON i.invited_by_type = 'admin' AND i.invited_by_id = admin_inv_ref.id
                 LEFT JOIN users user_inv_ref ON i.invited_by_type = 'user' AND i.invited_by_id = user_inv_ref.id
                 LEFT JOIN user_profiles user_inv_ref_profile ON user_inv_ref.id = user_inv_ref_profile.user_id
-                WHERE i.status = 'pending' AND i.expires_at > NOW()
+                WHERE i.status = 'pending' AND i.expires_at > NOW() AND (i.invited_name LIKE ? OR i.invited_phone LIKE ? OR i.invited_email LIKE ?)
             ) combined_users
             ORDER BY created_at DESC 
             LIMIT ? OFFSET ?
         ";
         
-        $params[] = $limit;
-        $params[] = $offset;
+        $paramsForSelect = $params;
+        if ($searchFilter) {
+            $paramsForSelect[] = "%{$searchFilter}%";
+            $paramsForSelect[] = "%{$searchFilter}%";
+            $paramsForSelect[] = "%{$searchFilter}%";
+        }
+        $paramsForSelect[] = $limit;
+        $paramsForSelect[] = $offset;
         
         $stmt = $db->prepare($sql);
-        $stmt->execute($params);
+        $stmt->execute($paramsForSelect);
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         // Calculate pagination info

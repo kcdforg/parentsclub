@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function checkAuthentication() {
     sessionToken = localStorage.getItem('user_session_token');
     if (!sessionToken) {
-        window.location.href = 'login.html';
+        window.location.href = 'login.php';
         return;
     }
     
@@ -22,7 +22,7 @@ function checkAuthentication() {
     const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
     if (!userData.profile_completed) {
         // Redirect to profile completion page
-        window.location.href = 'profile_completion.html';
+        window.location.href = 'profile_completion.php';
         return;
     }
 }

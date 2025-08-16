@@ -1,14 +1,14 @@
 const apiBaseUrl = '../backend/';
 
 export async function apiFetch(endpoint, options = {}) {
-    const sessionToken = localStorage.getItem('admin_session_token');
+    // const sessionToken = localStorage.getItem('admin_session_token'); // No longer used for session management
     const headers = {
         ...options.headers,
     };
 
-    if (sessionToken) {
-        headers['Authorization'] = `Bearer ${sessionToken}`;
-    }
+    // if (sessionToken) {
+    //     headers['Authorization'] = `Bearer ${sessionToken}`;
+    // }
 
     if (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE') {
         headers['Content-Type'] = 'application/json';
@@ -26,10 +26,10 @@ export async function apiFetch(endpoint, options = {}) {
         if (!response.ok) {
             // Handle specific HTTP errors
             if (response.status === 401) {
-                // Unauthorized - session expired or invalid
-                localStorage.removeItem('admin_session_token');
-                localStorage.removeItem('admin_user');
-                window.location.href = 'login.html';
+                // Unauthorized - redirect to login.php (PHP session would handle this)
+                // localStorage.removeItem('admin_session_token'); // No longer used
+                // localStorage.removeItem('admin_user');      // No longer used
+                window.location.href = 'login.php';
                 throw new Error('Unauthorized: Session expired or invalid');
             } else if (response.status === 403) {
                 // Forbidden - not enough permissions

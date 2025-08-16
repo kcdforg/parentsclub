@@ -18,10 +18,10 @@ function checkExistingSession() {
 
     // If there's an admin session AND no invitation code in URL, redirect to admin dashboard
     if (adminSessionToken && !invitationCode) {
-        window.location.href = '../../admin/frontend/dashboard.html';
+        window.location.href = '../../admin/frontend/dashboard.php';
     } else if (userSessionToken) {
         // User is already logged in, redirect to user dashboard
-        window.location.href = 'dashboard.html';
+        window.location.href = 'dashboard.php';
     }
 }
 
@@ -156,7 +156,7 @@ function initializeEventListeners() {
     
     // Success modal - proceed to profile
     document.getElementById('proceedToProfile').addEventListener('click', function() {
-        window.location.href = 'profile_completion.html';
+        window.location.href = 'profile_completion.php';
     });
 }
 

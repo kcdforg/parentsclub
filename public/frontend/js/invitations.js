@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check authentication
     const sessionToken = localStorage.getItem('user_session_token');
     if (!sessionToken) {
-        window.location.href = 'login.html';
+        window.location.href = 'login.php';
         return;
     }
 
@@ -606,7 +606,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.viewInvitation = function(invitationCode) {
         const baseUrl = window.location.origin;
-        const invitationLink = `${baseUrl}/regapp2/public/frontend/register.html?invitation=${invitationCode}`;
+        const invitationLink = `${baseUrl}/regapp2/public/frontend/register.php?invitation=${invitationCode}`;
         showInvitationLink(invitationLink, 'View invitation link');
     };
 
@@ -646,7 +646,7 @@ async function logout() {
         localStorage.removeItem('user_data');
         
         // Redirect to login
-        window.location.href = 'login.html';
+        window.location.href = 'login.php';
 
     } catch (error) {
         console.error('Logout error:', error);
@@ -655,6 +655,6 @@ async function logout() {
         // This ensures user isn't stuck in a loop
         localStorage.removeItem('user_session_token');
         localStorage.removeItem('user_data');
-        window.location.href = 'login.html';
+        window.location.href = 'login.php';
     }
 }

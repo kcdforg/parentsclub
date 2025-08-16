@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check authentication
     const sessionToken = localStorage.getItem('admin_session_token');
     if (!sessionToken) {
-        window.location.href = 'login.html';
+        window.location.href = 'login.php';
         return;
     }
 
@@ -26,55 +26,149 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Tab functionality
-    initializeTabs();
+    function initializeTabs() {
+        const usersTab = document.getElementById('usersTab');
+        const resetRequestsTab = document.getElementById('resetRequestsTab');
+        const usersTabContent = document.getElementById('usersTabContent');
+        const resetRequestsTabContent = document.getElementById('resetRequestsTabContent');
 
-    // DOM elements
+        // Tab click handlers
+        if (usersTab) {
+            usersTab.addEventListener('click', function() {
+                switchTab('users');
+            });
+        }
+
+        if (resetRequestsTab) {
+            resetRequestsTab.addEventListener('click', function() {
+                switchTab('resetRequests');
+            });
+        }
+
+        // Initialize with users tab active
+        switchTab('users');
+
+        // Initialize reset requests functionality
+        // initializeResetRequestsTab(); // Moved inside switchTab
+    }
+
+    // Event listeners for main filters and pagination
+    function setupMainEventListeners() {
     const statusFilter = document.getElementById('statusFilter');
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
     const resetFiltersBtn = document.getElementById('resetFiltersBtn');
-    const usersTableBody = document.getElementById('usersTableBody');
     const prevPageBtn = document.getElementById('prevPageBtn');
     const nextPageBtn = document.getElementById('nextPageBtn');
-    const currentPageSpan = document.getElementById('currentPage');
-    const showingStartSpan = document.getElementById('showingStart');
-    const showingEndSpan = document.getElementById('showingEnd');
-    const totalUsersSpan = document.getElementById('totalUsers');
 
-    // Event listeners
+        if (statusFilter) {
     statusFilter.addEventListener('change', function() {
         currentFilters.status = this.value;
         currentPage = 1;
         loadUsers();
     });
+        }
 
+        if (searchBtn) {
     searchBtn.addEventListener('click', function() {
         currentFilters.search = searchInput.value.trim();
         currentPage = 1;
         loadUsers();
     });
+        }
 
+        if (resetFiltersBtn) {
     resetFiltersBtn.addEventListener('click', function() {
-        statusFilter.value = '';
-        searchInput.value = '';
+                if (statusFilter) statusFilter.value = '';
+                if (searchInput) searchInput.value = '';
         currentFilters = { status: '', search: '' };
         currentPage = 1;
         loadUsers();
     });
+        }
 
+        if (prevPageBtn) {
     prevPageBtn.addEventListener('click', function() {
         if (currentPage > 1) {
             currentPage--;
             loadUsers();
         }
     });
+        }
 
+        if (nextPageBtn) {
     nextPageBtn.addEventListener('click', function() {
         if (currentPage < totalPages) {
             currentPage++;
             loadUsers();
         }
     });
+        }
+
+        // Close user details modal
+        const closeUserModalBtn = document.getElementById('closeUserModalBtn');
+        if (closeUserModalBtn) {
+            closeUserModalBtn.addEventListener('click', function() {
+                document.getElementById('userDetailsModal').classList.add('hidden');
+            });
+        }
+
+        // Close approval modal
+        const closeApprovalModalBtn = document.getElementById('closeApprovalModalBtn');
+        if (closeApprovalModalBtn) {
+            closeApprovalModalBtn.addEventListener('click', function() {
+                document.getElementById('approvalModal').classList.add('hidden');
+            });
+        }
+
+        const cancelApprovalBtn = document.getElementById('cancelApprovalBtn');
+        if (cancelApprovalBtn) {
+            cancelApprovalBtn.addEventListener('click', function() {
+                document.getElementById('approvalModal').classList.add('hidden');
+            });
+        }
+
+        // Handle status update form
+        const approvalForm = document.getElementById('approvalForm');
+        if (approvalForm) {
+            approvalForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const userIdInput = document.getElementById('approvalUserId');
+                const statusSelect = document.getElementById('approvalStatus');
+                const notesInput = document.getElementById('approvalNotes');
+
+                const userId = userIdInput ? userIdInput.value : '';
+                const status = statusSelect ? statusSelect.value : '';
+                const notes = notesInput ? notesInput.value : '';
+                
+                try {
+                    const data = await apiFetch('users.php', {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            user_id: parseInt(userId),
+                            status: status,
+                            notes: notes
+                        })
+                    });
+
+                    if (data.success) {
+                        const approvalModal = document.getElementById('approvalModal');
+                        if (approvalModal) approvalModal.classList.add('hidden');
+                        loadUsers(); // Reload the users list
+                        showNotification(data.message, 'success');
+                    } else {
+                        showError(data.error || 'Failed to update user status');
+                    }
+                } catch (error) {
+                    console.error('Error updating user status:', error);
+                    showError('Failed to update user status');
+                }
+            });
+        }
+    }
+    // Call setup function for main event listeners
+    setupMainEventListeners();
 
     // Load users on page load
     loadUsers();
@@ -82,6 +176,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load users function
     async function loadUsers() {
         try {
+            const usersTableBody = document.getElementById('usersTableBody');
+            if (!usersTableBody) {
+                console.warn('usersTableBody not found when loading users.');
+                // Potentially re-try after a short delay or show a specific error
+                // For now, return to prevent further errors
+                return;
+            }
+
             const params = new URLSearchParams({
                 page: currentPage,
                 status: currentFilters.status,
@@ -106,6 +208,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Display users in table
     function displayUsers(users) {
+        const usersTableBody = document.getElementById('usersTableBody'); // Re-query here
+        if (!usersTableBody) return; // Double check for null before using
         usersTableBody.innerHTML = '';
         
         if (users.length === 0) {
@@ -180,13 +284,20 @@ document.addEventListener('DOMContentLoaded', function() {
         currentPage = pagination.current_page;
         totalPages = pagination.total_pages;
         
-        currentPageSpan.textContent = `Page ${currentPage}`;
-        showingStartSpan.textContent = pagination.start;
-        showingEndSpan.textContent = pagination.end;
-        totalUsersSpan.textContent = pagination.total;
+        const currentPageSpan = document.getElementById('currentPage');
+        const showingStartSpan = document.getElementById('showingStart');
+        const showingEndSpan = document.getElementById('showingEnd');
+        const totalUsersSpan = document.getElementById('totalUsers');
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+
+        if (currentPageSpan) currentPageSpan.textContent = `Page ${currentPage}`;
+        if (showingStartSpan) showingStartSpan.textContent = pagination.start;
+        if (showingEndSpan) showingEndSpan.textContent = pagination.end;
+        if (totalUsersSpan) totalUsersSpan.textContent = pagination.total;
         
-        prevPageBtn.disabled = currentPage <= 1;
-        nextPageBtn.disabled = currentPage >= totalPages;
+        if (prevPageBtn) prevPageBtn.disabled = currentPage <= 1;
+        if (nextPageBtn) nextPageBtn.disabled = currentPage >= totalPages;
     }
 
     // Get status class for styling
@@ -295,8 +406,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Show error message
     function showError(message) {
-        // You can implement a toast notification system here
-        window.showModal('Error', message, true);
+        showNotification(message, 'error');
     }
 
     // Global functions for onclick handlers
@@ -404,79 +514,6 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.classList.remove('hidden');
     }
 
-    // Close modals
-    document.getElementById('closeUserModalBtn').addEventListener('click', function() {
-        document.getElementById('userDetailsModal').classList.add('hidden');
-    });
-
-    document.getElementById('closeApprovalModalBtn').addEventListener('click', function() {
-        document.getElementById('approvalModal').classList.add('hidden');
-    });
-
-    document.getElementById('cancelApprovalBtn').addEventListener('click', function() {
-        document.getElementById('approvalModal').classList.add('hidden');
-    });
-
-    // Handle status update form
-    document.getElementById('approvalForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const userId = document.getElementById('approvalUserId').value;
-        const status = document.getElementById('approvalStatus').value;
-        const notes = document.getElementById('approvalNotes').value;
-        
-        try {
-            const data = await apiFetch('users.php', {
-                method: 'PUT',
-                body: JSON.stringify({
-                    user_id: parseInt(userId),
-                    status: status,
-                    notes: notes
-                })
-            });
-
-            if (data.success) {
-                document.getElementById('approvalModal').classList.add('hidden');
-                loadUsers(); // Reload the users list
-                window.showToast(data.message, 'success');
-            } else {
-                showError(data.error || 'Failed to update user status');
-            }
-        } catch (error) {
-            console.error('Error updating user status:', error);
-            showError('Failed to update user status');
-        }
-    });
-
-    // Success message function
-    function showSuccess(message) {
-        // Simple alert for now - you can enhance this with better notifications
-        window.showToast(message, 'success');
-    }
-
-    // Tab functionality
-    function initializeTabs() {
-        const usersTab = document.getElementById('usersTab');
-        const resetRequestsTab = document.getElementById('resetRequestsTab');
-        const usersTabContent = document.getElementById('usersTabContent');
-        const resetRequestsTabContent = document.getElementById('resetRequestsTabContent');
-
-        // Tab click handlers
-        usersTab.addEventListener('click', function() {
-            switchTab('users');
-        });
-
-        resetRequestsTab.addEventListener('click', function() {
-            switchTab('resetRequests');
-        });
-
-        // Initialize with users tab active
-        switchTab('users');
-
-        // Initialize reset requests functionality
-        initializeResetRequestsTab();
-    }
-
     function switchTab(tabName) {
         const usersTab = document.getElementById('usersTab');
         const resetRequestsTab = document.getElementById('resetRequestsTab');
@@ -484,55 +521,63 @@ document.addEventListener('DOMContentLoaded', function() {
         const resetRequestsTabContent = document.getElementById('resetRequestsTabContent');
 
         // Reset all tabs
-        usersTab.classList.remove('active', 'border-indigo-500', 'text-indigo-600');
-        usersTab.classList.add('border-transparent', 'text-gray-500');
-        resetRequestsTab.classList.remove('active', 'border-indigo-500', 'text-indigo-600');
-        resetRequestsTab.classList.add('border-transparent', 'text-gray-500');
+        if (usersTab) usersTab.classList.remove('active', 'border-indigo-500', 'text-indigo-600');
+        if (usersTab) usersTab.classList.add('border-transparent', 'text-gray-500');
+        if (resetRequestsTab) resetRequestsTab.classList.remove('active', 'border-indigo-500', 'text-indigo-600');
+        if (resetRequestsTab) resetRequestsTab.classList.add('border-transparent', 'text-gray-500');
 
-        usersTabContent.classList.add('hidden');
-        resetRequestsTabContent.classList.add('hidden');
+        if (usersTabContent) usersTabContent.classList.add('hidden');
+        if (resetRequestsTabContent) resetRequestsTabContent.classList.add('hidden');
 
         // Activate selected tab
         if (tabName === 'users') {
-            usersTab.classList.add('active', 'border-indigo-500', 'text-indigo-600');
-            usersTab.classList.remove('border-transparent', 'text-gray-500');
-            usersTabContent.classList.remove('hidden');
+            if (usersTab) usersTab.classList.add('active', 'border-indigo-500', 'text-indigo-600');
+            if (usersTab) usersTab.classList.remove('border-transparent', 'text-gray-500');
+            if (usersTabContent) usersTabContent.classList.remove('hidden');
             loadUsers();
         } else if (tabName === 'resetRequests') {
-            resetRequestsTab.classList.add('active', 'border-indigo-500', 'text-indigo-600');
-            resetRequestsTab.classList.remove('border-transparent', 'text-gray-500');
-            resetRequestsTabContent.classList.remove('hidden');
+            if (resetRequestsTab) resetRequestsTab.classList.add('active', 'border-indigo-500', 'text-indigo-600');
+            if (resetRequestsTab) resetRequestsTab.classList.remove('border-transparent', 'text-gray-500');
+            if (resetRequestsTabContent) resetRequestsTabContent.classList.remove('hidden');
+            initializeResetRequestsTab(); // Initialize when tab is activated
             loadPasswordResetRequests();
         }
     }
 
     // Password Reset Requests functionality
     function initializeResetRequestsTab() {
-        const resetStatusFilter = document.getElementById('resetStatusFilter');
-        const resetSearchInput = document.getElementById('resetSearchInput');
-        const resetSearchBtn = document.getElementById('resetSearchBtn');
+        const resetStatusFilter = document.getElementById('resetstatusFilter'); // Use prefixed ID
+        const resetSearchInput = document.getElementById('resetsearchInput');     // Use prefixed ID
+        const resetSearchBtn = document.getElementById('resetsearchBtn');       // Use prefixed ID
 
         // Event listeners for reset requests
+        if (resetStatusFilter) {
         resetStatusFilter.addEventListener('change', function() {
             resetCurrentFilters.status = this.value;
             resetCurrentPage = 1;
             loadPasswordResetRequests();
         });
+        }
 
+        if (resetSearchBtn) {
         resetSearchBtn.addEventListener('click', function() {
             resetCurrentFilters.search = resetSearchInput.value.trim();
             resetCurrentPage = 1;
             loadPasswordResetRequests();
         });
+        }
 
         // Reset link modal
         const closeResetLinkModalBtn = document.getElementById('closeResetLinkModalBtn');
         const copyResetLinkBtn = document.getElementById('copyResetLinkBtn');
 
+        if (closeResetLinkModalBtn) {
         closeResetLinkModalBtn.addEventListener('click', function() {
             document.getElementById('resetLinkModal').classList.add('hidden');
         });
+        }
 
+        if (copyResetLinkBtn) {
         copyResetLinkBtn.addEventListener('click', function() {
             const resetLinkInput = document.getElementById('resetLinkInput');
             resetLinkInput.select();
@@ -547,10 +592,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 icon.className = originalClass;
             }, 2000);
         });
+        }
     }
 
     async function loadPasswordResetRequests() {
         try {
+            // Re-query elements specific to reset requests tab
+            const resetRequestsTableBody = document.getElementById('resetRequestsTableBody');
+            const resetCurrentPageSpan = document.getElementById('resetCurrentPage');
+            const resetShowingStartSpan = document.getElementById('resetShowingStart');
+            const resetShowingEndSpan = document.getElementById('resetShowingEnd');
+            const totalResetRequestsSpan = document.getElementById('totalResetRequests');
+            const resetPrevPageBtn = document.getElementById('resetPrevPageBtn');
+            const resetNextPageBtn = document.getElementById('resetNextPageBtn');
+
+            if (!resetRequestsTableBody) {
+                console.warn('resetRequestsTableBody not found when loading reset requests.');
+                return;
+            }
+
             const params = new URLSearchParams({
                 page: resetCurrentPage,
                 status: resetCurrentFilters.status,
@@ -650,11 +710,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const pendingCount = requests.filter(r => r.status === 'pending').length;
         const badge = document.getElementById('pendingResetCount');
         
+        if (badge) {
         if (pendingCount > 0) {
             badge.textContent = pendingCount;
             badge.classList.remove('hidden');
         } else {
             badge.classList.add('hidden');
+            }
         }
     }
 
@@ -663,6 +725,14 @@ document.addEventListener('DOMContentLoaded', function() {
         resetTotalPages = pagination.total_pages;
         
         const paginationContainer = document.getElementById('resetRequestsPagination');
+        const resetCurrentPageSpan = document.getElementById('resetCurrentPage');
+        const resetPrevPageBtn = document.getElementById('resetPrevPageBtn');
+        const resetNextPageBtn = document.getElementById('resetNextPageBtn');
+
+        if (!paginationContainer) {
+            console.warn('resetRequestsPagination container not found.');
+            return;
+        }
         
         if (pagination.total_pages <= 1) {
             paginationContainer.innerHTML = '';
@@ -672,9 +742,9 @@ document.addEventListener('DOMContentLoaded', function() {
         paginationContainer.innerHTML = `
             <div class="flex items-center justify-between">
                 <div class="text-sm text-gray-700">
-                    Showing <span class="font-medium">${(pagination.current_page - 1) * pagination.per_page + 1}</span>
-                    to <span class="font-medium">${Math.min(pagination.current_page * pagination.per_page, pagination.total_count)}</span>
-                    of <span class="font-medium">${pagination.total_count}</span> requests
+                    Showing <span class="font-medium" id="resetShowingStart">${(pagination.current_page - 1) * pagination.per_page + 1}</span>
+                    to <span class="font-medium" id="resetShowingEnd">${Math.min(pagination.current_page * pagination.per_page, pagination.total_count)}</span>
+                    of <span class="font-medium" id="totalResetRequests">${pagination.total_count}</span> requests
                 </div>
                 <div class="flex space-x-2">
                     <button onclick="loadResetRequestsPage(${pagination.current_page - 1})" 
@@ -682,7 +752,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             class="px-3 py-1 border border-gray-300 rounded-md text-sm ${pagination.current_page === 1 ? 'bg-gray-100 text-gray-400' : 'bg-white hover:bg-gray-50'}">
                         Previous
                     </button>
-                    <span class="px-3 py-1 text-sm text-gray-700">
+                    <span class="px-3 py-1 text-sm text-gray-700" id="resetCurrentPage">
                         Page ${pagination.current_page} of ${pagination.total_pages}
                     </span>
                     <button onclick="loadResetRequestsPage(${pagination.current_page + 1})" 
@@ -693,6 +763,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
         `;
+        
+        // Update text content of spans after innerHTML update
+        if (resetCurrentPageSpan) resetCurrentPageSpan.textContent = `Page ${resetCurrentPage} of ${resetTotalPages}`;
+        if (resetPrevPageBtn) resetPrevPageBtn.disabled = resetCurrentPage <= 1;
+        if (resetNextPageBtn) resetNextPageBtn.disabled = resetCurrentPage >= resetTotalPages;
     }
 
     // Global functions for button handlers
@@ -711,7 +786,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     showResetLink(data.reset_link, data.user_email);
                 }
                 loadPasswordResetRequests();
-                window.showToast(data.message, 'success');
+                showNotification(data.message, 'success');
             } else {
                 showError(data.error || `Failed to ${action} reset request`);
             }
@@ -722,7 +797,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     window.viewResetLink = function(token) {
-        const resetLink = `http://localhost/regapp2/public/frontend/reset_password.html?token=${token}`;
+        const resetLink = `http://localhost/regapp2/public/frontend/reset_password.php?token=${token}`;
         showResetLink(resetLink, 'user');
     };
 
@@ -734,9 +809,13 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     function showResetLink(link, userEmail) {
-        document.getElementById('resetUserEmail').textContent = userEmail;
-        document.getElementById('resetLinkInput').value = link;
-        document.getElementById('resetLinkModal').classList.remove('hidden');
+        const resetUserEmail = document.getElementById('resetUserEmail');
+        const resetLinkInput = document.getElementById('resetLinkInput');
+        const resetLinkModal = document.getElementById('resetLinkModal');
+
+        if (resetUserEmail) resetUserEmail.textContent = userEmail;
+        if (resetLinkInput) resetLinkInput.value = link;
+        if (resetLinkModal) resetLinkModal.classList.remove('hidden');
     }
 
     function formatDateTime(dateString) {
@@ -747,21 +826,84 @@ document.addEventListener('DOMContentLoaded', function() {
     // Global functions for invitation actions
     window.viewInvitationDetails = function(invitationId) {
         // Redirect to invitations page with the specific invitation
-        window.location.href = `invitations.html?highlight=${invitationId}`;
+        window.location.href = `invitations.php?highlight=${invitationId}`;
     };
 
     window.resendInvitation = function(invitationId) {
         // This would integrate with the invitations API
-        window.showToast('Invitation resend functionality would be implemented here', 'info');
+        showNotification('Invitation resend functionality would be implemented here', 'info');
     };
 
     window.cancelInvitation = async function(invitationId) {
-        const confirmed = await window.showModal('Confirm Cancellation', 'Are you sure you want to cancel this invitation? This action cannot be undone.', false, true);
+        const confirmed = await showNotification('Confirm Cancellation', 'Are you sure you want to cancel this invitation? This action cannot be undone.', 'info', true);
         
         if (confirmed) {
             // This would integrate with the invitations API
-            window.showToast('Invitation cancellation functionality would be implemented here', 'info');
+            showNotification('Invitation cancellation functionality would be implemented here', 'info');
             // Example: try { await apiFetch(...); showToast(...); loadInvitations(); } catch (error) { showError(...); }
         }
     };
+    
+    function showNotification(message, type = 'info', title = null, confirm = false) {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 z-50`;
+        
+        const bgColor = type === 'success' ? 'bg-green-50' : type === 'error' ? 'bg-red-50' : 'bg-blue-50';
+        const textColor = type === 'success' ? 'text-green-800' : type === 'error' ? 'text-red-800' : 'text-blue-800';
+        const iconColor = type === 'success' ? 'text-green-400' : type === 'error' ? 'text-red-400' : 'text-blue-400';
+        const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+        
+        notification.innerHTML = `
+            <div class="p-4">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <i class="fas ${icon} ${iconColor}"></i>
+                    </div>
+                    <div class="ml-3 w-0 flex-1 pt-0.5">
+                        ${title ? `<p class="text-sm font-medium text-gray-900">${title}</p>` : ''}
+                        <p class="mt-1 text-sm ${textColor}">${message}</p>
+                        ${confirm ? `
+                            <div class="mt-4 flex space-x-3">
+                                <button id="notificationConfirmBtn" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    Confirm
+                                </button>
+                                <button id="notificationCancelBtn" class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    Cancel
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="ml-4 flex-shrink-0 flex">
+                        <button class="rounded-md inline-flex ${textColor} hover:${textColor} focus:outline-none" onclick="this.parentElement.parentElement.parentElement.parentElement.remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        if (confirm) {
+            return new Promise(resolve => {
+                document.getElementById('notificationConfirmBtn').addEventListener('click', () => {
+                    notification.remove();
+                    resolve(true);
+                });
+                document.getElementById('notificationCancelBtn').addEventListener('click', () => {
+                    notification.remove();
+                    resolve(false);
+                });
+            });
+        } else {
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 3000);
+        }
+    }
+
 }); 

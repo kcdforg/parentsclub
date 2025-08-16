@@ -29,7 +29,7 @@ export async function apiFetch(endpoint, options = {}) {
                 // Unauthorized - session expired or invalid
                 localStorage.removeItem('user_session_token');
                 localStorage.removeItem('user_data');
-                window.location.href = 'login.html';
+                window.location.href = 'login.php';
                 throw new Error('Unauthorized: Session expired or invalid');
             } else if (response.status === 403) {
                 // Forbidden - not enough permissions

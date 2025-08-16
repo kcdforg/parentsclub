@@ -12,10 +12,10 @@ function checkExistingSession() {
 
     if (adminSessionToken) {
         // Admin is logged in, redirect to admin dashboard
-        window.location.href = '../../admin/frontend/dashboard.html';
+        window.location.href = '../../admin/frontend/dashboard.php';
     } else if (userSessionToken) {
         // User is logged in, redirect to user dashboard
-        window.location.href = 'dashboard.html';
+        window.location.href = 'dashboard.php';
     }
 }
 
@@ -111,9 +111,9 @@ async function handleLogin(e) {
             
             // Redirect based on user status
             if (!data.user.profile_completed) {
-                window.location.href = 'profile_completion.html';
+                window.location.href = 'profile_completion.php';
             } else {
-                window.location.href = 'dashboard.html';
+                window.location.href = 'dashboard.php';
             }
         } else {
             showError(data.error || 'Login failed');

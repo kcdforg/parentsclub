@@ -1,9 +1,21 @@
+<?php
+session_start();
+// Check if user is logged in
+if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true) {
+    header('Location: login.php');
+    exit;
+}
+
+// Include reusable components
+require_once 'components/header.php';
+require_once 'components/footer.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile Completion - Registration Portal</title>
+    <title>Edit Profile - Registration Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script>
@@ -19,47 +31,9 @@
         }
     </script>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b border-gray-200 hidden">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <h1 class="text-xl font-bold text-gray-900">Registration Portal</h1>
-                    </div>
-                    <div class="hidden md:block ml-10">
-                        <div class="flex items-baseline space-x-4">
-                            <a href="dashboard.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
-                            <a href="edit_profile.html" class="bg-primary text-white px-3 py-2 rounded-md text-sm font-medium">Profile</a>
-                            <a href="subscription.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Subscription</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-center">
-                    <!-- Mobile menu button -->
-                    <button id="mobileMenuBtn" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    
-                    <!-- Logout button -->
-                    <button id="logoutBtn" class="ml-3 text-gray-600 hover:text-primary transition-colors px-3 py-2 rounded-md text-sm font-medium">
-                        <i class="fas fa-sign-out-alt mr-1"></i>
-                        Logout
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Mobile menu -->
-        <div id="mobileMenu" class="hidden md:hidden">
-            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                <a href="dashboard.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">Dashboard</a>
-                <a href="edit_profile.html" class="bg-primary text-white block px-3 py-2 rounded-md text-base font-medium">Profile</a>
-                <a href="subscription.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">Subscription</a>
-            </div>
-        </div>
-    </nav>
+<body class="bg-gray-50">
+    <?php renderPublicHeader('edit_profile'); ?>
+
     <div class="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-2xl w-full space-y-8">
             <div class="bg-white rounded-2xl shadow-xl p-8">
@@ -68,11 +42,11 @@
                     <div class="mx-auto h-16 w-16 bg-indigo-600 rounded-full flex items-center justify-center mb-4">
                         <i class="fas fa-user-edit text-white text-2xl"></i>
                     </div>
-                    <h2 class="text-3xl font-bold text-gray-900">Complete Your Profile</h2>
-                    <p class="text-gray-600 mt-2">Please provide your personal information to continue</p>
+                    <h2 class="text-3xl font-bold text-gray-900">Edit Your Profile</h2>
+                    <p class="text-gray-600 mt-2">Update your personal information</p>
                     
                     <!-- 72-hour expiry notice -->
-                    <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg hidden">
                         <div class="flex items-center justify-center text-amber-700">
                             <i class="fas fa-clock mr-2"></i>
                             <p class="text-sm">⚠️ <strong>Time-sensitive:</strong> Your invitation expires after 72 hours. Complete your profile within this time to activate your account.</p>
@@ -81,7 +55,7 @@
                 </div>
 
                 <!-- Progress Indicator -->
-                <div class="mb-8">
+                <div class="mb-8 hidden">
                     <div class="flex items-center justify-between text-sm text-gray-500 mb-2">
                         <span>Progress</span>
                         <span>Step 2 of 3</span>
@@ -275,13 +249,13 @@
                     <!-- Action Buttons -->
                     <div class="flex flex-col sm:flex-row gap-4">
                         <button type="submit" id="saveProfileBtn"
-                                class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-6 rounded-lg transition-colors focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="flex-1 bg-primary hover:bg-primary-dark text-white font-medium py-3 px-6 rounded-lg transition-colors focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
                             <span id="saveProfileBtnText">Submit</span>
                             <i id="saveProfileBtnSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
                         </button>
                         <button type="button" id="cancelBtn"
-                                class="sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors">
-                            Skip for Now
+                                class="sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors hidden">
+                            Cancel
                         </button>
                     </div>
                 </form>
@@ -291,12 +265,10 @@
                     <div class="flex items-start">
                         <i class="fas fa-info-circle text-blue-600 mt-1 mr-3"></i>
                         <div class="text-sm text-blue-800">
-                            <p class="font-medium mb-2">What happens next?</p>
+                            <p class="font-medium mb-2">Your profile details will be updated.</p>
                             <ul class="space-y-1 text-blue-700">
-                                <li>• Your profile will be sent for admin approval</li>
-                                <li>• You'll receive a unique user number once approved</li>
-                                <li>• You can then access all membership features</li>
-                                <li>• You can update your profile anytime after approval</li>
+                                <li>• Changes will reflect immediately on your dashboard.</li>
+                                <li>• Contact support if you need to update uneditable fields.</li>
                             </ul>
                         </div>
                     </div>
@@ -306,16 +278,16 @@
     </div>
 
     <!-- Completion Modal -->
-    <div id="completionModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div id="completionModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div class="mt-3 text-center">
                 <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
                     <i class="fas fa-check text-green-600 text-xl"></i>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Information Added!</h3>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Profile Updated!</h3>
                 <div class="mt-2 px-7 py-3">
                     <p class="text-sm text-gray-500 mb-4">
-                        Your personal information has been submitted. You'll be notified once your account is approved.
+                        Your profile has been successfully updated.
                     </p>
                     <button id="goToDashboard" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full">
                         Continue to Dashboard
@@ -325,7 +297,8 @@
         </div>
     </div>
 
+    <?php renderPublicFooter(); ?>
     <script src="js/utils.js" type="module"></script>
-    <script src="js/profile_completion.js" type="module"></script>
+    <script src="js/edit_profile.js" type="module"></script>
 </body>
 </html>

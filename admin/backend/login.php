@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 try {
+    // Get the raw POST data
     $input = json_decode(file_get_contents('php://input'), true);
     
     if (!$input || !isset($input['username']) || !isset($input['password'])) {
@@ -46,16 +47,16 @@ try {
         exit;
     }
     
-    $sessionManager = SessionManager::getInstance();
-    $sessionId = $sessionManager->createSession('admin', $admin['id'], [
-        'username' => $admin['username'],
-        'email' => $admin['email']
-    ]);
+    // Start PHP session and set session variables
+    session_start();
+    $_SESSION['admin_logged_in'] = true;
+    $_SESSION['admin_user_id'] = $admin['id'];
+    $_SESSION['admin_username'] = $admin['username'];
+    $_SESSION['admin_email'] = $admin['email'];
     
     echo json_encode([
         'success' => true,
         'message' => 'Login successful',
-        'session_token' => $sessionId,
         'user' => [
             'id' => $admin['id'],
             'username' => $admin['username'],
@@ -65,7 +66,7 @@ try {
     
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Internal server error']);
+    echo json_encode(['error' => 'Server error: ' . $e->getMessage()]);
     error_log("Admin login error: " . $e->getMessage());
 }
 ?> 

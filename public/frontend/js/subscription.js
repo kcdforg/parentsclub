@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check authentication
     const sessionToken = localStorage.getItem('user_session_token');
     if (!sessionToken) {
-        window.location.href = 'login.html';
+        window.location.href = 'login.php';
         return;
     }
 
@@ -184,14 +184,14 @@ async function handleLogout() {
         // Clear local storage and redirect
                 localStorage.removeItem('user_session_token');
                 localStorage.removeItem('user_data');
-        window.location.href = 'login.html';
+        window.location.href = 'login.php';
 
     } catch (error) {
         console.error('Logout error:', error);
         // Even if server logout fails, clear local data and redirect
         localStorage.removeItem('user_session_token');
         localStorage.removeItem('user_data');
-        window.location.href = 'login.html';
+        window.location.href = 'login.php';
     }
 }
 

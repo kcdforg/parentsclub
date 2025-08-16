@@ -1,3 +1,10 @@
+<?php
+// No session_start() or login check needed for index.php as it's publicly accessible
+
+// Include reusable components
+require_once 'components/header.php';
+require_once 'components/footer.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,23 +27,7 @@
     </script>
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-white to-indigo-50 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <h1 class="text-2xl font-bold text-primary">Registration Portal</h1>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a href="login.html" class="text-gray-600 hover:text-primary transition-colors px-3 py-2 rounded-md text-sm font-medium">
-                        Sign In
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <?php renderPublicIndexHeader(); ?>
 
     <!-- Hero Section -->
     <section class="relative py-20 lg:py-32">
@@ -194,7 +185,7 @@
                     <p class="text-gray-600 mb-4">
                         If you're interested in joining our community, please contact an existing member or reach out to our support team.
                     </p>
-                    <a href="login.html" class="inline-flex items-center text-primary hover:text-primary/80 font-medium">
+                    <a href="login.php" class="inline-flex items-center text-primary hover:text-primary/80 font-medium">
                         <i class="fas fa-sign-in-alt mr-2"></i>
                         Sign in if you already have an account
                     </a>
@@ -263,11 +254,11 @@
                 Start your journey today and become part of something amazing.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="register.html" class="bg-white hover:bg-gray-100 text-primary px-8 py-4 rounded-lg text-lg font-medium transition-colors inline-flex items-center justify-center">
+                <a href="register.php" class="bg-white hover:bg-gray-100 text-primary px-8 py-4 rounded-lg text-lg font-medium transition-colors inline-flex items-center justify-center">
                     <i class="fas fa-rocket mr-2"></i>
                     Join Now
                 </a>
-                <a href="login.html" class="border border-white text-white hover:bg-white hover:text-primary px-8 py-4 rounded-lg text-lg font-medium transition-colors inline-flex items-center justify-center">
+                <a href="login.php" class="border border-white text-white hover:bg-white hover:text-primary px-8 py-4 rounded-lg text-lg font-medium transition-colors inline-flex items-center justify-center">
                     <i class="fas fa-sign-in-alt mr-2"></i>
                     Already a Member?
                 </a>
@@ -275,39 +266,7 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Registration Portal</h3>
-                    <p class="text-gray-400">
-                        Building communities and connecting people through our secure and user-friendly platform.
-                    </p>
-                </div>
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="#features" class="hover:text-white transition-colors">Features</a></li>
-                        <li><a href="register.html" class="hover:text-white transition-colors">Register</a></li>
-                        <li><a href="login.html" class="hover:text-white transition-colors">Sign In</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Support</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Contact</h3>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><i class="fas fa-envelope mr-2"></i>support@regportal.com</li>
-                        <li><i class="fas fa-phone mr-2"></i>+1 (555) 123-4567</li>
-                        <li><i class="fas fa-map-marker-alt mr-2"></i>123 Portal St, Digital City</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; 2024 Registration Portal. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+    <?php renderPublicFooter(); ?>
 
     <script>
         // Smooth scrolling for anchor links

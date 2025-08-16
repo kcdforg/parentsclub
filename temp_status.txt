@@ -1,0 +1,56 @@
+ M admin/backend/login.php
+ M admin/backend/users.php
+ D admin/frontend/admin-users.html
+ D admin/frontend/dashboard.html
+ D admin/frontend/invitations.html
+ M admin/frontend/js/admin-nav.js
+ M admin/frontend/js/admin-users.js
+ M admin/frontend/js/api.js
+ M admin/frontend/js/dashboard.js
+ M admin/frontend/js/invitations.js
+ M admin/frontend/js/login.js
+ M admin/frontend/js/users.js
+ D admin/frontend/login.html
+ D admin/frontend/users.html
+ D public/frontend/dashboard.html
+ D public/frontend/edit_profile.html
+ D public/frontend/index.html
+ D public/frontend/invitations.html
+ M public/frontend/js/api.js
+ M public/frontend/js/dashboard.js
+ M public/frontend/js/edit_profile.js
+ M public/frontend/js/invitations.js
+ M public/frontend/js/login.js
+ M public/frontend/js/profile_completion.js
+ M public/frontend/js/register.js
+ M public/frontend/js/reset_password.js
+ M public/frontend/js/subscription.js
+ D public/frontend/login.html
+ D public/frontend/profile_completion.html
+ D public/frontend/register.html
+ M public/frontend/register.php
+ D public/frontend/reset_password.html
+ D public/frontend/subscription.html
+?? BACKUP_RESTORE_INSTRUCTIONS.md
+?? MIGRATION_SUMMARY.md
+?? admin/backend/dashboard_api.php
+?? admin/frontend/admin-users.php
+?? admin/frontend/components/
+?? admin/frontend/dashboard.php
+?? admin/frontend/invitations.php
+?? admin/frontend/login.php
+?? admin/frontend/users.php
+?? backup_and_restore_html.bat
+?? cleanup_old_html.php
+?? migrate_to_php.php
+?? public/frontend/components/
+?? public/frontend/dashboard.php
+?? public/frontend/edit_profile.php
+?? public/frontend/index.php
+?? public/frontend/invitations.php
+?? public/frontend/login.php
+?? public/frontend/profile_completion.php
+?? public/frontend/reset_password.php
+?? public/frontend/subscription.php
+?? temp_status.txt
+?? verify_restoration.bat

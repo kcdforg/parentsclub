@@ -133,7 +133,7 @@ let hasChanges = false; // Flag to track if changes have been made
 
 function checkAuthentication() {
     if (!sessionToken) {
-        window.location.href = 'login.html';
+        window.location.href = 'login.php';
         return;
     }
     
@@ -460,7 +460,7 @@ function initializeEventListeners() {
     logoutBtn.addEventListener('click', handleLogout);
 
     goToDashboard.addEventListener('click', function() {
-        window.location.href = 'edit_profile.html';
+        window.location.href = 'edit_profile.php';
     });
 }
 

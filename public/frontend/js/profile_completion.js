@@ -131,14 +131,14 @@ let userData = JSON.parse(localStorage.getItem('user_data') || '{}');
 
 function checkAuthentication() {
     if (!sessionToken) {
-        window.location.href = 'login.html';
+        window.location.href = 'login.php';
         return;
     }
     
     // FOR PROFILE COMPLETION FLOW: Check if profile is already completed
     // If so, redirect to dashboard. This prevents a completed user from seeing this page again.
     if (userData.profile_completed) {
-        window.location.href = 'dashboard.html';
+        window.location.href = 'dashboard.php';
         return;
     }
     
@@ -159,7 +159,7 @@ async function loadExistingProfile() {
         if (data.success && data.profile) {
             // FOR PROFILE COMPLETION FLOW: If profile is already completed, redirect.
             if (data.profile.profile_completed) {
-                window.location.href = 'dashboard.html';
+                window.location.href = 'dashboard.php';
                 return;
             }
             console.log('Profile data to populate (Add Personal Info flow):', data.profile);
@@ -422,13 +422,13 @@ function initializeEventListeners() {
     }
 
     skipBtn.addEventListener('click', function() {
-        window.location.href = 'index.html';
+        window.location.href = 'index.php';
     });
 
     logoutBtn.addEventListener('click', handleLogout);
 
     goToDashboard.addEventListener('click', function() {
-        window.location.href = 'dashboard.html';
+        window.location.href = 'dashboard.php';
     });
 }
 
@@ -595,7 +595,7 @@ async function handleProfileSubmission(e) {
             userData.approval_status = 'pending'; // Explicitly set approval status to pending
             localStorage.setItem('user_data', JSON.stringify(userData));
             
-            window.location.href = 'dashboard.html';
+            window.location.href = 'dashboard.php';
         } else {
             showError(data.error || 'Failed to save profile');
         }
@@ -715,14 +715,14 @@ async function handleLogout() {
         localStorage.removeItem('user_session_token');
         localStorage.removeItem('user_data');
         
-        window.location.href = 'login.html';
+        window.location.href = 'login.php';
 
     } catch (error) {
         console.error('Logout error:', error);
         
         localStorage.removeItem('user_session_token');
         localStorage.removeItem('user_data');
-        window.location.href = 'login.html';
+        window.location.href = 'login.php';
     }
 }
 

@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check authentication
     const sessionToken = localStorage.getItem('admin_session_token');
     if (!sessionToken) {
-        window.location.href = 'login.html';
+        window.location.href = 'login.php';
         return;
     }
 

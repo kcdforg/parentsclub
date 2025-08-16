@@ -17,7 +17,7 @@ import { apiFetch } from './api.js';
         // But we keep it for immediate client-side redirection if token is missing from localStorage
         const sessionToken = localStorage.getItem('admin_session_token');
         if (!sessionToken) {
-            window.location.href = 'login.html';
+            window.location.href = 'login.php';
             return;
         }
         
@@ -98,14 +98,14 @@ import { apiFetch } from './api.js';
             // Clear local storage and redirect only if apiFetch didn't already redirect (e.g. 401 handled by apiFetch)
             localStorage.removeItem('admin_session_token');
             localStorage.removeItem('admin_user');
-            window.location.href = 'login.html';
+            window.location.href = 'login.php';
 
         } catch (error) {
             console.error('Logout error:', error);
             // Even if API call fails, attempt to clear local storage and redirect to prevent being stuck
         localStorage.removeItem('admin_session_token');
         localStorage.removeItem('admin_user');
-        window.location.href = 'login.html';
+        window.location.href = 'login.php';
         }
     }
     
@@ -120,7 +120,7 @@ import { apiFetch } from './api.js';
         } else {
             // Modal doesn't exist, redirect to dashboard where it's available
             showModal('Info', 'Change password functionality is available on the dashboard page.');
-            window.location.href = 'dashboard.html#change-password';
+            window.location.href = 'dashboard.php#change-password';
         }
     }
     
