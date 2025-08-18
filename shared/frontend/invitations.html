@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invitations Management - Registration Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation will be injected by the parent page -->
+    <div id="navigationPlaceholder"></div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Invitation Component Container -->
+        <div id="invitationContainer">
+            <!-- Shared invitation component will be rendered here -->
+        </div>
+    </div>
+
+    <!-- Shared JavaScript -->
+    <script type="module">
+        import { InvitationComponent } from './components/InvitationComponent.js';
+        
+        // Initialize the shared invitation component
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize component with container
+            window.invitationComponent = new InvitationComponent({
+                container: '#invitationContainer',
+                apiBaseUrl: '/regapp2/shared/backend'
+            });
+        });
+    </script>
+</body>
+</html>

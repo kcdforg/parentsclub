@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (invitations.length === 0) {
             invitationsTableBody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
                         No invitations found
                     </td>
                 </tr>
@@ -208,84 +208,90 @@ document.addEventListener('DOMContentLoaded', function() {
             const baseUrl = window.location.origin;
             const invitationLink = `${baseUrl}/regapp2/public/frontend/invitation.html?invitation=${invitation.invitation_code}`;
 
+            // Determine the second date to show (expires/used)
+            let secondDate = '';
+            let secondDateLabel = '';
+            
+            if (invitation.status === 'used' && invitation.used_at) {
+                secondDate = formatDate(invitation.used_at);
+                secondDateLabel = 'Used on';
+            } else {
+                secondDate = formatDate(invitation.expires_at);
+                secondDateLabel = 'Expires on';
+            }
+
             row.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap">
+                <!-- Col-1: Invitation ID / Invited By -->
+                <td class="px-3 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">INV-${invitation.id}</div>
+                    <div class="text-xs text-gray-500">by ${invitation.inviter_name || invitation.invited_by_type}</div>
+                </td>
+                
+                <!-- Col-2: Name / Phone -->
+                <td class="px-3 py-4 whitespace-nowrap">
                     <div class="flex items-center">
-                        <div class="flex-shrink-0 h-10 w-10">
-                            <div class="h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center">
-                                <span class="text-white font-medium">${invitation.invited_name.charAt(0).toUpperCase()}</span>
+                        <div class="flex-shrink-0 h-8 w-8">
+                            <div class="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center">
+                                <span class="text-white font-medium text-xs">${invitation.invited_name.charAt(0).toUpperCase()}</span>
                             </div>
                         </div>
-                        <div class="ml-4">
+                        <div class="ml-3">
                             <div class="text-sm font-medium text-gray-900">${invitation.invited_name}</div>
-                            <div class="text-sm text-gray-500">${invitation.invited_phone || 'No phone'}</div>
+                            <div class="text-xs text-gray-500">${invitation.invited_phone || 'No phone'}</div>
                         </div>
                     </div>
                 </td>
+                
+                <!-- Col-3: Invitation Code -->
                 <td class="px-3 py-4 whitespace-nowrap">
                     <div class="max-w-xs">
-                        <div class="bg-gray-50 p-2 rounded border text-sm font-mono text-gray-900 break-all" title="${invitation.invitation_code}">
-                            ${invitation.invitation_code.length > 20 ? invitation.invitation_code.substring(0, 20) + '...' : invitation.invitation_code}
-                        </div>
-                        <div class="text-xs text-gray-500 mt-1">${invitation.invited_by_type}</div>
-                    </div>
-                </td>
-                <td class="px-3 py-4 whitespace-nowrap invitation-link-cell">
-                    <div class="max-w-xs">
-                        <div class="bg-gray-50 p-2 rounded border text-sm text-gray-900 break-all font-mono text-xs" title="${invitationLink}">
-                            <span class="url-short">${invitationLink.length > 50 ? invitationLink.substring(0, 50) + '...' : invitationLink}</span>
-                            <span class="url-full hidden">${invitationLink}</span>
+                        <div class="bg-gray-50 p-2 rounded border text-xs font-mono text-gray-900 break-all" title="${invitation.invitation_code}">
+                            ${invitation.invitation_code.length > 16 ? invitation.invitation_code.substring(0, 16) + '...' : invitation.invitation_code}
                         </div>
                         <div class="flex space-x-2 mt-2">
-                            <button onclick="toggleFullUrl(this)" class="text-xs text-gray-600 hover:text-gray-800 hover:underline">
-                                <i class="fas fa-expand-alt"></i> Show Full
+                            <button onclick="copyToClipboard('${invitation.invitation_code}')" class="text-xs text-indigo-600 hover:text-indigo-800 hover:underline">
+                                <i class="fas fa-copy"></i> Copy Code
                             </button>
-                            <button onclick="copyToClipboard('${invitationLink}')" class="text-xs text-indigo-600 hover:text-indigo-800 hover:underline">
-                                <i class="fas fa-copy"></i> Copy
-                            </button>
-                            <button onclick="window.open('${invitationLink}', '_blank')" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">
-                                <i class="fas fa-external-link-alt"></i> Preview
+                            <button onclick="copyToClipboard('${invitationLink}')" class="text-xs text-green-600 hover:text-green-800 hover:underline">
+                                <i class="fas fa-link"></i> Copy Link
                             </button>
                         </div>
                     </div>
                 </td>
-                <td class="px-3 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                        <span class="${statusClass}">${invitation.status}</span>
-                        ${invitation.status === 'pending' ? `
-                            <span class="ml-2 text-xs text-gray-500" title="Invitation is active and can be used">
-                                <i class="fas fa-clock"></i>
-                            </span>
-                        ` : invitation.status === 'used' ? `
-                            <span class="ml-2 text-xs text-gray-500" title="Invitation has been used">
-                                <i class="fas fa-check-circle"></i>
-                            </span>
-                        ` : `
-                            <span class="ml-2 text-xs text-gray-500" title="Invitation has expired">
-                                <i class="fas fa-times-circle"></i>
-                            </span>
-                        `}
+                
+                <!-- Col-4: Created On / Expires On -->
+                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div class="text-sm text-gray-900">Created: ${formatDate(invitation.created_at)}</div>
+                    <div class="text-xs ${isExpired && invitation.status === 'open' ? 'text-red-500' : 'text-gray-500'}">
+                        ${secondDateLabel}: ${secondDate}
                     </div>
                 </td>
-                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div>${formatDate(invitation.expires_at)}</div>
-                    ${isExpired ? '<div class="text-xs text-red-500">Expired</div>' : ''}
-                </td>
-                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ${formatDate(invitation.created_at)}
-                </td>
+                
+                <!-- Col-5: Actions -->
                 <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
-                    <button onclick="viewInvitationDetails(${invitation.id})" class="text-indigo-600 hover:text-indigo-900 mr-3">
-                        <i class="fas fa-eye"></i> View
+                    <div class="flex flex-col space-y-1">
+                        ${invitation.status === 'pending' && !isExpired ? `
+                            <button onclick="cancelInvitation(${invitation.id})" class="text-orange-600 hover:text-orange-900 text-xs">
+                                <i class="fas fa-ban"></i> Cancel
                     </button>
-                    ${invitation.status === 'pending' ? `
-                        <button onclick="resendInvitation(${invitation.id})" class="text-green-600 hover:text-green-900 mr-3">
+                        ` : ''}
+                        ${invitation.status === 'expired' ? `
+                            <button onclick="resendInvitation(${invitation.id})" class="text-green-600 hover:text-green-900 text-xs">
                             <i class="fas fa-paper-plane"></i> Resend
                         </button>
                     ` : ''}
-                    <button onclick="deleteInvitation(${invitation.id})" class="text-red-600 hover:text-red-900">
+                        <button onclick="deleteInvitation(${invitation.id})" class="text-red-600 hover:text-red-900 text-xs">
                         <i class="fas fa-trash"></i> Delete
                     </button>
+                        <button onclick="viewInvitationDetails(${invitation.id})" class="text-indigo-600 hover:text-indigo-900 text-xs">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </div>
+                </td>
+                
+                <!-- Col-6: Status -->
+                <td class="px-3 py-4 whitespace-nowrap">
+                    <span class="${statusClass}">${getStatusDisplayText(invitation.status)}</span>
                 </td>
             `;
             
@@ -316,7 +322,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 return 'px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full';
             case 'pending':
             default:
-                return 'px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full';
+                return 'px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full';
+        }
+    }
+
+    // Get status display text
+    function getStatusDisplayText(status) {
+        switch (status) {
+            case 'pending':
+                return 'Pending';
+            case 'used':
+                return 'Used';
+            case 'expired':
+                return 'Expired';
+            default:
+                return status;
         }
     }
 
@@ -432,6 +452,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const baseUrl = window.location.origin;
         const invitationLink = `${baseUrl}/regapp2/public/frontend/invitation.html?invitation=${invitation.invitation_code}`;
 
+        // Check if invitation is expired
+        const expiresDate = new Date(invitation.expires_at);
+        const isExpired = expiresDate < new Date();
+
         // Populate the modal
         const detailsContent = document.getElementById('invitationDetailsContent');
         detailsContent.innerHTML = `
@@ -464,10 +488,29 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div>
                             <label class="text-xs font-medium text-gray-500">Expires</label>
                             <p class="text-sm text-gray-900">${formatDate(invitation.expires_at)}</p>
+                            ${isExpired ? '<p class="text-xs text-red-500 font-medium">Expired</p>' : ''}
                         </div>
                     </div>
                 </div>
             </div>
+
+            ${invitation.status === 'pending' && !isExpired ? `
+            <div class="border-t pt-6">
+                <h4 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Invitation Actions</h4>
+                <div class="flex space-x-3">
+                    <button onclick="approveInvitation(${invitation.id})" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                        <i class="fas fa-check mr-2"></i>Approve Invitation
+                    </button>
+                    <button onclick="rejectInvitation(${invitation.id})" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                        <i class="fas fa-times mr-2"></i>Reject Invitation
+                    </button>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Approving will keep the invitation active. Rejecting will mark it as expired.
+                </p>
+            </div>
+            ` : ''}
             
             <div class="border-t pt-6">
                 <h4 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Invitation Link</h4>
@@ -668,13 +711,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const originalText = copyAllLinksBtn.innerHTML;
-        const pendingCount = currentInvitations.filter(inv => inv.status === 'pending').length;
+        const openCount = currentInvitations.filter(inv => inv.status === 'pending').length;
 
         try {
             // Try modern clipboard API first
             if (navigator.clipboard && window.isSecureContext) {
                 await navigator.clipboard.writeText(allLinks);
-                showCopyAllSuccess(originalText, pendingCount);
+                showCopyAllSuccess(originalText, openCount);
                 return;
             }
             
@@ -692,7 +735,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.removeChild(textArea);
             
             if (successful) {
-                showCopyAllSuccess(originalText, pendingCount);
+                showCopyAllSuccess(originalText, openCount);
             } else {
                 throw new Error('Copy command failed');
             }
@@ -735,8 +778,98 @@ document.addEventListener('DOMContentLoaded', function() {
     // Helper to highlight a row and display link
     /* Removed highlightAndDisplayLink function */
 
-    // Replace window.showToast with an empty function or remove its usage where it was previously used for success message after creation
-    window.showToast = function(message, type) {
-        console.log(`Toast (now inline): ${message}, Type: ${type}`);
+    // Approve invitation function
+    window.approveInvitation = async function(invitationId) {
+        const confirmed = await window.showModal('Approve Invitation', 'Are you sure you want to approve this invitation? This will activate the invitation for use.', false, true);
+        
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            const data = await apiFetch('invitations.php', {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    action: 'approve', 
+                    invitation_id: invitationId 
+                })
+            });
+
+            if (data.success) {
+                window.showToast('Invitation approved successfully', 'success');
+                document.getElementById('invitationDetailsModal').classList.add('hidden');
+                loadInvitations(); // Reload the list
+            } else {
+                showError(data.error || 'Failed to approve invitation');
+            }
+
+        } catch (error) {
+            console.error('Error approving invitation:', error);
+            showError('Failed to approve invitation. Please try again.');
+        }
     };
+
+    // Reject invitation function
+    window.rejectInvitation = async function(invitationId) {
+        const confirmed = await window.showModal('Reject Invitation', 'Are you sure you want to reject this invitation? This will mark it as expired and cannot be undone.', false, true);
+        
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            const data = await apiFetch('invitations.php', {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    action: 'reject', 
+                    invitation_id: invitationId 
+                })
+            });
+
+            if (data.success) {
+                window.showToast('Invitation rejected successfully', 'success');
+                document.getElementById('invitationDetailsModal').classList.add('hidden');
+                loadInvitations(); // Reload the list
+            } else {
+                showError(data.error || 'Failed to reject invitation');
+            }
+
+        } catch (error) {
+            console.error('Error rejecting invitation:', error);
+            showError('Failed to reject invitation. Please try again.');
+        }
+    };
+
+    // Cancel invitation function
+    window.cancelInvitation = async function(invitationId) {
+        const confirmed = await window.showModal('Cancel Invitation', 'Are you sure you want to cancel this invitation? This will mark it as expired and the invitee will not be able to use it.', false, true);
+        
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            const data = await apiFetch('invitations.php', {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    action: 'cancel', 
+                    invitation_id: invitationId 
+                })
+            });
+
+            if (data.success) {
+                window.showToast('Invitation cancelled successfully', 'success');
+                loadInvitations(); // Reload the list
+            } else {
+                showError(data.error || 'Failed to cancel invitation');
+            }
+
+        } catch (error) {
+            console.error('Error cancelling invitation:', error);
+            showError('Failed to cancel invitation. Please try again.');
+        }
+    };
+
+    // Note: window.showToast is already available via AdminModals component
+    // No need to override it here
 }); 

@@ -140,6 +140,12 @@ function createInvitation() {
 
         $input = json_decode(file_get_contents('php://input'), true);
         
+        // Handle approval/rejection actions
+        if (isset($input['action'])) {
+            handleInvitationAction($input, $session);
+            return;
+        }
+        
         if (!isset($input['name']) || !isset($input['phone'])) {
             http_response_code(400);
             echo json_encode(['error' => 'Name and phone are required']);
@@ -214,10 +220,12 @@ function createInvitation() {
         ]);
         
         if ($stmt->rowCount() > 0) {
+            $invitationId = $db->lastInsertId();
             echo json_encode([
                 'success' => true,
                 'message' => 'Invitation created successfully',
-                'invitation_code' => $invitationCode
+                'invitation_code' => $invitationCode,
+                'invitation_id' => $invitationId
             ]);
         } else {
             http_response_code(500);
@@ -228,6 +236,90 @@ function createInvitation() {
         http_response_code(500);
         echo json_encode(['error' => 'Internal server error']);
         error_log("Error creating invitation: " . $e->getMessage());
+    }
+}
+
+function handleInvitationAction($input, $session) {
+    try {
+        $action = $input['action'];
+        $invitationId = isset($input['invitation_id']) ? intval($input['invitation_id']) : 0;
+        
+        if (!$invitationId) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invitation ID is required']);
+            return;
+        }
+        
+        if (!in_array($action, ['approve', 'reject', 'resend', 'cancel'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid action']);
+            return;
+        }
+        
+        $db = Database::getInstance()->getConnection();
+        
+        // Get invitation details
+        $invitationSql = "SELECT * FROM invitations WHERE id = ?";
+        $invitationStmt = $db->prepare($invitationSql);
+        $invitationStmt->execute([$invitationId]);
+        $invitation = $invitationStmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$invitation) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Invitation not found']);
+            return;
+        }
+        
+        switch ($action) {
+            case 'approve':
+                // For approve, we keep the invitation as 'pending' and reset expiry if needed
+                $newExpiresAt = date('Y-m-d H:i:s', strtotime("+3 days"));
+                $sql = "UPDATE invitations SET status = 'pending', expires_at = ? WHERE id = ?";
+                $stmt = $db->prepare($sql);
+                $stmt->execute([$newExpiresAt, $invitationId]);
+                $message = 'Invitation approved successfully';
+                break;
+                
+            case 'reject':
+                // Mark invitation as expired
+                $sql = "UPDATE invitations SET status = 'expired' WHERE id = ?";
+                $stmt = $db->prepare($sql);
+                $stmt->execute([$invitationId]);
+                $message = 'Invitation rejected successfully';
+                break;
+                
+            case 'resend':
+                // Reset expiry date and mark as pending (since that's the default status)
+                $newExpiresAt = date('Y-m-d H:i:s', strtotime("+3 days"));
+                $sql = "UPDATE invitations SET expires_at = ?, status = 'pending' WHERE id = ?";
+                $stmt = $db->prepare($sql);
+                $stmt->execute([$newExpiresAt, $invitationId]);
+                $message = 'Invitation resent successfully';
+                break;
+                
+            case 'cancel':
+                // Mark invitation as expired (cancelled)
+                $sql = "UPDATE invitations SET status = 'expired' WHERE id = ?";
+                $stmt = $db->prepare($sql);
+                $stmt->execute([$invitationId]);
+                $message = 'Invitation cancelled successfully';
+                break;
+        }
+        
+        if ($stmt->rowCount() >= 0) { // >= 0 because update might not change anything
+            echo json_encode([
+                'success' => true,
+                'message' => $message
+            ]);
+        } else {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to update invitation']);
+        }
+        
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Internal server error']);
+        error_log("Error handling invitation action: " . $e->getMessage());
     }
 }
 
@@ -292,6 +384,8 @@ function generateUniqueInvitationCode($db) {
     
     return $code;
 }
+
+
 
 // Function to check and update expired invitations
 function checkExpiredInvitations($db) {

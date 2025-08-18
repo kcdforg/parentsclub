@@ -6,6 +6,32 @@
     <title>Edit Profile - Registration Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Hide feature-dependent elements by default to prevent flash */
+        [data-feature] {
+            display: none !important;
+        }
+        
+        /* Show enabled features when body has feature-loaded class */
+        .feature-loaded [data-feature][data-feature-enabled="true"] {
+            display: block !important;
+        }
+        
+        /* For inline elements, use inline display */
+        .feature-loaded [data-feature][data-feature-enabled="true"].inline {
+            display: inline !important;
+        }
+        
+        /* For flex elements, use flex display */
+        .feature-loaded [data-feature][data-feature-enabled="true"].flex {
+            display: flex !important;
+        }
+        
+        /* Keep disabled features hidden */
+        .feature-loaded [data-feature][data-feature-enabled="false"] {
+            display: none !important;
+        }
+    </style>
     <script>
         tailwind.config = {
             theme: {
@@ -20,62 +46,8 @@
     </script>
 </head>
 <body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <h1 class="text-xl font-bold text-gray-900">Registration Portal</h1>
-                    </div>
-                    <div class="hidden md:block ml-10">
-                        <div class="flex items-baseline space-x-4">
-                            <a href="dashboard.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
-                            <a href="edit_profile.html" class="bg-primary text-white px-3 py-2 rounded-md text-sm font-medium">Profile</a>
-                            <a href="subscription.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Subscription</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-center">
-                    <!-- Mobile menu button -->
-                    <button id="mobileMenuBtn" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    
-                    <!-- User menu -->
-                    <div class="ml-3 relative">
-                        <div class="flex items-center space-x-4">
-                            <span id="userName" class="text-sm text-gray-700 hidden md:block"></span>
-                            <div class="relative">
-                                <button id="userMenuBtn" class="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                                    <i class="fas fa-user-circle text-2xl"></i>
-                    </button>
-                                <div id="userDropdown" class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
-                                    <div class="py-1">
-                                        <a href="edit_profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            <i class="fas fa-user mr-2"></i>Edit Profile
-                                        </a>
-                                        <a href="#" id="logoutBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Mobile menu -->
-        <div id="mobileMenu" class="hidden md:hidden">
-            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                <a href="dashboard.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">Dashboard</a>
-                <a href="edit_profile.html" class="bg-primary text-white block px-3 py-2 rounded-md text-base font-medium">Profile</a>
-                <a href="subscription.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">Subscription</a>
-            </div>
-        </div>
-    </nav>
+    <!-- Navigation will be injected here -->
+    <div id="navigationContainer"></div>
     <div class="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-2xl w-full space-y-8">
             <div class="bg-white rounded-2xl shadow-xl p-8">
@@ -340,6 +312,37 @@
     </div>
 
     <script src="js/utils.js" type="module"></script>
+    <script type="module">
+        import { initializeFeatureControls } from './js/feature-utils.js';
+        import { createPublicNavigation } from './js/components/PublicNavigation.js';
+        
+        async function initializePage() {
+            try {
+                // Determine user type from localStorage or API call
+                const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+                const userType = userData.approval_status === 'approved' ? 'approved' : 'public';
+                
+                // Create navigation first
+                createPublicNavigation('profile', userType, 'navigationContainer');
+                
+                // Initialize feature controls
+                await initializeFeatureControls();
+                
+                console.log('Edit profile initialized successfully');
+            } catch (error) {
+                console.error('Error initializing edit profile:', error);
+                // Create navigation anyway to avoid blank page
+                createPublicNavigation('profile', 'public', 'navigationContainer');
+            }
+        }
+        
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializePage);
+        } else {
+            initializePage();
+        }
+    </script>
     <script src="js/edit_profile.js" type="module"></script>
 </body>
 </html>

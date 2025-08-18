@@ -14,33 +14,11 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    // Event Listeners
-    document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
-    document.getElementById('userMenuBtn').addEventListener('click', toggleUserMenu);
-    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    // Navigation functionality is now handled by PublicNavigation component
+    // Only subscription-specific functionality is handled here
 
     // Initial data load
     loadSubscriptionData();
-});
-
-function toggleMobileMenu() {
-    const mobileMenu = document.getElementById('mobileMenu');
-            mobileMenu.classList.toggle('hidden');
-    }
-
-function toggleUserMenu(event) {
-    event.stopPropagation(); // Prevent document click from closing it immediately
-    const userDropdown = document.getElementById('userDropdown');
-            userDropdown.classList.toggle('hidden');
-}
-
-// Close dropdown if clicked outside
-document.addEventListener('click', function(event) {
-    const userDropdown = document.getElementById('userDropdown');
-    const userMenuBtn = document.getElementById('userMenuBtn');
-    if (userDropdown && userMenuBtn && !userMenuBtn.contains(event.target) && !userDropdown.contains(event.target)) {
-        userDropdown.classList.add('hidden');
-    }
 });
 
 async function loadSubscriptionData() {
@@ -51,8 +29,8 @@ async function loadSubscriptionData() {
         });
 
         if (accountData.success) {
-            // Update username in navigation
-            document.getElementById('userName').textContent = accountData.full_name || accountData.email;
+            // Username display is now handled by PublicProfileComponent
+            console.log('User account data loaded successfully');
         } else {
             console.error('Failed to fetch user data:', accountData.error);
             showNotification(accountData.error || 'Failed to load user data', 'error');
@@ -175,25 +153,7 @@ async function handleManageSubscription() {
     }
 }
 
-async function handleLogout() {
-    try {
-        await apiFetch('logout.php', {
-            method: 'POST'
-        });
-        
-        // Clear local storage and redirect
-                localStorage.removeItem('user_session_token');
-                localStorage.removeItem('user_data');
-        window.location.href = 'login.html';
-
-    } catch (error) {
-        console.error('Logout error:', error);
-        // Even if server logout fails, clear local data and redirect
-        localStorage.removeItem('user_session_token');
-        localStorage.removeItem('user_data');
-        window.location.href = 'login.html';
-    }
-}
+// Logout functionality is now handled by PublicProfileComponent
 
 function showNotification(message, type = 'info') {
     const notificationContainer = document.createElement('div');

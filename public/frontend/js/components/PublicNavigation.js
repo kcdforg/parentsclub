@@ -3,10 +3,13 @@
  * Reusable navigation component for all public user pages
  */
 
+import { PublicProfileComponent } from './PublicProfileComponent.js';
+
 export class PublicNavigation {
     constructor(activeTab = '', userType = 'public') {
         this.activeTab = activeTab;
         this.userType = userType; // 'public', 'approved', 'premium'
+        this.profileComponent = new PublicProfileComponent();
         this.navigationStructure = this.getNavigationStructure();
     }
 
@@ -29,12 +32,13 @@ export class PublicNavigation {
             }
         ];
 
-        // Add subscription for all users
+        // Add subscription for all users (with feature control)
         baseStructure.push({
             id: 'subscription',
             label: 'Subscription',
             href: 'subscription.html',
-            icon: 'fas fa-crown'
+            icon: 'fas fa-crown',
+            dataFeature: 'subscriptions' // Add feature control
         });
 
         // Add invitations for approved and premium users
@@ -76,24 +80,7 @@ export class PublicNavigation {
                             
                             <!-- User menu -->
                             <div class="ml-3 relative">
-                                <div class="flex items-center space-x-4">
-                                    <span id="userName" class="text-sm text-gray-700 hidden md:block"></span>
-                                    <div class="relative">
-                                        <button id="userMenuBtn" class="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                                            <i class="fas fa-user-circle text-2xl"></i>
-                                        </button>
-                                        <div id="userDropdown" class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
-                                            <div class="py-1">
-                                                <a href="edit_profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                                    <i class="fas fa-user mr-2"></i>Edit Profile
-                                                </a>
-                                                <a href="#" id="logoutBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <div id="publicProfileContainer"></div>
                             </div>
                         </div>
                     </div>
@@ -119,7 +106,10 @@ export class PublicNavigation {
                 ? 'bg-primary text-white' 
                 : 'text-gray-500 hover:text-gray-700';
             
-            return `<a href="${item.href}" class="${activeClasses} px-3 py-2 rounded-md text-sm font-medium">${item.label}</a>`;
+            const dataFeatureAttr = item.dataFeature ? ` data-feature="${item.dataFeature}"` : '';
+            const cssClasses = item.dataFeature ? `${activeClasses} px-3 py-2 rounded-md text-sm font-medium inline` : `${activeClasses} px-3 py-2 rounded-md text-sm font-medium`;
+            
+            return `<a href="${item.href}" class="${cssClasses}"${dataFeatureAttr}>${item.label}</a>`;
         }).join('');
     }
 
@@ -133,7 +123,9 @@ export class PublicNavigation {
                 ? 'bg-primary text-white' 
                 : 'text-gray-500 hover:text-gray-700';
             
-            return `<a href="${item.href}" class="${activeClasses} block px-3 py-2 rounded-md text-base font-medium">${item.label}</a>`;
+            const dataFeatureAttr = item.dataFeature ? ` data-feature="${item.dataFeature}"` : '';
+            
+            return `<a href="${item.href}" class="${activeClasses} block px-3 py-2 rounded-md text-base font-medium"${dataFeatureAttr}>${item.label}</a>`;
         }).join('');
     }
 
@@ -186,83 +178,11 @@ export class PublicNavigation {
             });
         }
 
-        // User menu dropdown
-        const userMenuBtn = document.getElementById('userMenuBtn');
-        const userDropdown = document.getElementById('userDropdown');
-        
-        if (userMenuBtn && userDropdown) {
-            userMenuBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                userDropdown.classList.toggle('hidden');
-            });
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-                    userDropdown.classList.add('hidden');
-                }
-            });
-        }
-
-        // Set username
-        this.setUsername();
-
-        // Initialize logout functionality
-        this.initializeLogout();
+        // Initialize public profile component
+        this.profileComponent.render('publicProfileContainer');
     }
 
-    /**
-     * Sets the username from localStorage
-     */
-    setUsername() {
-        const userNameSpan = document.getElementById('userName');
-        const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
-        
-        if (userData.name && userNameSpan) {
-            userNameSpan.textContent = userData.name;
-        }
-    }
 
-    /**
-     * Initialize logout functionality
-     */
-    initializeLogout() {
-        const logoutBtn = document.getElementById('logoutBtn');
-        
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                await this.handleLogout();
-            });
-        }
-    }
-
-    /**
-     * Handle user logout
-     */
-    async handleLogout() {
-        try {
-            // Import apiFetch dynamically to avoid circular dependencies
-            const { apiFetch } = await import('../api.js');
-            
-            // Call logout API
-            await apiFetch('logout.php', {
-                method: 'POST'
-            });
-            
-            // Clear local storage and redirect
-            localStorage.removeItem('user_session_token');
-            localStorage.removeItem('user_data');
-            window.location.href = 'login.html';
-
-        } catch (error) {
-            console.error('Logout error:', error);
-            // Even if API call fails, clear local storage and redirect
-            localStorage.removeItem('user_session_token');
-            localStorage.removeItem('user_data');
-            window.location.href = 'login.html';
-        }
-    }
 
     /**
      * Updates navigation based on user type

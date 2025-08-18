@@ -3,9 +3,12 @@
  * Reusable navigation component for all admin pages
  */
 
+import { AdminProfileComponent } from './AdminProfileComponent.js';
+
 export class AdminNavigation {
     constructor(activeTab = '') {
         this.activeTab = activeTab;
+        this.profileComponent = new AdminProfileComponent();
         this.navigationStructure = [
             { 
                 id: 'dashboard', 
@@ -30,6 +33,20 @@ export class AdminNavigation {
                 label: 'Admin Users', 
                 href: 'admin-users.html', 
                 icon: 'fas fa-user-shield' 
+            },
+            {
+                id: 'advanced',
+                label: 'Advanced',
+                icon: 'fas fa-cogs',
+                isDropdown: true,
+                submenu: [
+                    {
+                        id: 'feature-switches',
+                        label: 'Feature Switches',
+                        href: 'feature-switches.html',
+                        icon: 'fas fa-toggle-on'
+                    }
+                ]
             }
         ];
     }
@@ -60,20 +77,7 @@ export class AdminNavigation {
                             
                             <!-- User menu -->
                             <div class="ml-3 relative">
-                                <div class="flex items-center space-x-4">
-                                    <span id="adminUsername" class="text-sm text-gray-700"></span>
-                                    <div class="relative">
-                                        <button id="userMenuBtn" class="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                            <i class="fas fa-user-circle text-2xl"></i>
-                                        </button>
-                                        <div id="userDropdown" class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
-                                            <div class="py-1">
-                                                <a href="#" id="changePasswordBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Change Password</a>
-                                                <a href="#" id="logoutBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <div id="adminProfileContainer"></div>
                             </div>
                         </div>
                     </div>
@@ -94,6 +98,10 @@ export class AdminNavigation {
      */
     generateNavigationItems() {
         return this.navigationStructure.map(item => {
+            if (item.isDropdown) {
+                return this.generateDropdownItem(item);
+            }
+            
             const isActive = this.activeTab === item.id;
             const activeClasses = isActive 
                 ? 'bg-indigo-100 text-indigo-700' 
@@ -104,10 +112,55 @@ export class AdminNavigation {
     }
 
     /**
+     * Generates dropdown navigation item
+     */
+    generateDropdownItem(item) {
+        const isActive = this.isDropdownActive(item);
+        const activeClasses = isActive 
+            ? 'bg-indigo-100 text-indigo-700' 
+            : 'text-gray-500 hover:text-gray-700';
+        
+        const submenuItems = item.submenu.map(subItem => {
+            const isSubmenuActive = this.activeTab === subItem.id;
+            const submenuActiveClass = isSubmenuActive ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-gray-100';
+            return `<a href="${subItem.href}" class="block px-4 py-2 text-sm ${submenuActiveClass} transition-colors duration-150">
+                <i class="${subItem.icon} mr-2"></i>${subItem.label}
+            </a>`;
+        }).join('');
+
+        return `
+            <div class="relative dropdown-container">
+                <button class="${activeClasses} px-3 py-2 rounded-md text-sm font-medium flex items-center dropdown-trigger" 
+                        data-dropdown-id="${item.id}">
+                    <i class="${item.icon} mr-2"></i>${item.label}
+                    <i class="fas fa-chevron-down ml-1"></i>
+                </button>
+                <div class="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden dropdown-menu border border-gray-200" 
+                     id="dropdown-${item.id}"
+                     style="box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);">
+                    ${submenuItems}
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Check if dropdown is active (any submenu item is active)
+     */
+    isDropdownActive(item) {
+        if (!item.submenu) return false;
+        return item.submenu.some(subItem => this.activeTab === subItem.id);
+    }
+
+    /**
      * Generates mobile navigation items
      */
     generateMobileNavigationItems() {
         return this.navigationStructure.map(item => {
+            if (item.isDropdown) {
+                return this.generateMobileDropdownItem(item);
+            }
+            
             const isActive = this.activeTab === item.id;
             const activeClasses = isActive 
                 ? 'bg-indigo-100 text-indigo-700' 
@@ -115,6 +168,24 @@ export class AdminNavigation {
             
             return `<a href="${item.href}" class="${activeClasses} block px-3 py-2 rounded-md text-base font-medium">${item.label}</a>`;
         }).join('');
+    }
+
+    /**
+     * Generates mobile dropdown navigation item
+     */
+    generateMobileDropdownItem(item) {
+        const submenuItems = item.submenu.map(subItem => {
+            const isActive = this.activeTab === subItem.id;
+            const activeClasses = isActive 
+                ? 'bg-indigo-100 text-indigo-700' 
+                : 'text-gray-500 hover:text-gray-700';
+            
+            return `<a href="${subItem.href}" class="${activeClasses} block px-6 py-2 rounded-md text-base font-medium">
+                <i class="${subItem.icon} mr-2"></i>${subItem.label}
+            </a>`;
+        }).join('');
+
+        return submenuItems; // In mobile, just show submenu items directly
     }
 
     /**
@@ -166,38 +237,93 @@ export class AdminNavigation {
             });
         }
 
-        // User menu dropdown
-        const userMenuBtn = document.getElementById('userMenuBtn');
-        const userDropdown = document.getElementById('userDropdown');
+        // Initialize admin profile component
+        this.profileComponent.render('adminProfileContainer');
         
-        if (userMenuBtn && userDropdown) {
-            userMenuBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                userDropdown.classList.toggle('hidden');
-            });
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-                    userDropdown.classList.add('hidden');
-                }
-            });
-        }
-
-        // Set admin username
-        this.setAdminUsername();
+        // Initialize dropdown menus
+        this.initializeDropdowns();
     }
 
+
+
     /**
-     * Sets the admin username from localStorage
+     * Initialize dropdown menu behavior
      */
-    setAdminUsername() {
-        const adminUsernameSpan = document.getElementById('adminUsername');
-        const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+    initializeDropdowns() {
+        // Get all dropdown triggers
+        const dropdownTriggers = document.querySelectorAll('.dropdown-trigger');
+        const dropdownMenus = document.querySelectorAll('.dropdown-menu');
         
-        if (adminUser.username && adminUsernameSpan) {
-            adminUsernameSpan.textContent = adminUser.username;
-        }
+        dropdownTriggers.forEach(trigger => {
+            const dropdownId = trigger.getAttribute('data-dropdown-id');
+            const dropdown = document.getElementById(`dropdown-${dropdownId}`);
+            const container = trigger.closest('.dropdown-container');
+            
+            if (!dropdown || !container) return;
+            
+            let hideTimeout;
+            
+            // Show dropdown on mouseenter (hover)
+            container.addEventListener('mouseenter', () => {
+                if (hideTimeout) {
+                    clearTimeout(hideTimeout);
+                    hideTimeout = null;
+                }
+                // Hide all other dropdowns first
+                dropdownMenus.forEach(menu => {
+                    if (menu !== dropdown) {
+                        menu.classList.add('hidden');
+                    }
+                });
+                dropdown.classList.remove('hidden');
+            });
+            
+            // Hide dropdown on mouseleave with delay
+            container.addEventListener('mouseleave', () => {
+                hideTimeout = setTimeout(() => {
+                    dropdown.classList.add('hidden');
+                }, 150); // Small delay to allow moving to dropdown
+            });
+            
+            // Also show/hide on click for touch devices
+            trigger.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const isHidden = dropdown.classList.contains('hidden');
+                
+                // Hide all other dropdowns
+                dropdownMenus.forEach(menu => {
+                    menu.classList.add('hidden');
+                });
+                
+                // Toggle current dropdown
+                if (isHidden) {
+                    dropdown.classList.remove('hidden');
+                } else {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        });
+        
+        // Close all dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            const isDropdownElement = e.target.closest('.dropdown-container');
+            if (!isDropdownElement) {
+                dropdownMenus.forEach(menu => {
+                    menu.classList.add('hidden');
+                });
+            }
+        });
+        
+        // Close dropdowns on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                dropdownMenus.forEach(menu => {
+                    menu.classList.add('hidden');
+                });
+            }
+        });
     }
 }
 

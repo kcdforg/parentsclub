@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Switches - Admin Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Custom toggle switch styles */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #10b981;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        input:disabled + .toggle-slider {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation will be injected here -->
+    <div id="navigationContainer"></div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex items-center">
+                <i class="fas fa-toggle-on text-3xl text-indigo-600 mr-4"></i>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Feature Switches</h1>
+                    <p class="mt-2 text-gray-600">Control which features are available to users across the platform</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature Switches Container -->
+        <div id="featureSwitchesContainer">
+            <!-- Loading state -->
+            <div id="loadingState" class="text-center py-8">
+                <i class="fas fa-spinner fa-spin text-2xl text-indigo-600 mb-4"></i>
+                <p class="text-gray-600">Loading feature switches...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <!-- Scripts -->
+    <script src="js/admin-nav.js" type="module"></script>
+    <script type="module">
+        // Initialize admin navigation
+        import { createAdminNavigation } from './js/components/AdminNavigation.js';
+        createAdminNavigation('feature-switches', 'navigationContainer');
+        
+        // Initialize AdminModals for toast notifications
+        import { adminModals } from './js/components/AdminModals.js';
+        adminModals.renderAllModals();
+    </script>
+    <script src="js/feature-switches.js" type="module"></script>
+</body>
+</html>

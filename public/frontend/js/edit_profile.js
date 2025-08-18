@@ -261,21 +261,7 @@ function initializeEventListeners() {
         });
     }
     
-    // User dropdown toggle (copied from dashboard.js)
-    const userMenuBtn = document.getElementById('userMenuBtn');
-    const userDropdown = document.getElementById('userDropdown');
-    
-    if (userMenuBtn && userDropdown) {
-        userMenuBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            userDropdown.classList.toggle('hidden');
-        });
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function() {
-            userDropdown.classList.add('hidden');
-        });
-    }
+    // User dropdown functionality is now handled by PublicProfileComponent
 
     // Populate username in header
     const userName = document.getElementById('userName');
@@ -457,7 +443,7 @@ function initializeEventListeners() {
         });
     }
 
-    logoutBtn.addEventListener('click', handleLogout);
+    // Logout functionality is now handled by PublicProfileComponent
 
     goToDashboard.addEventListener('click', function() {
         window.location.href = 'edit_profile.html';
@@ -761,32 +747,7 @@ function validateFormData(data) {
     return true;
 }
 
-async function handleLogout() {
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.disabled = true;
-        const originalContent = logoutBtn.innerHTML;
-        logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Logging out...';
-    }
-
-    try {
-        await apiFetch('logout.php', {
-            method: 'POST'
-        });
-
-        localStorage.removeItem('user_session_token');
-        localStorage.removeItem('user_data');
-        
-        window.location.href = 'login.html';
-
-    } catch (error) {
-        console.error('Logout error:', error);
-        
-        localStorage.removeItem('user_session_token');
-        localStorage.removeItem('user_data');
-        window.location.href = 'login.html';
-    }
-}
+// Logout functionality is now handled by PublicProfileComponent
 
 function showError(message) {
     const errorDiv = document.getElementById('errorMessage');

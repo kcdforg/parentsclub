@@ -6,6 +6,32 @@
     <title>Dashboard - Registration Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Hide feature-dependent elements by default to prevent flash */
+        [data-feature] {
+            display: none !important;
+        }
+        
+        /* Show enabled features when body has feature-loaded class */
+        .feature-loaded [data-feature][data-feature-enabled="true"] {
+            display: block !important;
+        }
+        
+        /* For inline elements, use inline display */
+        .feature-loaded [data-feature][data-feature-enabled="true"].inline {
+            display: inline !important;
+        }
+        
+        /* For flex elements, use flex display */
+        .feature-loaded [data-feature][data-feature-enabled="true"].flex {
+            display: flex !important;
+        }
+        
+        /* Keep disabled features hidden */
+        .feature-loaded [data-feature][data-feature-enabled="false"] {
+            display: none !important;
+        }
+    </style>
     <script>
         tailwind.config = {
             theme: {
@@ -20,64 +46,8 @@
     </script>
 </head>
 <body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <h1 class="text-xl font-bold text-gray-900">Registration Portal</h1>
-                    </div>
-                    <div class="hidden md:block ml-10">
-                        <div class="flex items-baseline space-x-4">
-                            <a href="dashboard.html" class="bg-primary text-white px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
-                            <a href="edit_profile.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Profile</a>
-                            <a href="subscription.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Subscription</a>
-                            <a href="invitations.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Invitations</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-center">
-                    <!-- Mobile menu button -->
-                    <button id="mobileMenuBtn" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    
-                    <!-- User menu -->
-                    <div class="ml-3 relative">
-                        <div class="flex items-center space-x-4">
-                            <span id="userName" class="text-sm text-gray-700 hidden md:block"></span>
-                            <div class="relative">
-                                <button id="userMenuBtn" class="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                                    <i class="fas fa-user-circle text-2xl"></i>
-                                </button>
-                                <div id="userDropdown" class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
-                                    <div class="py-1">
-                                        <a href="edit_profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            <i class="fas fa-user mr-2"></i>Edit Profile
-                                        </a>
-                                        <a href="#" id="logoutBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Mobile menu -->
-        <div id="mobileMenu" class="hidden md:hidden">
-            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                <a href="dashboard.html" class="bg-primary text-white block px-3 py-2 rounded-md text-base font-medium">Dashboard</a>
-                <a href="edit_profile.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">Profile</a>
-                <a href="subscription.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">Subscription</a>
-                <a href="invitations.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">Invitations</a>
-            </div>
-        </div>
-    </nav>
+    <!-- Navigation will be injected here -->
+    <div id="navigationContainer"></div>
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8" style="display: none;">
@@ -223,7 +193,7 @@
                             <i class="fas fa-edit mr-2"></i>
                             Edit Profile
                         </a>
-                        <a href="subscription.html" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-secondary hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary">
+                        <a href="subscription.html" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-secondary hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary flex" data-feature="subscriptions">
                             <i class="fas fa-crown mr-2"></i>
                             Subscription
                         </a>
@@ -271,6 +241,81 @@
         </div>
     </main>
 
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Change Password</h3>
+                    <button id="closePasswordModalBtn" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="changePasswordForm" class="space-y-4">
+                    <div>
+                        <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                        <input type="password" id="currentPassword" name="current_password" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary">
+                    </div>
+                    <div>
+                        <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                        <input type="password" id="newPassword" name="new_password" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary">
+                    </div>
+                    <div>
+                        <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" name="confirm_password" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary">
+                    </div>
+                    <div id="passwordError" class="hidden bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md text-sm">
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="submit" id="changePasswordSubmitBtn"
+                                class="flex-1 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                            <span id="changePasswordBtnText">Change Password</span>
+                            <i id="changePasswordBtnSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                        </button>
+                        <button type="button" id="cancelPasswordBtn"
+                                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeFeatureControls } from './js/feature-utils.js';
+        import { createPublicNavigation } from './js/components/PublicNavigation.js';
+        
+        async function initializePage() {
+            try {
+                // Determine user type from localStorage or API call
+                const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+                const userType = userData.approval_status === 'approved' ? 'approved' : 'public';
+                
+                // Create navigation first
+                createPublicNavigation('dashboard', userType, 'navigationContainer');
+                
+                // Initialize feature controls
+                await initializeFeatureControls();
+                
+                console.log('Dashboard initialized successfully');
+            } catch (error) {
+                console.error('Error initializing dashboard:', error);
+                // Create navigation anyway to avoid blank page
+                createPublicNavigation('dashboard', 'public', 'navigationContainer');
+            }
+        }
+        
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializePage);
+        } else {
+            initializePage();
+        }
+    </script>
     <script src="js/dashboard.js" type="module"></script>
 </body>
 </html>

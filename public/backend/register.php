@@ -64,13 +64,11 @@ try {
         exit;
     }
     
-    // Check if invitation has expired (72 hours from creation)
-    $invitationAge = time() - strtotime($invitation['created_at']);
-    $maxAge = 72 * 3600; // 72 hours in seconds
-    
-    if ($invitationAge > $maxAge) {
+    // Check if invitation has expired based on expires_at timestamp
+    $expiresAtTimestamp = strtotime($invitation['expires_at']);
+    if (time() > $expiresAtTimestamp) {
         http_response_code(400);
-        echo json_encode(['error' => 'Invitation has expired after 72 hours. Please request a new invitation.']);
+        echo json_encode(['error' => 'Invitation has expired. Please request a new invitation.']);
         exit;
     }
     

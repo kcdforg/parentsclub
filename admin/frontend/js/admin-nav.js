@@ -27,54 +27,9 @@ import { apiFetch } from './api.js';
     }
     
     function initializeUserMenu() {
-        // Get navigation elements
-        const userMenuBtn = document.getElementById('userMenuBtn');
-        const userDropdown = document.getElementById('userDropdown');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const changePasswordBtn = document.getElementById('changePasswordBtn');
-        const adminUsernameSpan = document.getElementById('adminUsername');
-        
-        // Set admin username from localStorage
-        const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
-        if (adminUser.username && adminUsernameSpan) {
-            adminUsernameSpan.textContent = adminUser.username;
-        }
-        
-        // Toggle user dropdown menu
-        if (userMenuBtn && userDropdown) {
-            userMenuBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                userDropdown.classList.toggle('hidden');
-            });
-        }
-        
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            if (userDropdown && userMenuBtn && 
-                !userMenuBtn.contains(e.target) && 
-                !userDropdown.contains(e.target)) {
-                userDropdown.classList.add('hidden');
-            }
-        });
-        
-        // Logout functionality
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', async function(e) {
-                e.preventDefault();
-                await handleLogout();
-            });
-        }
-        
-        // Change password functionality
-        if (changePasswordBtn) {
-            changePasswordBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (userDropdown) {
-                    userDropdown.classList.add('hidden');
-                }
-                showChangePasswordModal();
-            });
-        }
+        // User menu functionality is now handled by AdminProfileComponent
+        // This function is kept for backward compatibility but may be removed in future
+        console.log('User menu initialization is now handled by AdminProfileComponent');
     }
     
     function initializeMobileMenu() {
@@ -381,8 +336,8 @@ import { apiFetch } from './api.js';
         }, 3000);
     }
 
-    // Expose logout and modal/toast functions globally for any page that might need them
-    window.adminLogout = handleLogout;
+    // Expose modal/toast functions globally for any page that might need them
+    // Logout is now handled by AdminProfileComponent
     window.showModal = showModal;
     window.showToast = showToast;
 

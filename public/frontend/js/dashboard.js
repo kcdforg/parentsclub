@@ -38,27 +38,7 @@ function initializeEventListeners() {
         });
     }
 
-    // User dropdown toggle
-    const userMenuBtn = document.getElementById('userMenuBtn');
-    const userDropdown = document.getElementById('userDropdown');
-    
-    if (userMenuBtn && userDropdown) {
-        userMenuBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            userDropdown.classList.toggle('hidden');
-        });
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function() {
-            userDropdown.classList.add('hidden');
-        });
-    }
-
-    // Logout button
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', handleLogout);
-    }
+    // User dropdown and logout functionality is now handled by PublicProfileComponent
 
     // Refresh button
     const refreshBtn = document.getElementById('refreshBtn');
@@ -234,41 +214,7 @@ function updateMemberSince() {
     }
 }
 
-async function handleLogout() {
-    // Prevent multiple clicks
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.disabled = true;
-        const originalContent = logoutBtn.innerHTML;
-        logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Logging out...';
-    }
-
-    try {
-        const data = await apiFetch('logout.php', {
-            method: 'POST'
-        });
-
-        if (data.success) {
-            // Server logout successful, now clear local data
-            localStorage.removeItem('user_session_token');
-            localStorage.removeItem('user_data');
-            
-            // Redirect to login
-            window.location.href = 'login.html';
-            return;
-        } else {
-            throw new Error(data.error || 'Logout failed');
-        }
-    } catch (error) {
-        console.error('Logout error:', error);
-        
-        // Even if server logout fails, clear local data and redirect
-        // This ensures user isn't stuck in a loop
-        localStorage.removeItem('user_session_token');
-        localStorage.removeItem('user_data');
-        window.location.href = 'login.html';
-    }
-}
+// Logout functionality is now handled by PublicProfileComponent
 
 // Helper function to get user type badge
 function getUserTypeBadge(userType) {

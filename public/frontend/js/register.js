@@ -16,8 +16,13 @@ function checkExistingSession() {
     const urlParams = new URLSearchParams(window.location.search);
     const invitationCode = urlParams.get('invitation');
 
-    // If there's an admin session AND no invitation code in URL, redirect to admin dashboard
-    if (adminSessionToken && !invitationCode) {
+    // If an invitation code is present, defer to checkInvitation() later.
+    if (invitationCode) {
+        return;
+    }
+
+    // If there's an admin session, redirect to admin dashboard
+    if (adminSessionToken) {
         window.location.href = '../../admin/frontend/dashboard.html';
     } else if (userSessionToken) {
         // User is already logged in, redirect to user dashboard
@@ -53,8 +58,22 @@ async function checkInvitation() {
         } else {
             // Invalid invitation
             console.log('Invitation is invalid:', data.error);
-            showError(data.error || 'Invalid invitation link');
-            showInvitationRequired();
+            
+            const loginRedirectMessage = 'This invitation has already been used to register an account. Please log in.';
+            const expiredRedirectMessage = 'This invitation has expired. Please request a new invitation.';
+
+            if (data.error === loginRedirectMessage) {
+                // If invitation is already used, redirect to login page
+                window.location.href = 'login.html';
+            } else if (data.error === expiredRedirectMessage) {
+                // If invitation is expired, show error and invitation required message
+                showError(data.error);
+                showInvitationRequired();
+            } else {
+                // Generic invalid invitation error
+                showError(data.error || 'Invalid invitation link');
+                showInvitationRequired();
+            }
             // Remove invitation parameter from URL
             window.history.replaceState({}, document.title, window.location.pathname);
         }

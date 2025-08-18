@@ -1,7 +1,10 @@
 import { apiFetch } from './api.js';
+import { createAdminNavigation } from './components/AdminNavigation.js';
 
 // Users management functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize navigation component
+    createAdminNavigation('users', 'navigationContainer');
     // Check authentication
     const sessionToken = localStorage.getItem('admin_session_token');
     if (!sessionToken) {

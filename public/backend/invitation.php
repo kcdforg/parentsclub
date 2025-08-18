@@ -43,11 +43,17 @@ try {
                 exit;
             }
             
-            // Check if invitation is still valid
+            // Check if invitation is still valid (status 'pending' and not expired)
             if ($invitation['status'] !== 'pending') {
+                $errorMessage = 'Invitation has already been used, expired, or is not available.';
+                if ($invitation['status'] === 'used') {
+                    $errorMessage = 'This invitation has already been used to register an account. Please log in.';
+                } elseif ($invitation['status'] === 'expired') {
+                    $errorMessage = 'This invitation has expired. Please request a new invitation.';
+                }
                 echo json_encode([
                     'success' => false,
-                    'error' => 'Invitation has already been used or expired',
+                    'error' => $errorMessage,
                     'invitation' => [
                         'status' => $invitation['status'],
                         'invited_name' => $invitation['invited_name'],
@@ -58,24 +64,22 @@ try {
                 exit;
             }
             
-            // Check if invitation has expired (72 hours from creation)
-            $invitationAge = time() - strtotime($invitation['created_at']);
-            $maxAge = 72 * 3600; // 72 hours in seconds
-            
-            if ($invitationAge > $maxAge) {
-                // Mark invitation as expired
+            // Check if invitation has expired based on expires_at timestamp
+            $expiresAtTimestamp = strtotime($invitation['expires_at']);
+            if (time() > $expiresAtTimestamp) {
+                // Mark invitation as expired if it's pending but past its expires_at
                 $stmt = $db->prepare("UPDATE invitations SET status = 'expired' WHERE id = ?");
                 $stmt->execute([$invitation['id']]);
                 
                 echo json_encode([
                     'success' => false,
-                    'error' => 'Invitation has expired after 72 hours. Please request a new invitation.',
+                    'error' => 'This invitation has expired. Please request a new invitation.',
                     'invitation' => [
                         'status' => 'expired',
                         'invited_name' => $invitation['invited_name'],
                         'invited_email' => $invitation['invited_email'],
                         'invited_phone' => $invitation['invited_phone'],
-                        'created_at' => $invitation['created_at']
+                        'expires_at' => $invitation['expires_at']
                     ]
                 ]);
                 exit;
@@ -160,15 +164,18 @@ try {
             // Generate unique invitation code
             $invitationCode = bin2hex(random_bytes(16)); // 32 char hex string
             
+            // Set expiry date (3 days from now)
+            $expiresAt = date('Y-m-d H:i:s', strtotime("+3 days"));
+            
             $stmt = $db->prepare("
                 INSERT INTO invitations (
                     invitation_code, invited_name, invited_email, invited_phone, 
-                    invited_by_type, invited_by_id, status
-                ) VALUES (?, ?, ?, ?, 'admin', ?, 'pending')
+                    invited_by_type, invited_by_id, status, expires_at
+                ) VALUES (?, ?, ?, ?, 'admin', ?, 'pending', ?)
             ");
             $stmt->execute([
                 $invitationCode, $invited_name, $invited_email, $invited_phone, 
-                $admin['id']
+                $admin['id'], $expiresAt
             ]);
             
             echo json_encode([

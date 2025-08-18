@@ -32,23 +32,11 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('copyLinkBtn').addEventListener('click', copyInvitationLink);
     document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
     
-    // Add event listeners for invitation type toggle
-    document.querySelectorAll('input[name="invitationType"]').forEach(radio => {
-        radio.addEventListener('change', handleInvitationTypeChange);
-    });
-    
     // Add phone number formatting for invitation forms
     const inviteePhoneInput = document.getElementById('inviteePhone');
-    const crossPhoneInput = document.getElementById('crossPhone');
     
     if (inviteePhoneInput) {
         inviteePhoneInput.addEventListener('input', function(e) {
-            formatPhoneInput(e.target);
-        });
-    }
-    
-    if (crossPhoneInput) {
-        crossPhoneInput.addEventListener('input', function(e) {
             formatPhoneInput(e.target);
         });
     }
@@ -70,7 +58,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'GET'
             });
 
-            userData = data; // Assuming data directly contains user info from API
+            console.log('Account API response:', data); // Debug log
+            userData = data.account; // Extract account data from API response
+            console.log('User data extracted:', userData); // Debug log
 
             // Update user greeting
             const userGreeting = document.getElementById('userGreeting');
@@ -80,12 +70,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Check if user can create invitations
             const canInvite = userData.approval_status === 'approved';
+            console.log('Approval status:', userData.approval_status, 'Can invite:', canInvite); // Debug log
 
             if (!canInvite) {
                 // Show access notice and disable create button
                 document.getElementById('accessNotice').classList.remove('hidden');
                 document.getElementById('createInvitationBtn').disabled = true;
                 document.getElementById('createInvitationBtn').classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                // Hide access notice and enable create button
+                document.getElementById('accessNotice').classList.add('hidden');
+                document.getElementById('createInvitationBtn').disabled = false;
+                document.getElementById('createInvitationBtn').classList.remove('opacity-50', 'cursor-not-allowed');
             }
 
         } catch (error) {
@@ -321,22 +317,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function openCreateModal() {
         document.getElementById('createInvitationModal').classList.remove('hidden');
-        
-        // Initialize form to default state (email type)
-        document.querySelector('input[name="invitationType"][value="email"]').checked = true;
-        handleInvitationTypeChange();
-        
         document.getElementById('inviteeName').focus();
     }
 
     function closeCreateModal() {
         document.getElementById('createInvitationModal').classList.add('hidden');
         document.getElementById('invitationForm').reset();
-        
-        // Reset form to default state (email type)
-        document.querySelector('input[name="invitationType"][value="email"]').checked = true;
-        handleInvitationTypeChange();
-        
         hideError();
         hideSuccess();
     }
@@ -345,45 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('invitationLinkModal').classList.add('hidden');
     }
 
-    function handleInvitationTypeChange() {
-        const invitationType = document.querySelector('input[name="invitationType"]:checked').value;
-        const emailSection = document.getElementById('emailSection');
-        const phoneSection = document.getElementById('phoneSection');
-        const crossEmailSection = document.getElementById('crossEmailSection');
-        const crossPhoneSection = document.getElementById('crossPhoneSection');
-        const inviteeEmail = document.getElementById('inviteeEmail');
-        const inviteePhone = document.getElementById('inviteePhone');
-        
-        if (invitationType === 'email') {
-            // Show email input, hide phone input
-            emailSection.classList.remove('hidden');
-            phoneSection.classList.add('hidden');
-            
-            // Show cross-phone section, hide cross-email section
-            crossPhoneSection.classList.remove('hidden');
-            crossEmailSection.classList.add('hidden');
-            
-            // Make email required, make phone optional
-            inviteeEmail.required = true;
-            inviteePhone.required = false;
-            
-        } else if (invitationType === 'phone') {
-            // Show phone input, hide email input
-            phoneSection.classList.remove('hidden');
-            emailSection.classList.add('hidden');
-            
-            // Show cross-email section, hide cross-phone section
-            crossEmailSection.classList.remove('hidden');
-            crossPhoneSection.classList.add('hidden');
-            
-            // Make phone required, make email optional
-            inviteePhone.required = true;
-            inviteeEmail.required = false;
-        }
-        
-        // Clear error messages when switching types
-        hideError();
-    }
+
 
     async function handleCreateInvitation(e) {
         e.preventDefault();
@@ -401,68 +349,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const formData = new FormData(e.target);
-            const invitationType = document.querySelector('input[name="invitationType"]:checked').value;
+            const countryCode = document.getElementById('countryCodeInvite').value;
+            const phoneNumber = formData.get('phone').trim();
             
-            // Collect basic data
+            // Validate phone number (10 digits)
+            if (!/^\d{10}$/.test(phoneNumber)) {
+                throw new Error('Please enter a valid 10-digit phone number');
+            }
+            
             const invitationData = {
                 invited_name: formData.get('inviteeName'),
-                invitation_type: invitationType
+                invited_phone: countryCode + phoneNumber
             };
-            
-            // Collect type-specific data
-            if (invitationType === 'email') {
-                invitationData.invited_email = formData.get('inviteeEmail');
-                // Add cross-reference phone if provided
-                const crossPhone = formData.get('crossPhone');
-                const crossCountryCode = document.getElementById('crossCountryCode').value;
-                if (crossPhone && crossPhone.trim()) {
-                    invitationData.invited_phone = crossCountryCode + crossPhone.replace(/\D/g, '');
-                }
-            } else if (invitationType === 'phone') {
-                const phone = formData.get('invited_phone_number');
-                const countryCode = formData.get('invited_phone_country_code');
-                invitationData.invited_phone = countryCode + phone.replace(/\D/g, '');
-                // Add cross-reference email if provided
-                const crossEmail = formData.get('crossEmail');
-                if (crossEmail && crossEmail.trim()) {
-                    invitationData.invited_email = crossEmail;
-                }
-            }
-            
-            // Validate required fields
-            if (invitationType === 'email' && !invitationData.invited_email) {
-                throw new Error('Email address is required');
-            }
-            if (invitationType === 'phone' && !invitationData.invited_phone) {
-                throw new Error('Phone number is required');
-            }
-            
-            // Additional validation
-            if (invitationType === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(invitationData.invited_email)) {
-                throw new Error('Please enter a valid email address');
-            }
-            
-            if (invitationType === 'phone') {
-                const phoneDigits = formData.get('invited_phone_number').replace(/\D/g, '');
-                // New: Validate invited phone number based on its digits and selected country code
-                const invitedPhoneCountryCode = formData.get('invited_phone_country_code');
-                let phoneMaxLength = 10; // Default for India
-                
-                if (invitedPhoneCountryCode === '+1' || invitedPhoneCountryCode === '+44') {
-                    phoneMaxLength = 10;
-                } else if (invitedPhoneCountryCode === '+61') {
-                    phoneMaxLength = 9;
-                } else if (invitedPhoneCountryCode === '+81') {
-                    phoneMaxLength = 11;
-                }
-                
-                if (phoneDigits.length !== phoneMaxLength && !(invitedPhoneCountryCode === '+81' && (phoneDigits.length === 10 || phoneDigits.length === 11))) {
-                    throw new Error(`Phone number must be exactly ${phoneMaxLength} digits for selected country code.`);
-                }
-                if (invitedPhoneCountryCode === '+91' && !/^[6-9]/.test(phoneDigits)) {
-                    throw new Error('Indian mobile number must start with 6, 7, 8, or 9');
-                }
-            }
 
             const data = await apiFetch('invitations.php', {
                 method: 'POST',
@@ -471,10 +369,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (data.success) {
                 // Show success and invitation link
-                const inviteeDisplay = invitationType === 'email' ? 
-                    invitationData.invited_email : 
-                    invitationData.invited_phone;
-                showInvitationLink(data.invitation_link, inviteeDisplay);
+                showInvitationLink(data.invitation_link, invitationData.invited_phone);
                 closeCreateModal();
                 await loadInvitations(); // Reload the list
             } else {

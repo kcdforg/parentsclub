@@ -50,7 +50,7 @@ function listMyInvitations() {
         $stmt->execute([$session['user_id']]);
         $user = $stmt->fetch();
         
-        if (!$user || !in_array($user['user_type'], ['Approved', 'Member']) || $user['approval_status'] !== 'approved') {
+        if (!$user || $user['approval_status'] !== 'approved') {
             // Return empty result with eligibility info instead of 403 error
             echo json_encode([
                 'success' => true,
@@ -63,8 +63,9 @@ function listMyInvitations() {
                 ],
                 'user_info' => [
                     'user_type' => $user['user_type'] ?? 'Unknown',
+                    'approval_status' => $user['approval_status'] ?? 'Unknown',
                     'can_invite' => false,
-                    'message' => 'Only approved members can invite others'
+                    'message' => 'Only approved members can invite others. Your approval status: ' . ($user['approval_status'] ?? 'Unknown')
                 ]
             ]);
             return;
@@ -184,9 +185,9 @@ function createInvitation() {
         $stmt->execute([$session['user_id']]);
         $user = $stmt->fetch();
         
-        if (!$user || !in_array($user['user_type'], ['Approved', 'Member']) || $user['approval_status'] !== 'approved') {
+        if (!$user || $user['approval_status'] !== 'approved') {
             http_response_code(403);
-            echo json_encode(['error' => 'Only approved members can invite others']);
+            echo json_encode(['error' => 'Only approved members can invite others. Your approval status: ' . ($user['approval_status'] ?? 'Unknown')]);
             return;
         }
         
@@ -340,15 +341,15 @@ function createInvitation() {
             $stmt->execute([$invitationCode]);
         } while ($stmt->fetch());
         
-        // Set expiration (7 days from now)
-        $expiresAt = date('Y-m-d H:i:s', strtotime('+7 days'));
+        // Set expiration (3 days from now - consistent with admin)
+        $expiresAt = date('Y-m-d H:i:s', strtotime('+3 days'));
         
         // Create invitation
         $stmt = $db->prepare("
-            INSERT INTO invitations (invitation_code, invited_name, invited_email, invited_phone, invitation_type, invited_by_type, invited_by_id, expires_at)
-            VALUES (?, ?, ?, ?, ?, 'user', ?, ?)
+            INSERT INTO invitations (invitation_code, invited_name, invited_email, invited_phone, invited_by_type, invited_by_id, expires_at)
+            VALUES (?, ?, ?, ?, 'user', ?, ?)
         ");
-        $stmt->execute([$invitationCode, $invitedName, $invitedEmail, $invitedPhone, $invitationType, $session['user_id'], $expiresAt]);
+        $stmt->execute([$invitationCode, $invitedName, $invitedEmail, $invitedPhone, $session['user_id'], $expiresAt]);
         
         $invitationId = $db->lastInsertId();
         
