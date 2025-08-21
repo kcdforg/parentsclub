@@ -1,11 +1,16 @@
 import { apiFetch } from './api.js';
+import { checkUserFlow } from './user-flow-middleware.js';
 
 // Dashboard functionality
 let sessionToken = ''; // This will eventually be removed as apiFetch handles it
 let userData = {};
 
 // Initialize dashboard
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // Check user flow first
+    await checkUserFlow('dashboard', true);
+    
+    // Continue with dashboard initialization
     checkAuthentication();
     initializeEventListeners();
     loadUserData();
@@ -18,13 +23,8 @@ function checkAuthentication() {
         return;
     }
     
-    // Check if profile is completed
-    const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
-    if (!userData.profile_completed) {
-        // Redirect to profile completion page
-        window.location.href = 'profile_completion.html';
-        return;
-    }
+    // Basic check - flow middleware handles comprehensive checks
+    userData = JSON.parse(localStorage.getItem('user_data') || '{}');
 }
 
 function initializeEventListeners() {

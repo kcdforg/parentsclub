@@ -33,11 +33,21 @@ $method = $_SERVER['REQUEST_METHOD'];
 try {
     switch ($method) {
         case 'GET':
-            // Get account information
+            // Get account information with comprehensive profile status
             $stmt = $db->prepare("
-                SELECT u.*, p.full_name, p.profile_completed, u.user_type
+                SELECT u.*, 
+                       up.full_name,
+                       up.name,
+                       up.intro_completed,
+                       up.questions_completed,
+                       up.profile_completion_step,
+                       up.gender,
+                       up.marriageType,
+                       up.hasChildren,
+                       up.isMarried,
+                       up.profile_completed as up_profile_completed
                 FROM users u 
-                LEFT JOIN user_profiles p ON u.id = p.user_id 
+                LEFT JOIN user_profiles up ON u.id = up.user_id 
                 WHERE u.id = ?
             ");
             $stmt->execute([$user['id']]);
@@ -63,12 +73,31 @@ try {
                 $referredByDisplay = 'User: ' . ($referrer['user_number'] ?? 'Unknown');
             }
             
-            unset($account['password']); // Remove password from response
-            $account['referred_by_display'] = $referredByDisplay;
+            // Format user data for frontend compatibility
+            $userData = [
+                'id' => $account['id'],
+                'email' => $account['email'],
+                'phone' => $account['phone'],
+                'enrollment_number' => $account['enrollment_number'],
+                'user_number' => $account['user_number'],
+                'approval_status' => $account['approval_status'],
+                'profile_completed' => (bool)($account['up_profile_completed'] ?: $account['profile_completed']),
+                'full_name' => $account['name'] ?: ($account['full_name'] ?? ''),
+                'referred_by' => $referredByDisplay,
+                'intro_completed' => (bool)$account['intro_completed'],
+                'questions_completed' => (bool)$account['questions_completed'],
+                'profile_completion_step' => $account['profile_completion_step'],
+                'created_via_invitation' => (bool)$account['created_via_invitation'],
+                'gender' => $account['gender'],
+                'marriageType' => $account['marriageType'],
+                'hasChildren' => $account['hasChildren'],
+                'isMarried' => $account['isMarried']
+            ];
             
             echo json_encode([
                 'success' => true,
-                'account' => $account
+                'user' => $userData,
+                'account' => $userData // For backward compatibility
             ]);
             break;
             

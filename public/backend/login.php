@@ -40,14 +40,36 @@ try {
         exit;
     }
     
-    // Login with phone number - check both users table and user_profiles table
+    // Login with phone number - check users table with comprehensive profile status
     $stmt = $db->prepare("
-        SELECT u.*, p.profile_completed, p.full_name 
+        SELECT u.*, 
+               up.intro_completed, 
+               up.questions_completed, 
+               up.profile_completion_step,
+               up.name,
+               up.gender,
+               up.marriageType,
+               up.hasChildren,
+               up.isMarried,
+               up.full_name,
+               CASE 
+                   -- For invitation-based users: check introduction first, then profile
+                   WHEN u.created_via_invitation = 1 AND (up.intro_completed IS NULL OR up.intro_completed = 0 OR up.questions_completed IS NULL OR up.questions_completed = 0) THEN 'intro_required'
+                   WHEN u.created_via_invitation = 1 AND up.intro_completed = 1 AND up.questions_completed = 1 AND (up.profile_completion_step IS NULL OR up.profile_completion_step != 'completed') THEN 'profile_required'
+                   WHEN u.created_via_invitation = 1 AND up.profile_completion_step = 'completed' THEN 'completed'
+                   -- For non-invitation users: use old profile-based logic
+                   WHEN u.created_via_invitation = 0 OR u.created_via_invitation IS NULL THEN 
+                       CASE 
+                           WHEN u.profile_completed = 0 OR u.profile_completed IS NULL THEN 'profile_required'
+                           ELSE 'dashboard'
+                       END
+                   ELSE 'dashboard'
+               END as next_step
         FROM users u 
-        LEFT JOIN user_profiles p ON u.id = p.user_id 
-        WHERE (u.phone = ? OR p.phone = ?) AND u.is_active = 1
+        LEFT JOIN user_profiles up ON u.id = up.user_id 
+        WHERE u.phone = ? AND u.is_active = 1
     ");
-    $stmt->execute([$phone, $phone]);
+    $stmt->execute([$phone]);
     $user = $stmt->fetch();
     
     if (!$user) {
@@ -86,6 +108,7 @@ try {
         'success' => true,
         'message' => 'Login successful',
         'session_token' => $sessionId,
+        'next_step' => $user['next_step'],
         'user' => [
             'id' => $user['id'],
             'email' => $user['email'],
@@ -94,8 +117,12 @@ try {
             'user_number' => $user['user_number'],
             'approval_status' => $user['approval_status'],
             'profile_completed' => (bool)$user['profile_completed'],
-            'full_name' => $user['full_name'],
-            'referred_by' => $referredByDisplay
+            'full_name' => $user['name'] ?: ($user['full_name'] ?? ''),
+            'referred_by' => $referredByDisplay,
+            'intro_completed' => (bool)$user['intro_completed'],
+            'questions_completed' => (bool)$user['questions_completed'],
+            'profile_completion_step' => $user['profile_completion_step'],
+            'created_via_invitation' => (bool)$user['created_via_invitation']
         ]
     ]);
     

@@ -27,21 +27,22 @@ export class PublicNavigation {
             { 
                 id: 'profile', 
                 label: 'Profile', 
-                href: 'edit_profile.html', 
+                href: 'profile.html', 
                 icon: 'fas fa-user' 
             }
         ];
 
-        // Add subscription for all users (with feature control)
-        baseStructure.push({
-            id: 'subscription',
-            label: 'Subscription',
-            href: 'subscription.html',
-            icon: 'fas fa-crown',
-            dataFeature: 'subscriptions' // Add feature control
-        });
+        // Add subscription only for approved and premium users
+        if (this.userType === 'approved' || this.userType === 'premium') {
+            baseStructure.push({
+                id: 'subscription',
+                label: 'Subscription',
+                href: 'subscription.html',
+                icon: 'fas fa-crown'
+            });
+        }
 
-        // Add invitations for approved and premium users
+        // Add invitations only for approved and premium users
         if (this.userType === 'approved' || this.userType === 'premium') {
             baseStructure.push({
                 id: 'invitations',

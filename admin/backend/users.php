@@ -37,6 +37,13 @@ function listUsers() {
 
         $db = Database::getInstance()->getConnection();
         
+        // Check if user_type column exists in users table
+        $checkUserType = $db->query("SHOW COLUMNS FROM users LIKE 'user_type'")->fetch();
+        if (!$checkUserType) {
+            // Add user_type column if it doesn't exist
+            $db->exec("ALTER TABLE users ADD COLUMN user_type ENUM('invited', 'registered', 'enrolled', 'approved', 'premium') DEFAULT 'registered' AFTER profile_completed");
+        }
+        
         // Get query parameters
         $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
         $limit = 10;
@@ -78,12 +85,17 @@ function listUsers() {
         $countStmt->execute($params);
         $totalUsers = $countStmt->fetchColumn();
         
+        // Check if invited_phone column exists in invitations table
+        $checkColumn = $db->query("SHOW COLUMNS FROM invitations LIKE 'invited_phone'")->fetch();
+        $phoneColumn = $checkColumn ? 'i.invited_phone' : 'i.invited_email';
+        
         // Get users with pagination including both registered users and invited users
         $sql = "
             SELECT * FROM (
                 SELECT 
                     u.id,
                     u.email,
+                    u.phone,
                     u.enrollment_number,
                     u.user_number,
                     u.referred_by_type,
@@ -96,16 +108,13 @@ function listUsers() {
                     u.approved_by,
                     u.is_active,
                     up.full_name,
+                    up.name,
                     up.profile_completed as user_profile_completed,
-                    latest_sub.subscription_type,
-                    latest_sub.subscription_status,
-                    latest_sub.subscription_start,
-                    latest_sub.subscription_end,
-                    CASE 
-                        WHEN latest_sub.subscription_status = 'active' AND latest_sub.subscription_end > NOW() THEN 'Premium Member'
-                        WHEN latest_sub.subscription_status = 'pending' THEN 'Subscription Pending'
-                        ELSE 'Non-Subscriber'
-                    END as membership_status,
+                    NULL as subscription_type,
+                    NULL as subscription_status,
+                    NULL as subscription_start,
+                    NULL as subscription_end,
+                    'Non-Subscriber' as membership_status,
                     -- Referrer information
                     CASE 
                         WHEN u.referred_by_type = 'admin' THEN admin_ref.username
@@ -124,25 +133,15 @@ function listUsers() {
                 LEFT JOIN admin_users admin_ref ON u.referred_by_type = 'admin' AND u.referred_by_id = admin_ref.id
                 LEFT JOIN users user_ref ON u.referred_by_type = 'user' AND u.referred_by_id = user_ref.id
                 LEFT JOIN user_profiles user_ref_profile ON user_ref.id = user_ref_profile.user_id
-                LEFT JOIN (
-                    SELECT s1.user_id, s1.subscription_type, s1.status as subscription_status,
-                           s1.start_date as subscription_start, s1.end_date as subscription_end
-                    FROM subscriptions s1
-                    WHERE s1.id = (
-                        SELECT s2.id 
-                        FROM subscriptions s2 
-                        WHERE s2.user_id = s1.user_id 
-                        ORDER BY s2.created_at DESC 
-                        LIMIT 1
-                    )
-                ) latest_sub ON u.id = latest_sub.user_id
+
                 {$whereClause}
                 
                 UNION ALL
                 
                 SELECT 
                     CONCAT('inv_', i.id) as id,
-                    i.invited_phone as phone,
+                    COALESCE(i.invited_email, {$phoneColumn}) as email,
+                    {$phoneColumn} as phone,
                     NULL as enrollment_number,
                     NULL as user_number,
                     i.invited_by_type as referred_by_type,
@@ -155,6 +154,7 @@ function listUsers() {
                     NULL as approved_by,
                     TRUE as is_active,
                     i.invited_name as full_name,
+                    i.invited_name as name,
                     FALSE as user_profile_completed,
                     NULL as subscription_type,
                     NULL as subscription_status,
@@ -211,8 +211,9 @@ function listUsers() {
         
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['error' => 'Internal server error']);
-        error_log("Error listing users: " . $e->getMessage());
+        // Temporarily expose the actual error for debugging
+        echo json_encode(['error' => 'Internal server error', 'debug' => $e->getMessage(), 'line' => $e->getLine(), 'file' => $e->getFile()]);
+        error_log("Error listing users: " . $e->getMessage() . " in " . $e->getFile() . " on line " . $e->getLine());
     }
 }
 
@@ -289,13 +290,30 @@ function updateUserStatus() {
 }
 
 function getAuthorizationToken() {
-    $headers = getallheaders();
-    if (isset($headers['Authorization'])) {
-        $auth = $headers['Authorization'];
-        if (strpos($auth, 'Bearer ') === 0) {
-            return substr($auth, 7);
+    // Try multiple ways to get the authorization header
+    $authHeader = null;
+    
+    // Method 1: Direct Apache header
+    if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
+    }
+    // Method 2: getallheaders() if available
+    elseif (function_exists('getallheaders')) {
+        $headers = getallheaders();
+        if (isset($headers['Authorization'])) {
+            $authHeader = $headers['Authorization'];
         }
     }
+    // Method 3: Check for alternative header formats
+    elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        $authHeader = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    }
+    
+    if ($authHeader && strpos($authHeader, 'Bearer ') === 0) {
+        return substr($authHeader, 7);
+    }
+    
     return null;
 }
 ?>
+

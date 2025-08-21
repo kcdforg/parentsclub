@@ -173,9 +173,29 @@ function initializeEventListeners() {
     // Handle form submission
     registerForm.addEventListener('submit', handleRegistration);
     
-    // Success modal - proceed to profile
-    document.getElementById('proceedToProfile').addEventListener('click', function() {
-        window.location.href = 'profile_completion.html';
+    // Success modal - proceed to check completion status
+    document.getElementById('proceedToProfile').addEventListener('click', async function() {
+        const button = this;
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Checking status...';
+        
+        try {
+            // Get session token from successful registration
+            const sessionToken = localStorage.getItem('user_session_token');
+            if (!sessionToken) {
+                // If no session, try to login automatically
+                await autoLoginAfterRegistration();
+            }
+            
+            // Check user completion status
+            await checkUserCompletionStatus();
+            
+        } catch (error) {
+            console.error('Error checking user status after registration:', error);
+            // If checking user status fails, redirect to login page as a safe fallback
+            // The user will then be redirected to the correct page by checkExistingSession or checkInvitation upon login
+            window.location.href = 'login.html';
+        }
     });
 }
 
@@ -276,7 +296,15 @@ async function handleRegistration(e) {
             // Store session token if available
             if (data.session_token) {
                 localStorage.setItem('user_session_token', data.session_token);
-                localStorage.setItem('user_data', JSON.stringify(data.user));
+                let userData = data.user;
+                // If user registered via invitation, ensure intro and questions are marked as incomplete locally
+                if (userData.created_via_invitation) {
+                    userData.intro_completed = false;
+                    userData.questions_completed = false;
+                    // Also reset profile completion step to ensure it starts from the beginning
+                    userData.profile_completion_step = null;
+                }
+                localStorage.setItem('user_data', JSON.stringify(userData));
             }
             
             // Log user type for debugging
@@ -324,4 +352,131 @@ function setLoading(loading) {
         registerBtnText.textContent = 'Create Account';
         registerBtnSpinner.classList.add('hidden');
     }
+}
+
+/**
+ * Auto-login user after registration if session not available
+ */
+async function autoLoginAfterRegistration() {
+    // This would require the user's credentials stored temporarily
+    // For now, redirect to login if no session is available
+    window.location.href = 'login.html';
+}
+
+/**
+ * Check user completion status and redirect appropriately
+ */
+async function checkUserCompletionStatus() {
+    try {
+        const response = await apiFetch('account.php', {
+            method: 'GET'
+        });
+
+        if (response.success) {
+            const userData = response.user;
+            
+            // Update stored user data
+            localStorage.setItem('user_data', JSON.stringify(userData));
+            
+            // Determine next step based on completion status
+            const nextStep = determineUserNextStep(userData);
+            
+            // Redirect based on status
+            redirectUserBasedOnStatus(nextStep, userData);
+            
+        } else {
+            throw new Error('Failed to get user status');
+        }
+        
+    } catch (error) {
+        console.error('Error checking completion status:', error);
+        throw error;
+    }
+}
+
+/**
+ * Determine the next step for a user based on their completion status
+ */
+function determineUserNextStep(userData) {
+    // Check if user was created via invitation
+    if (userData.created_via_invitation) {
+        // Check intro completion
+        if (!userData.intro_completed || !userData.questions_completed) {
+            return 'intro_required';
+        }
+        
+        // Check profile completion
+        if (!userData.profile_completion_step || userData.profile_completion_step !== 'completed') {
+            return 'profile_required';
+        }
+        
+        // Everything completed
+        return 'completed';
+    }
+    
+    // For non-invitation users, use the old logic
+    if (!userData.profile_completed) {
+        return 'profile_required';
+    }
+    
+    return 'dashboard';
+}
+
+/**
+ * Redirect user based on their completion status (no invitation codes after registration)
+ */
+function redirectUserBasedOnStatus(nextStep, userData) {
+    console.log('Registration: redirecting to', nextStep);
+    
+    switch (nextStep) {
+        case 'intro_required':
+            // User needs to complete intro questions
+            window.location.href = 'getIntro.html';
+            break;
+            
+        case 'profile_required':
+            // User completed intro but needs to complete profile
+            const currentStep = determineProfileStep(userData);
+            window.location.href = `profile_completion.html?step=${currentStep}`;
+            break;
+            
+        case 'completed':
+            // User has completed everything, go to dashboard
+            window.location.href = 'dashboard.html';
+            break;
+            
+        case 'dashboard':
+        default:
+            // Default case - go to dashboard
+            window.location.href = 'dashboard.html';
+            break;
+    }
+}
+
+/**
+ * Determine which profile completion step the user should start from
+ */
+function determineProfileStep(userData) {
+    if (userData.profile_completion_step) {
+        switch (userData.profile_completion_step) {
+            case 'intro':
+            case 'questions':
+            case 'member_details':
+                return 1;
+            case 'spouse_details':
+                return 2;
+            case 'children_details':
+                return 3;
+            case 'member_family_tree':
+                return 4;
+            case 'spouse_family_tree':
+                return 5;
+            case 'completed':
+                return 1;
+            default:
+                return 1;
+        }
+    }
+    
+    return 1;
 }

@@ -19,80 +19,40 @@
         }
     </script>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b border-gray-200 hidden">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <h1 class="text-xl font-bold text-gray-900">Registration Portal</h1>
-                    </div>
-                    <div class="hidden md:block ml-10">
-                        <div class="flex items-baseline space-x-4">
-                            <a href="dashboard.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
-                            <a href="edit_profile.html" class="bg-primary text-white px-3 py-2 rounded-md text-sm font-medium">Profile</a>
-                            <a href="subscription.html" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Subscription</a>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation will be injected here -->
+    <div id="navigationContainer"></div>
+
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Complete Your Profile</h1>
+            <p class="text-gray-600">Fill out all sections to complete your registration</p>
+        </div>
+
+        <!-- Profile Completion Form -->
+        <div class="space-y-6">
+            <!-- Section 1: Member Details -->
+            <div class="profile-section bg-white rounded-2xl shadow-lg border border-gray-200" data-section="member-details">
+                <div class="section-header p-6 border-b border-gray-200 cursor-pointer" onclick="toggleSection('member-details')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mr-4 text-sm font-bold">1</div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Member Details</h3>
+                                <p class="text-sm text-gray-500">Your personal information</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="section-status mr-3 text-sm font-medium text-red-500">Not completed</span>
+                            <i class="fas fa-chevron-down text-gray-400 transform transition-transform" id="member-details-icon"></i>
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center">
-                    <!-- Mobile menu button -->
-                    <button id="mobileMenuBtn" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    
-                    <!-- Logout button -->
-                    <button id="logoutBtn" class="ml-3 text-gray-600 hover:text-primary transition-colors px-3 py-2 rounded-md text-sm font-medium">
-                        <i class="fas fa-sign-out-alt mr-1"></i>
-                        Logout
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Mobile menu -->
-        <div id="mobileMenu" class="hidden md:hidden">
-            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                <a href="dashboard.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">Dashboard</a>
-                <a href="edit_profile.html" class="bg-primary text-white block px-3 py-2 rounded-md text-base font-medium">Profile</a>
-                <a href="subscription.html" class="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium">Subscription</a>
-            </div>
-        </div>
-    </nav>
-    <div class="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-2xl w-full space-y-8">
-            <div class="bg-white rounded-2xl shadow-xl p-8">
-                <!-- Header -->
-                <div class="text-center mb-8">
-                    <div class="mx-auto h-16 w-16 bg-indigo-600 rounded-full flex items-center justify-center mb-4">
-                        <i class="fas fa-user-edit text-white text-2xl"></i>
-                    </div>
-                    <h2 class="text-3xl font-bold text-gray-900">Complete Your Profile</h2>
-                    <p class="text-gray-600 mt-2">Please provide your personal information to continue</p>
-                    
-                    <!-- 72-hour expiry notice -->
-                    <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                        <div class="flex items-center justify-center text-amber-700">
-                            <i class="fas fa-clock mr-2"></i>
-                            <p class="text-sm">⚠️ <strong>Time-sensitive:</strong> Your invitation expires after 72 hours. Complete your profile within this time to activate your account.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Progress Indicator -->
-                <div class="mb-8">
-                    <div class="flex items-center justify-between text-sm text-gray-500 mb-2">
-                        <span>Progress</span>
-                        <span>Step 2 of 3</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-indigo-600 h-2 rounded-full" style="width: 66%"></div>
-                    </div>
-                </div>
-
-                <!-- Profile Form -->
-                <form id="profileForm" class="space-y-6">
+                
+                <div class="section-content" id="member-details-content" style="display: block;">
+                    <div class="p-6">
+                        <form id="memberDetailsForm" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">
@@ -100,18 +60,19 @@
                             </label>
                             <div class="relative">
                                 <input type="text" id="firstName" name="first_name" required
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                                        placeholder="Enter your first name">
                                 <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
                         </div>
+                        
                         <div>
                             <label for="secondName" class="block text-sm font-medium text-gray-700 mb-2">
                                 Second Name
                             </label>
                             <div class="relative">
                                 <input type="text" id="secondName" name="second_name"
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                                        placeholder="Enter your second name (optional)">
                                 <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
@@ -123,11 +84,11 @@
                             </label>
                             <div class="relative">
                                 <select id="gender" name="gender" required
-                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white">
+                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
                                     <option value="" disabled selected>Select your gender</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Others">Others</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="others">Others</option>
                                 </select>
                                 <i class="fas fa-venus-mars absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
@@ -139,7 +100,7 @@
                             </label>
                             <div class="relative">
                                 <input type="date" id="dateOfBirth" name="date_of_birth" required
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
                                 <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
                             <p class="text-xs text-gray-500 mt-1">You must be at least 18 years old</p>
@@ -152,7 +113,7 @@
                             </label>
                             <div class="flex">
                                 <select id="countryCode" name="country_code" 
-                                        class="px-3 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50">
+                                        class="px-3 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary bg-gray-50">
                                     <option value="+91" selected>🇮🇳 +91</option>
                                     <option value="+1">🇺🇸 +1</option>
                                     <option value="+44">🇬🇧 +44</option>
@@ -165,7 +126,7 @@
                                     <option value="+86">🇨🇳 +86</option>
                                 </select>
                                 <input type="tel" id="phone" name="phone" required
-                                       class="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                       class="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-primary focus:border-primary"
                                        placeholder="9876543210" maxlength="10">
                             </div>
                             <p class="text-xs text-gray-500 mt-1">
@@ -179,7 +140,7 @@
                             </label>
                             <div class="relative">
                                 <input type="email" id="email" name="email"
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                                        placeholder="Enter your email address (optional)">
                                 <i class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
@@ -191,71 +152,68 @@
                             </label>
                             <div class="relative">
                                 <input type="text" id="addressLine1" name="address_line1" required
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                                        placeholder="Address Line 1">
                                 <i class="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
                         </div>
+
                         <div class="md:col-span-2">
                             <label for="addressLine2" class="block text-sm font-medium text-gray-700 mb-2">
                                 Address Line 2
                             </label>
                             <div class="relative">
                                 <input type="text" id="addressLine2" name="address_line2"
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                                        placeholder="Address Line 2 (Optional)">
                                 <i class="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
                         </div>
+
                         <div>
                             <label for="city" class="block text-sm font-medium text-gray-700 mb-2">City <span class="text-red-500">*</span></label>
                             <div class="relative">
                                 <input type="text" id="city" name="city" required
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                                        placeholder="City">
                                 <i class="fas fa-city absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
                         </div>
+
                         <div>
                             <label for="pinCode" class="block text-sm font-medium text-gray-700 mb-2">
                                 PIN Code <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
                                 <input type="text" id="pinCode" name="pin_code" required maxlength="6"
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                                        placeholder="123456">
                                 <i class="fas fa-location-dot absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
                             <p class="text-xs text-gray-500 mt-1">6-digit postal code</p>
                         </div>
+
                         <div>
                             <label for="state" class="block text-sm font-medium text-gray-700 mb-2">State <span class="text-red-500">*</span></label>
                             <div class="relative">
                                 <select id="state" name="state" required
-                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white">
+                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
+                                    <option value="">Select State</option>
                                     <!-- States will be populated by JavaScript -->
                                 </select>
                                 <i class="fas fa-map-marked-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
                         </div>
+
                         <div>
                             <label for="country" class="block text-sm font-medium text-gray-700 mb-2">Country <span class="text-red-500">*</span></label>
                             <div class="relative">
                                 <select id="country" name="country" required
-                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white">
+                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
+                                    <option value="">Select Country</option>
                                     <!-- Countries will be populated by JavaScript -->
                                 </select>
                                 <i class="fas fa-globe absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                            </div>
-                        </div>
-
-                        <div class="hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Enrollment Number</label>
-                            <div class="relative">
-                                <input type="text" id="enrollmentNumber" readonly
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-500"
-                                       placeholder="Will be assigned after registration">
-                                <i class="fas fa-id-card absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
                         </div>
                     </div>
@@ -272,60 +230,355 @@
                         <span id="successText"></span>
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <button type="submit" id="saveProfileBtn"
-                                class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-6 rounded-lg transition-colors focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                            <span id="saveProfileBtnText">Submit</span>
-                            <i id="saveProfileBtnSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
-                        </button>
-                        <button type="button" id="cancelBtn"
-                                class="sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors">
-                            Skip for Now
-                        </button>
+                            <div class="flex justify-end pt-6">
+                                <button type="button" id="saveMemberDetails" class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                                    <span id="saveMemberText">Save Section</span>
+                                    <i id="saveMemberSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
+            </div>
 
-                <!-- Info Section -->
-                <div class="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div class="flex items-start">
-                        <i class="fas fa-info-circle text-blue-600 mt-1 mr-3"></i>
-                        <div class="text-sm text-blue-800">
-                            <p class="font-medium mb-2">What happens next?</p>
-                            <ul class="space-y-1 text-blue-700">
-                                <li>• Your profile will be sent for admin approval</li>
-                                <li>• You'll receive a unique user number once approved</li>
-                                <li>• You can then access all membership features</li>
-                                <li>• You can update your profile anytime after approval</li>
-                            </ul>
+            <!-- Section 2: Spouse Details -->
+            <div class="profile-section bg-white rounded-2xl shadow-lg border border-gray-200" data-section="spouse-details" id="spouseSection" style="display: none;">
+                <div class="section-header p-6 border-b border-gray-200 cursor-pointer" onclick="toggleSection('spouse-details')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center mr-4 text-sm font-bold">2</div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Spouse Details</h3>
+                                <p class="text-sm text-gray-500">Your spouse's information</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="section-status mr-3 text-sm font-medium text-red-500">Not completed</span>
+                            <i class="fas fa-chevron-down text-gray-400 transform transition-transform" id="spouse-details-icon"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-content" id="spouse-details-content" style="display: none;">
+                    <div class="p-6">
+                        <form id="spouseDetailsForm" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="spouseFirstName" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Spouse's First Name <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                    <input type="text" id="spouseFirstName" name="spouse_first_name" required
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                               placeholder="Enter spouse's first name">
+                                        <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label for="spouseSecondName" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Spouse's Second Name
+                                    </label>
+                                    <div class="relative">
+                                    <input type="text" id="spouseSecondName" name="spouse_second_name"
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                               placeholder="Enter spouse's second name (optional)">
+                                        <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="spouseGender" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Gender <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                    <select id="spouseGender" name="spouse_gender" required
+                                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
+                                        <option value="">Select Gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="others">Others</option>
+                                    </select>
+                                        <i class="fas fa-venus-mars absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="spouseDateOfBirth" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Date of Birth <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                    <input type="date" id="spouseDateOfBirth" name="spouse_date_of_birth" required
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                                        <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Enter spouse's date of birth</p>
+                                    <p id="spouseDobHelp" class="text-sm text-blue-600 mt-1">📅 Please enter the actual date of birth</p>
+                                </div>
+
+                                <div>
+                                    <label for="spousePhone" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Phone Number (Optional)
+                                    </label>
+                                    <div class="flex">
+                                        <select id="spouseCountryCode" name="spouse_country_code" 
+                                                class="px-3 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary bg-gray-50">
+                                            <option value="+91" selected>🇮🇳 +91</option>
+                                            <option value="+1">🇺🇸 +1</option>
+                                            <option value="+44">🇬🇧 +44</option>
+                                            <option value="+61">🇦🇺 +61</option>
+                                            <option value="+81">🇯🇵 +81</option>
+                                            <option value="+49">🇩🇪 +49</option>
+                                            <option value="+33">🇫🇷 +33</option>
+                                            <option value="+39">🇮🇹 +39</option>
+                                            <option value="+34">🇪🇸 +34</option>
+                                            <option value="+86">🇨🇳 +86</option>
+                                        </select>
+                                        <input type="tel" id="spousePhone" name="spouse_phone"
+                                               class="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                                               placeholder="9876543210" maxlength="10">
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        <span id="spousePhoneHelp">🇮🇳 Enter 10 digits starting with 6, 7, 8, or 9</span>
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <label for="spouseEmail" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Email Address (Optional)
+                                    </label>
+                                    <div class="relative">
+                                        <input type="email" id="spouseEmail" name="spouse_email"
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                               placeholder="Enter spouse's email address (optional)">
+                                        <i class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end pt-6">
+                                <button type="button" id="saveSpouseDetails" class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                                    <span id="saveSpouseText">Save Section</span>
+                                    <i id="saveSpouseSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Children Details -->
+            <div class="profile-section bg-white rounded-2xl shadow-lg border border-gray-200" data-section="children-details" id="childrenSection" style="display: none;">
+                <div class="section-header p-6 border-b border-gray-200 cursor-pointer" onclick="toggleSection('children-details')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center mr-4 text-sm font-bold">3</div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Children Details</h3>
+                                <p class="text-sm text-gray-500">Information about your children</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="section-status mr-3 text-sm font-medium text-red-500">Not completed</span>
+                            <i class="fas fa-chevron-down text-gray-400 transform transition-transform" id="children-details-icon"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-content" id="children-details-content" style="display: none;">
+                    <div class="p-6">
+                        <div id="childrenFormsContainer">
+                            <!-- Children forms will be dynamically added here -->
+                        </div>
+
+                        <div class="mb-6">
+                            <button type="button" id="addChildBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                                <i class="fas fa-plus mr-2"></i>Add Child
+                            </button>
+                        </div>
+
+                        <div class="flex justify-end pt-6">
+                            <button type="button" id="saveChildrenDetails" class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                                <span id="saveChildrenText">Save Section</span>
+                                <i id="saveChildrenSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Completion Modal -->
-    <div id="completionModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="mt-3 text-center">
-                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-                    <i class="fas fa-check text-green-600 text-xl"></i>
+            <!-- Section 4: Member Family Tree -->
+            <div class="profile-section bg-white rounded-2xl shadow-lg border border-gray-200" data-section="member-family-tree">
+                <div class="section-header p-6 border-b border-gray-200 cursor-pointer" onclick="toggleSection('member-family-tree')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center mr-4 text-sm font-bold">4</div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Member Family Tree</h3>
+                                <p class="text-sm text-gray-500">Your family lineage details</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="section-status mr-3 text-sm font-medium text-red-500">Not completed</span>
+                            <i class="fas fa-chevron-down text-gray-400 transform transition-transform" id="member-family-tree-icon"></i>
+                        </div>
+                    </div>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Information Added!</h3>
-                <div class="mt-2 px-7 py-3">
-                    <p class="text-sm text-gray-500 mb-4">
-                        Your personal information has been submitted. You'll be notified once your account is approved.
-                    </p>
-                    <button id="goToDashboard" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full">
-                        Continue to Dashboard
+                
+                <div class="section-content" id="member-family-tree-content" style="display: none;">
+                    <div class="p-6">
+                        <!-- Parents Component Container -->
+                        <div id="memberParentsContainer"></div>
+
+                        <!-- Paternal Grandparents Component Container -->
+                        <div id="memberPaternalGrandparentsContainer"></div>
+
+                        <!-- Maternal Grandparents Component Container -->
+                        <div id="memberMaternalGrandparentsContainer"></div>
+
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Spouse Family Tree -->
+            <div class="profile-section bg-white rounded-2xl shadow-lg border border-gray-200" data-section="spouse-family-tree" id="spouseFamilySection" style="display: none;">
+                <div class="section-header p-6 border-b border-gray-200 cursor-pointer" onclick="toggleSection('spouse-family-tree')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center mr-4 text-sm font-bold">5</div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Spouse Family Tree</h3>
+                                <p class="text-sm text-gray-500">Your spouse's family lineage details</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="section-status mr-3 text-sm font-medium text-red-500">Not completed</span>
+                            <i class="fas fa-chevron-down text-gray-400 transform transition-transform" id="spouse-family-tree-icon"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-content" id="spouse-family-tree-content" style="display: none;">
+                    <div class="p-6">
+                        <!-- Similar structure to member family tree but for spouse -->
+                        <!-- Spouse Parents Component Container -->
+                        <div id="spouseParentsContainer"></div>
+
+                        <!-- Spouse Paternal Grandparents Component Container -->
+                        <div id="spousePaternalGrandparentsContainer"></div>
+
+                        <!-- Spouse Maternal Grandparents Component Container -->
+                        <div id="spouseMaternalGrandparentsContainer"></div>
+
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save & Submit Button -->
+            <div class="text-center pt-8 pb-4">
+                <div class="flex justify-center mb-4">
+                    <button type="button" id="saveSubmitBtn" class="bg-gray-400 text-white px-12 py-4 rounded-lg text-lg font-semibold transition-colors shadow-lg disabled:opacity-75">
+                        <span id="saveSubmitText">Save & Submit</span>
+                        <i id="saveSubmitSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                        <i id="saveSubmitIcon" class="fas fa-save ml-2"></i>
                     </button>
                 </div>
+                <p class="text-sm text-gray-500 mt-2" id="completion-status">Complete all sections above to enable submission</p>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 flex items-center">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mr-3"></div>
+                <span class="text-gray-700">Processing...</span>
+            </div>
+        </div>
+
+        <!-- Error Modal -->
+        <div id="errorModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 max-w-md mx-4">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-500 mr-3"></i>
+                    <h3 class="text-lg font-semibold text-gray-900">Error</h3>
+                </div>
+                <p id="errorMessage" class="text-gray-700 mb-4"></p>
+                <button id="closeErrorModal" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">
+                    Close
+                </button>
             </div>
         </div>
     </div>
 
-    <script src="js/utils.js" type="module"></script>
-    <script src="js/profile_completion.js" type="module"></script>
+    <style>
+        .profile-section {
+            transition: all 0.3s ease;
+        }
+
+        .section-content {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .family-subsection {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            background-color: #f9fafb;
+        }
+
+        .subsection-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            background-color: #f3f4f6;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+
+        .subsection-content {
+            padding: 1rem;
+            background-color: white;
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+
+        .section-status.completed {
+            color: #10b981;
+        }
+
+        .profile-section[data-completed="true"] .w-8.h-8 {
+            background-color: #10b981;
+        }
+
+        .transform.rotate-180 {
+            transform: rotate(180deg);
+        }
+
+        @media (max-width: 768px) {
+            .section-header {
+                padding: 1rem;
+            }
+            
+            .section-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+
+    <script type="module">
+        import { createPublicNavigation } from './js/components/PublicNavigation.js';
+        
+        // Initialize navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+                const userType = userData.approval_status === 'approved' ? 'approved' : 'public';
+                createPublicNavigation('profile', userType, 'navigationContainer');
+            } catch (error) {
+                console.error('Error initializing navigation:', error);
+                createPublicNavigation('profile', 'public', 'navigationContainer');
+            }
+        });
+    </script>
+    <script src="js/profile_completion_vertical.js" type="module"></script>
 </body>
 </html>

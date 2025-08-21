@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Get Started</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#7c3aed'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-2xl">
+        <!-- Welcome Section -->
+        <div id="welcomeSection" class="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div class="mb-8">
+                <div class="mx-auto h-20 w-20 bg-primary rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-star text-white text-3xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-4">Your account is ready!</h1>
+                <p class="text-lg text-gray-600 mb-6">
+                    We are excited to onboard you. Fill in the following details to get to know you better!
+                </p>
+                <button id="excitedBtn" class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors">
+                    <i class="fas fa-heart mr-2"></i>I'm excited
+                </button>
+            </div>
+        </div>
+
+        <!-- Questions Section -->
+        <div id="questionsSection" class="hidden bg-white rounded-2xl shadow-xl p-8">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Getting to know you</h2>
+                <p class="text-gray-600">Please answer all the questions below</p>
+            </div>
+
+            <form id="introQuestionsForm" class="space-y-8">
+                <!-- Question 1: Gender -->
+                <div class="question-section">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">1. What is your Gender?</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="gender" value="male" class="sr-only peer" required>
+                            <div class="p-4 border-2 border-gray-300 rounded-lg peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                <div class="flex items-center justify-center">
+                                    <i class="fas fa-mars text-2xl text-blue-500 mr-3"></i>
+                                    <span class="text-lg font-semibold">Male</span>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="gender" value="female" class="sr-only peer" required>
+                            <div class="p-4 border-2 border-gray-300 rounded-lg peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                <div class="flex items-center justify-center">
+                                    <i class="fas fa-venus text-2xl text-pink-500 mr-3"></i>
+                                    <span class="text-lg font-semibold">Female</span>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="gender" value="others" class="sr-only peer" required>
+                            <div class="p-4 border-2 border-gray-300 rounded-lg peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                <div class="flex items-center justify-center">
+                                    <i class="fas fa-genderless text-2xl text-purple-500 mr-3"></i>
+                                    <span class="text-lg font-semibold">Others</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 2: Marriage Status -->
+                <div class="question-section">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">2. Marriage status?</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="marriageType" value="unmarried" class="sr-only peer" required>
+                            <div class="p-4 border-2 border-gray-300 rounded-lg peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                <div class="text-center">
+                                    <i class="fas fa-heart text-2xl text-gray-500 mb-2"></i>
+                                    <div class="text-lg font-semibold">Unmarried</div>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="marriageType" value="married" class="sr-only peer" required>
+                            <div class="p-4 border-2 border-gray-300 rounded-lg peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                <div class="text-center">
+                                    <i class="fas fa-heart text-2xl text-red-500 mb-2"></i>
+                                    <div class="text-lg font-semibold">Married</div>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="marriageType" value="widowed" class="sr-only peer" required>
+                            <div class="p-4 border-2 border-gray-300 rounded-lg peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                <div class="text-center">
+                                    <i class="fas fa-heart-broken text-2xl text-gray-600 mb-2"></i>
+                                    <div class="text-lg font-semibold">Widowed</div>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="marriageType" value="divorced" class="sr-only peer" required>
+                            <div class="p-4 border-2 border-gray-300 rounded-lg peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                <div class="text-center">
+                                    <i class="fas fa-broken-heart text-2xl text-orange-500 mb-2"></i>
+                                    <div class="text-lg font-semibold">Divorced</div>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer md:col-span-2">
+                            <input type="radio" name="marriageType" value="remarried" class="sr-only peer" required>
+                            <div class="p-4 border-2 border-gray-300 rounded-lg peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                <div class="text-center">
+                                    <i class="fas fa-heart text-2xl text-purple-500 mb-2"></i>
+                                    <div class="text-lg font-semibold">Remarried</div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 3: Children (Conditional) -->
+                <div id="childrenQuestion" class="question-section" style="display: none;">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">3. Do you have children?</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="hasChildren" value="yes" class="sr-only peer">
+                            <div class="p-4 border-2 border-gray-300 rounded-lg peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                <div class="text-center">
+                                    <i class="fas fa-baby text-2xl text-blue-500 mb-2"></i>
+                                    <div class="text-lg font-semibold">Yes</div>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="hasChildren" value="no" class="sr-only peer">
+                            <div class="p-4 border-2 border-gray-300 rounded-lg peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                <div class="text-center">
+                                    <i class="fas fa-times text-2xl text-gray-500 mb-2"></i>
+                                    <div class="text-lg font-semibold">No</div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-center pt-6">
+                    <button type="submit" id="submitQuestionsBtn" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors disabled:opacity-50">
+                        <span id="submitText">Continue</span>
+                        <i id="submitSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                        <i id="submitArrow" class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Loading -->
+        <div id="loadingSection" class="hidden bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+            <p class="text-gray-600">Processing your information...</p>
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorSection" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+            <div class="flex">
+                <i class="fas fa-exclamation-triangle text-red-400 mr-3"></i>
+                <div>
+                    <h3 class="text-sm font-medium text-red-800">Error</h3>
+                    <p id="errorMessage" class="text-sm text-red-700 mt-1"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/getIntro.js" type="module"></script>
+</body>
+</html>

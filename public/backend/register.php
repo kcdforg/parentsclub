@@ -138,19 +138,19 @@ try {
     try {
         // Create user with user_type as 'registered' (has password through invite)
         $stmt = $db->prepare("
-            INSERT INTO users (email, phone, password, enrollment_number, user_number, referred_by_type, referred_by_id, approval_status, user_type) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 'registered')
+            INSERT INTO users (email, phone, password, enrollment_number, user_number, referred_by_type, referred_by_id, approval_status, user_type, created_via_invitation, invitation_id) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 'registered', TRUE, ?)
         ");
-        $stmt->execute([$invitedEmail, $invitedPhone, $hashedPassword, $enrollmentNumber, $nextUserNumber, $referredByType, $referredById]);
+        $stmt->execute([$invitedEmail, $invitedPhone, $hashedPassword, $enrollmentNumber, $nextUserNumber, $referredByType, $referredById, $invitation['id']]);
         $userId = $db->lastInsertId();
         
         // Log user creation for debugging
         error_log("User created - ID: $userId, Email: $invitedEmail, Phone: $invitedPhone, Enrollment: $enrollmentNumber");
         
-        // Create partial profile with invited name. Other fields are empty/default.
+        // Create partial profile with invited name. Other fields are NULL for now until intro questions completed.
         $stmt = $db->prepare("
-            INSERT INTO user_profiles (user_id, full_name, date_of_birth, address, pin_code, phone, profile_completed) 
-            VALUES (?, ?, '1900-01-01', '', '', '', FALSE)
+            INSERT INTO user_profiles (user_id, name, intro_completed, questions_completed, profile_completed) 
+            VALUES (?, ?, FALSE, FALSE, FALSE)
         ");
         $stmt->execute([$userId, $invitedName]);
         
@@ -199,7 +199,11 @@ try {
                 'full_name' => $invitedName,
                 'approval_status' => 'pending',
                 'user_type' => 'registered',
-                'profile_completed' => false
+                'profile_completed' => false,
+                'created_via_invitation' => true,
+                'intro_completed' => false,
+                'questions_completed' => false,
+                'profile_completion_step' => null
             ]
         ];
         

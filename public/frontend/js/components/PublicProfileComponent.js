@@ -24,7 +24,7 @@ export class PublicProfileComponent {
                         </button>
                         <div id="userDropdown" class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
                             <div class="py-1">
-                                <a href="edit_profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
                                     <i class="fas fa-user mr-2"></i>Profile Page
                                 </a>
                                 <a href="#" id="changePasswordBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">

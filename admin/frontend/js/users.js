@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (users.length === 0) {
             usersTableBody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                    <td colspan="9" class="px-6 py-4 text-center text-gray-500">
                         No users found
                     </td>
                 </tr>
@@ -143,8 +143,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
                         </div>
                         <div class="ml-4">
-                            <div class="text-sm font-medium text-gray-900">${user.email || user.phone || 'No contact info'}</div>
-                            <div class="text-sm text-gray-500">${user.enrollment_number || 'No enrollment'}</div>
+                            <div class="text-sm font-medium text-gray-900">${user.full_name || user.name || 'No name provided'}</div>
+                            <div class="text-sm text-gray-500">${user.email || user.phone || 'No contact info'}</div>
+                            <div class="text-xs text-gray-400">${user.enrollment_number || 'No enrollment'}</div>
                         </div>
                     </div>
                 </td>
