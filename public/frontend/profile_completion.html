@@ -100,11 +100,24 @@
                             </label>
                             <div class="relative">
                                 <input type="date" id="dateOfBirth" name="date_of_birth" required
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                       placeholder="DD-MM-YYYY">
                                 <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
                             <p class="text-xs text-gray-500 mt-1">You must be at least 18 years old</p>
                             <p id="dobHelp" class="text-sm text-blue-600 mt-1">📅 Please enter your actual date of birth</p>
+                        </div>
+
+                        <div id="ageFieldContainer" class="hidden">
+                            <label for="memberAgeField" class="block text-sm font-medium text-gray-700 mb-2">
+                                Age (Auto-calculated)
+                            </label>
+                            <div class="relative">
+                                <input type="text" id="memberAgeField" readonly
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                                       placeholder="Age will be calculated from DOB">
+                                <i class="fas fa-clock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
                         </div>
 
                         <div>
@@ -218,6 +231,91 @@
                         </div>
                     </div>
 
+                    <!-- Kulam Details Section -->
+                    <div class="border-t border-gray-200 pt-6 mt-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-temple mr-2 text-orange-500"></i>Kulam Details
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="kulam" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Kulam
+                                </label>
+                                <div class="relative">
+                                    <select id="kulam" name="kulam"
+                                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
+                                        <option value="">Select Kulam</option>
+                                        <option value="other">Other (specify below)</option>
+                                        <!-- Options will be populated by JavaScript -->
+                                    </select>
+                                    <i class="fas fa-users absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                                <input type="text" id="kulamOther" name="kulam_other" placeholder="Please specify your Kulam"
+                                       class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden">
+                            </div>
+
+                            <div>
+                                <label for="kulaDeivam" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Kula Deivam
+                                </label>
+                                <div class="relative">
+                                    <select id="kulaDeivam" name="kula_deivam"
+                                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
+                                        <option value="">Select Kula Deivam</option>
+                                        <option value="other">Other (specify below)</option>
+                                        <!-- Options will be populated by JavaScript -->
+                                    </select>
+                                    <i class="fas fa-om absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                                <input type="text" id="kulaDeivamOther" name="kula_deivam_other" placeholder="Please specify your Kula Deivam"
+                                       class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden">
+                            </div>
+
+                            <div>
+                                <label for="kaani" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Kaani
+                                </label>
+                                <div class="relative">
+                                    <select id="kaani" name="kaani"
+                                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
+                                        <option value="">Select Kaani</option>
+                                        <option value="other">Other (specify below)</option>
+                                        <!-- Options will be populated by JavaScript -->
+                                    </select>
+                                    <i class="fas fa-place-of-worship absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                                <input type="text" id="kaaniOther" name="kaani_other" placeholder="Please specify your Kaani"
+                                       class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Education Details Section -->
+                    <div class="border-t border-gray-200 pt-6 mt-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-graduation-cap mr-2 text-blue-500"></i>Education Details
+                        </h4>
+                        <div id="memberEducationContainer">
+                            <!-- Education entries will be added here dynamically -->
+                        </div>
+                        <button type="button" id="addMemberEducationBtn" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Add Education
+                        </button>
+                    </div>
+
+                    <!-- Profession Details Section -->
+                    <div class="border-t border-gray-200 pt-6 mt-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-briefcase mr-2 text-green-500"></i>Profession Details
+                        </h4>
+                        <div id="memberProfessionContainer">
+                            <!-- Profession entries will be added here dynamically -->
+                        </div>
+                        <button type="button" id="addMemberProfessionBtn" class="mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Add Profession
+                        </button>
+                    </div>
+
                     <!-- Error Message -->
                     <div id="errorMessage" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
                         <i class="fas fa-exclamation-circle mr-2"></i>
@@ -231,8 +329,8 @@
                     </div>
 
                             <div class="flex justify-end pt-6">
-                                <button type="button" id="saveMemberDetails" class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-                                    <span id="saveMemberText">Save Section</span>
+                                <button type="button" id="saveMemberDetails" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                                    <span id="saveMemberText">Save</span>
                                     <i id="saveMemberSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
                                 </button>
                             </div>
@@ -309,11 +407,24 @@
                                     </label>
                                     <div class="relative">
                                     <input type="date" id="spouseDateOfBirth" name="spouse_date_of_birth" required
-                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                               placeholder="DD-MM-YYYY">
                                         <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                     </div>
                                     <p class="text-xs text-gray-500 mt-1">Enter spouse's date of birth</p>
                                     <p id="spouseDobHelp" class="text-sm text-blue-600 mt-1">📅 Please enter the actual date of birth</p>
+                                </div>
+
+                                <div id="spouseAgeFieldContainer" class="hidden">
+                                    <label for="spouseAgeField" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Age (Auto-calculated)
+                                    </label>
+                                    <div class="relative">
+                                        <input type="text" id="spouseAgeField" readonly
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                                               placeholder="Age will be calculated from DOB">
+                                        <i class="fas fa-clock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
                                 </div>
 
                                 <div>
@@ -356,9 +467,94 @@
                                 </div>
                             </div>
 
+                            <!-- Spouse Kulam Details Section -->
+                            <div class="border-t border-gray-200 pt-6 mt-6">
+                                <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                    <i class="fas fa-temple mr-2 text-orange-500"></i>Spouse Kulam Details
+                                </h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label for="spouseKulam" class="block text-sm font-medium text-gray-700 mb-2">
+                                            Kulam
+                                        </label>
+                                        <div class="relative">
+                                            <select id="spouseKulam" name="spouse_kulam"
+                                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
+                                                <option value="">Select Kulam</option>
+                                                <option value="other">Other (specify below)</option>
+                                                <!-- Options will be populated by JavaScript -->
+                                            </select>
+                                            <i class="fas fa-users absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                        </div>
+                                        <input type="text" id="spouseKulamOther" name="spouse_kulam_other" placeholder="Please specify spouse's Kulam"
+                                               class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden">
+                                    </div>
+
+                                    <div>
+                                        <label for="spouseKulaDeivam" class="block text-sm font-medium text-gray-700 mb-2">
+                                            Kula Deivam
+                                        </label>
+                                        <div class="relative">
+                                            <select id="spouseKulaDeivam" name="spouse_kula_deivam"
+                                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
+                                                <option value="">Select Kula Deivam</option>
+                                                <option value="other">Other (specify below)</option>
+                                                <!-- Options will be populated by JavaScript -->
+                                            </select>
+                                            <i class="fas fa-om absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                        </div>
+                                        <input type="text" id="spouseKulaDeivamOther" name="spouse_kula_deivam_other" placeholder="Please specify spouse's Kula Deivam"
+                                               class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden">
+                                    </div>
+
+                                    <div>
+                                        <label for="spouseKaani" class="block text-sm font-medium text-gray-700 mb-2">
+                                            Kaani
+                                        </label>
+                                        <div class="relative">
+                                            <select id="spouseKaani" name="spouse_kaani"
+                                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
+                                                <option value="">Select Kaani</option>
+                                                <option value="other">Other (specify below)</option>
+                                                <!-- Options will be populated by JavaScript -->
+                                            </select>
+                                            <i class="fas fa-place-of-worship absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                        </div>
+                                        <input type="text" id="spouseKaaniOther" name="spouse_kaani_other" placeholder="Please specify spouse's Kaani"
+                                               class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Spouse Education Details Section -->
+                            <div class="border-t border-gray-200 pt-6 mt-6">
+                                <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                    <i class="fas fa-graduation-cap mr-2 text-blue-500"></i>Spouse Education Details
+                                </h4>
+                                <div id="spouseEducationContainer">
+                                    <!-- Education entries will be added here dynamically -->
+                                </div>
+                                <button type="button" id="addSpouseEducationBtn" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>Add Education
+                                </button>
+                            </div>
+
+                            <!-- Spouse Profession Details Section -->
+                            <div class="border-t border-gray-200 pt-6 mt-6">
+                                <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                    <i class="fas fa-briefcase mr-2 text-green-500"></i>Spouse Profession Details
+                                </h4>
+                                <div id="spouseProfessionContainer">
+                                    <!-- Profession entries will be added here dynamically -->
+                                </div>
+                                <button type="button" id="addSpouseProfessionBtn" class="mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>Add Profession
+                                </button>
+                            </div>
+
                             <div class="flex justify-end pt-6">
-                                <button type="button" id="saveSpouseDetails" class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-                                    <span id="saveSpouseText">Save Section</span>
+                                <button type="button" id="saveSpouseDetails" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                                    <span id="saveSpouseText">Save</span>
                                     <i id="saveSpouseSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
                                 </button>
                             </div>
@@ -398,8 +594,8 @@
                         </div>
 
                         <div class="flex justify-end pt-6">
-                            <button type="button" id="saveChildrenDetails" class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-                                <span id="saveChildrenText">Save Section</span>
+                            <button type="button" id="saveChildrenDetails" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                                <span id="saveChildrenText">Save</span>
                                 <i id="saveChildrenSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
                             </button>
                         </div>
@@ -480,9 +676,9 @@
             <div class="text-center pt-8 pb-4">
                 <div class="flex justify-center mb-4">
                     <button type="button" id="saveSubmitBtn" class="bg-gray-400 text-white px-12 py-4 rounded-lg text-lg font-semibold transition-colors shadow-lg disabled:opacity-75">
-                        <span id="saveSubmitText">Save & Submit</span>
+                        <span id="saveSubmitText">Submit</span>
                         <i id="saveSubmitSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
-                        <i id="saveSubmitIcon" class="fas fa-save ml-2"></i>
+                        <i id="saveSubmitIcon" class="fas fa-paper-plane ml-2"></i>
                     </button>
                 </div>
                 <p class="text-sm text-gray-500 mt-2" id="completion-status">Complete all sections above to enable submission</p>

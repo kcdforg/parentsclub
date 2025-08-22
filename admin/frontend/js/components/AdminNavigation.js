@@ -35,9 +35,9 @@ export class AdminNavigation {
                 icon: 'fas fa-user-shield' 
             },
             {
-                id: 'advanced',
-                label: 'Advanced',
-                icon: 'fas fa-cogs',
+                id: 'settings',
+                label: 'Settings',
+                icon: 'fas fa-cog',
                 isDropdown: true,
                 submenu: [
                     {
@@ -45,6 +45,18 @@ export class AdminNavigation {
                         label: 'Feature Switches',
                         href: 'feature-switches.html',
                         icon: 'fas fa-toggle-on'
+                    },
+                    {
+                        id: 'form-values',
+                        label: 'Form Values List',
+                        href: 'form-values.html',
+                        icon: 'fas fa-list-ul'
+                    },
+                    {
+                        id: 'database-setup',
+                        label: 'Database Setup',
+                        href: 'database-setup.html',
+                        icon: 'fas fa-database'
                     }
                 ]
             }

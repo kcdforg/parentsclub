@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Values List - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dropdown-menu {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation will be injected here -->
+    
+    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="md:flex md:items-center md:justify-between mb-8">
+            <div class="min-w-0 flex-1">
+                <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl">
+                    <i class="fas fa-list-ul mr-3 text-blue-600"></i>Form Values List
+                </h2>
+                <p class="mt-1 text-sm text-gray-500">
+                    Manage dropdown values and auto-populate options for profile completion forms
+                </p>
+            </div>
+            <div class="mt-4 flex md:ml-4 md:mt-0">
+                <button id="addSectionBtn" class="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                    <i class="fas fa-plus mr-2"></i>Add Section
+                </button>
+            </div>
+        </div>
+
+        <!-- Help Text -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-400"></i>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-800">How Form Values Work</h3>
+                    <div class="mt-2 text-sm text-blue-700">
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><strong>Kulam Details:</strong> Values appear in Kulam, Kula Deivam, and Kaani dropdowns across all family member sections</li>
+                            <li><strong>Education:</strong> Degree suggestions appear in autocomplete, with related departments for each degree</li>
+                            <li><strong>Profession:</strong> Company names and positions appear as autocomplete suggestions</li>
+                            <li><strong>Page Location:</strong> All values are used in the profile completion form (profile_completion.html)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Values Sections -->
+        <div class="space-y-6">
+            <!-- Kulam Details Section -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                                <i class="fas fa-star mr-2 text-orange-500"></i>
+                                Kulam Details
+                            </h3>
+                            <p class="mt-1 text-sm text-gray-500">
+                                Manage Kulam, Kula Deivam, and Kaani values for all family members
+                            </p>
+                        </div>
+                        <button class="add-item-btn bg-orange-100 hover:bg-orange-200 text-orange-700 px-3 py-1 rounded-md text-sm font-medium transition-colors" data-section="kulam">
+                            <i class="fas fa-plus mr-1"></i>Add Values
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <!-- Kulam Values -->
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-900">Kulam Values</h4>
+                            <button class="add-kulam-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs">
+                                <i class="fas fa-plus mr-1"></i>Add Kulam
+                            </button>
+                        </div>
+                        <div id="kulamContainer" class="space-y-2">
+                            <!-- Kulam items will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Kula Deivam Values -->
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-900">Kula Deivam Values</h4>
+                            <button class="add-kulaDeivam-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs">
+                                <i class="fas fa-plus mr-1"></i>Add Kula Deivam
+                            </button>
+                        </div>
+                        <div id="kulaDeivamContainer" class="space-y-2">
+                            <!-- Kula Deivam items will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Kaani Values -->
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-900">Kaani Values</h4>
+                            <button class="add-kaani-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs">
+                                <i class="fas fa-plus mr-1"></i>Add Kaani
+                            </button>
+                        </div>
+                        <div id="kaaniContainer" class="space-y-2">
+                            <!-- Kaani items will be populated here -->
+                        </div>
+                        <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                            <p class="text-sm text-yellow-700">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Note: Kaani values will be linked to Kula Deivam values in a future update
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Education Section -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                                <i class="fas fa-graduation-cap mr-2 text-blue-500"></i>
+                                Education Values
+                            </h3>
+                            <p class="mt-1 text-sm text-gray-500">
+                                Manage degree, department, and institution suggestions
+                            </p>
+                        </div>
+                        <button class="add-item-btn bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-md text-sm font-medium transition-colors" data-section="education">
+                            <i class="fas fa-plus mr-1"></i>Add Values
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <!-- Degree Values -->
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-900">Degree Values</h4>
+                            <button class="add-degree-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs">
+                                <i class="fas fa-plus mr-1"></i>Add Degree
+                            </button>
+                        </div>
+                        <div id="degreeContainer" class="space-y-2">
+                            <!-- Degree items will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Department Values -->
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-900">Department Values</h4>
+                            <button class="add-department-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs">
+                                <i class="fas fa-plus mr-1"></i>Add Department
+                            </button>
+                        </div>
+                        <div id="departmentContainer" class="space-y-2">
+                            <!-- Department items will be populated here -->
+                        </div>
+                        <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                            <p class="text-sm text-yellow-700">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Note: Department pairing with degrees will be available in a future update
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Institution Values -->
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-900">Institution Values</h4>
+                            <button class="add-institution-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs">
+                                <i class="fas fa-plus mr-1"></i>Add Institution
+                            </button>
+                        </div>
+                        <div id="institutionContainer" class="space-y-2">
+                            <!-- Institution items will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profession Section -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                                <i class="fas fa-briefcase mr-2 text-green-500"></i>
+                                Profession Values
+                            </h3>
+                            <p class="mt-1 text-sm text-gray-500">
+                                Manage company names and position suggestions
+                            </p>
+                        </div>
+                        <button class="add-item-btn bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-md text-sm font-medium transition-colors" data-section="profession">
+                            <i class="fas fa-plus mr-1"></i>Add Values
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <!-- Company Values -->
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-900">Company Names</h4>
+                            <button class="add-company-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs">
+                                <i class="fas fa-plus mr-1"></i>Add Company
+                            </button>
+                        </div>
+                        <div id="companyContainer" class="space-y-2">
+                            <!-- Company items will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Position Values -->
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-900">Position/Role Values</h4>
+                            <button class="add-position-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs">
+                                <i class="fas fa-plus mr-1"></i>Add Position
+                            </button>
+                        </div>
+                        <div id="positionContainer" class="space-y-2">
+                            <!-- Position items will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Item Modal -->
+    <div id="addItemModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900" id="modalTitle">Add New Item</h3>
+                    <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="addItemForm">
+                    <div class="mb-4">
+                        <label for="itemValue" class="block text-sm font-medium text-gray-700 mb-2">Value</label>
+                        <input type="text" id="itemValue" name="itemValue" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <p class="mt-1 text-xs text-gray-500" id="itemHint">Enter the value to be displayed in the dropdown</p>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" id="cancelAdd" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <span id="submitText">Add Item</span>
+                            <i id="submitSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Notifications -->
+    <div id="notification" class="fixed top-4 right-4 z-50 hidden">
+        <div class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span id="notificationMessage">Success!</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { createAdminNavigation } from './js/components/AdminNavigation.js';
+        import './js/form-values.js';
+        
+        // Initialize admin navigation
+        createAdminNavigation('form-values');
+    </script>
+</body>
+</html>

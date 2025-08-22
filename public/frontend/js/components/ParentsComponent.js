@@ -3,6 +3,8 @@
  * Reusable component for collecting parent information in family trees
  */
 
+import { formRelationships } from '../form-relationships.js';
+
 export class ParentsComponent {
     constructor(containerId, options = {}) {
         this.containerId = containerId;
@@ -26,6 +28,11 @@ export class ParentsComponent {
 
         container.innerHTML = this.getHTML();
         this.attachEventListeners();
+        
+        // Populate Kulam dropdowns using the form relationships system
+        if (formRelationships.isLoaded) {
+            formRelationships.populateAllDropdowns();
+        }
     }
 
     getHTML() {
@@ -76,6 +83,224 @@ export class ParentsComponent {
                         </div>
                     </div>
                     
+                    <!-- Additional Parent Details -->
+                    <div class="border-t border-gray-200 pt-6 mt-6">
+                        <h5 class="text-md font-semibold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-map-marker-alt mr-2 text-purple-500"></i>Location Details
+                        </h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Father Details -->
+                            <div class="space-y-4">
+                                <h6 class="text-sm font-medium text-gray-700 border-b border-gray-200 pb-2">Father's Details</h6>
+                                <div>
+                                    <label for="${prefix}fatherNative" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Native/Place of Birth
+                                    </label>
+                                    <div class="relative">
+                                        <input type="text" id="${prefix}fatherNative" name="${prefix}father_native"
+                                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                               placeholder="Enter father's native place">
+                                        <i class="fas fa-home absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="${prefix}fatherResidence" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Place of Residence
+                                    </label>
+                                    <div class="relative">
+                                        <input type="text" id="${prefix}fatherResidence" name="${prefix}father_residence"
+                                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                               placeholder="Enter father's residence">
+                                        <i class="fas fa-building absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                    <div class="mt-2">
+                                        <label class="flex items-center text-sm text-gray-600">
+                                            <input type="checkbox" id="${prefix}fatherSameAsNative" class="mr-2 rounded focus:ring-primary">
+                                            Same as native place
+                                        </label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Status <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="flex space-x-4">
+                                        <label class="flex items-center">
+                                            <input type="radio" name="${prefix}father_status" value="live" class="mr-2 focus:ring-primary" required>
+                                            <span class="text-sm text-gray-700">Live</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="radio" name="${prefix}father_status" value="deceased" class="mr-2 focus:ring-primary" required>
+                                            <span class="text-sm text-gray-700">Deceased</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Mother Details -->
+                            <div class="space-y-4">
+                                <h6 class="text-sm font-medium text-gray-700 border-b border-gray-200 pb-2">Mother's Details</h6>
+                                <div>
+                                    <label for="${prefix}motherNative" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Native/Place of Birth
+                                    </label>
+                                    <div class="relative">
+                                        <input type="text" id="${prefix}motherNative" name="${prefix}mother_native"
+                                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                               placeholder="Enter mother's native place">
+                                        <i class="fas fa-home absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="${prefix}motherResidence" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Place of Residence
+                                    </label>
+                                    <div class="relative">
+                                        <input type="text" id="${prefix}motherResidence" name="${prefix}mother_residence"
+                                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                               placeholder="Enter mother's residence">
+                                        <i class="fas fa-building absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                    <div class="mt-2">
+                                        <label class="flex items-center text-sm text-gray-600">
+                                            <input type="checkbox" id="${prefix}motherSameAsNative" class="mr-2 rounded focus:ring-primary">
+                                            Same as native place
+                                        </label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Status <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="flex space-x-4">
+                                        <label class="flex items-center">
+                                            <input type="radio" name="${prefix}mother_status" value="live" class="mr-2 focus:ring-primary" required>
+                                            <span class="text-sm text-gray-700">Live</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="radio" name="${prefix}mother_status" value="deceased" class="mr-2 focus:ring-primary" required>
+                                            <span class="text-sm text-gray-700">Deceased</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Kulam Details Section -->
+                    <div class="border-t border-gray-200 pt-6 mt-6">
+                        <h5 class="text-md font-semibold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-star mr-2 text-orange-500"></i>Kulam Details
+                        </h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Father Kulam Details -->
+                            <div class="space-y-4">
+                                <h6 class="text-sm font-medium text-gray-700 border-b border-gray-200 pb-2">Father's Kulam Details</h6>
+                                <div>
+                                    <label for="${prefix}fatherKulam" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Kulam
+                                    </label>
+                                    <div class="relative">
+                                        <select id="${prefix}fatherKulam" name="${prefix}father_kulam"
+                                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white kulam-dropdown">
+                                            <option value="">Select Kulam</option>
+                                            <!-- Options will be populated by JavaScript -->
+                                        </select>
+                                        <i class="fas fa-star absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                    <input type="text" id="${prefix}fatherKulamOther" name="${prefix}father_kulam_other"
+                                           placeholder="Please specify kulam"
+                                           class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden">
+                                </div>
+                                <div>
+                                    <label for="${prefix}fatherKulaDeivam" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Kula Deivam
+                                    </label>
+                                    <div class="relative">
+                                        <select id="${prefix}fatherKulaDeivam" name="${prefix}father_kula_deivam"
+                                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white kula-deivam-dropdown">
+                                            <option value="">Select Kula Deivam</option>
+                                            <!-- Options will be populated by JavaScript -->
+                                        </select>
+                                        <i class="fas fa-pray absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                    <input type="text" id="${prefix}fatherKulaDeivamOther" name="${prefix}father_kula_deivam_other"
+                                           placeholder="Please specify kula deivam"
+                                           class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden">
+                                </div>
+                                <div>
+                                    <label for="${prefix}fatherKaani" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Kaani
+                                    </label>
+                                    <div class="relative">
+                                        <select id="${prefix}fatherKaani" name="${prefix}father_kaani"
+                                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white kaani-dropdown">
+                                            <option value="">Select Kaani</option>
+                                            <!-- Options will be populated by JavaScript -->
+                                        </select>
+                                        <i class="fas fa-crown absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                    <input type="text" id="${prefix}fatherKaaniOther" name="${prefix}father_kaani_other"
+                                           placeholder="Please specify kaani"
+                                           class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden">
+                                </div>
+                            </div>
+                            
+                            <!-- Mother Kulam Details -->
+                            <div class="space-y-4">
+                                <h6 class="text-sm font-medium text-gray-700 border-b border-gray-200 pb-2">Mother's Kulam Details</h6>
+                                <div>
+                                    <label for="${prefix}motherKulam" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Kulam
+                                    </label>
+                                    <div class="relative">
+                                        <select id="${prefix}motherKulam" name="${prefix}mother_kulam"
+                                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white kulam-dropdown">
+                                            <option value="">Select Kulam</option>
+                                            <!-- Options will be populated by JavaScript -->
+                                        </select>
+                                        <i class="fas fa-star absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                    <input type="text" id="${prefix}motherKulamOther" name="${prefix}mother_kulam_other"
+                                           placeholder="Please specify kulam"
+                                           class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden">
+                                </div>
+                                <div>
+                                    <label for="${prefix}motherKulaDeivam" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Kula Deivam
+                                    </label>
+                                    <div class="relative">
+                                        <select id="${prefix}motherKulaDeivam" name="${prefix}mother_kula_deivam"
+                                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white kula-deivam-dropdown">
+                                            <option value="">Select Kula Deivam</option>
+                                            <!-- Options will be populated by JavaScript -->
+                                        </select>
+                                        <i class="fas fa-pray absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                    <input type="text" id="${prefix}motherKulaDeivamOther" name="${prefix}mother_kula_deivam_other"
+                                           placeholder="Please specify kula deivam"
+                                           class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden">
+                                </div>
+                                <div>
+                                    <label for="${prefix}motherKaani" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Kaani
+                                    </label>
+                                    <div class="relative">
+                                        <select id="${prefix}motherKaani" name="${prefix}mother_kaani"
+                                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white kaani-dropdown">
+                                            <option value="">Select Kaani</option>
+                                            <!-- Options will be populated by JavaScript -->
+                                        </select>
+                                        <i class="fas fa-crown absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                    <input type="text" id="${prefix}motherKaaniOther" name="${prefix}mother_kaani_other"
+                                           placeholder="Please specify kaani"
+                                           class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Save Button -->
                     <div class="mt-6 flex justify-end">
                         <button type="button" id="save${this.getCapitalizedPrefix()}Parents" 
@@ -99,6 +324,55 @@ export class ParentsComponent {
         if (saveButton) {
             saveButton.addEventListener('click', () => {
                 this.save();
+            });
+        }
+        
+        // Setup "same as native" functionality
+        const { prefix } = this.options;
+        
+        // Father same as native checkbox
+        const fatherSameCheckbox = document.getElementById(`${prefix}fatherSameAsNative`);
+        const fatherNativeInput = document.getElementById(`${prefix}fatherNative`);
+        const fatherResidenceInput = document.getElementById(`${prefix}fatherResidence`);
+        
+        if (fatherSameCheckbox && fatherNativeInput && fatherResidenceInput) {
+            fatherSameCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    fatherResidenceInput.value = fatherNativeInput.value;
+                    fatherResidenceInput.disabled = true;
+                } else {
+                    fatherResidenceInput.disabled = false;
+                }
+            });
+            
+            // Also copy when native place changes and checkbox is checked
+            fatherNativeInput.addEventListener('input', function() {
+                if (fatherSameCheckbox.checked) {
+                    fatherResidenceInput.value = this.value;
+                }
+            });
+        }
+        
+        // Mother same as native checkbox
+        const motherSameCheckbox = document.getElementById(`${prefix}motherSameAsNative`);
+        const motherNativeInput = document.getElementById(`${prefix}motherNative`);
+        const motherResidenceInput = document.getElementById(`${prefix}motherResidence`);
+        
+        if (motherSameCheckbox && motherNativeInput && motherResidenceInput) {
+            motherSameCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    motherResidenceInput.value = motherNativeInput.value;
+                    motherResidenceInput.disabled = true;
+                } else {
+                    motherResidenceInput.disabled = false;
+                }
+            });
+            
+            // Also copy when native place changes and checkbox is checked
+            motherNativeInput.addEventListener('input', function() {
+                if (motherSameCheckbox.checked) {
+                    motherResidenceInput.value = this.value;
+                }
             });
         }
     }
@@ -144,7 +418,11 @@ export class ParentsComponent {
         const { prefix } = this.options;
         const fields = {
             [`${prefix}fatherName`]: data.father_name || data[`${prefix}father_name`],
-            [`${prefix}motherName`]: data.mother_name || data[`${prefix}mother_name`]
+            [`${prefix}motherName`]: data.mother_name || data[`${prefix}mother_name`],
+            [`${prefix}fatherNative`]: data.father_native || data[`${prefix}father_native`],
+            [`${prefix}fatherResidence`]: data.father_residence || data[`${prefix}father_residence`],
+            [`${prefix}motherNative`]: data.mother_native || data[`${prefix}mother_native`],
+            [`${prefix}motherResidence`]: data.mother_residence || data[`${prefix}mother_residence`]
         };
         
         console.log('Trying to populate fields:', fields);
@@ -157,19 +435,81 @@ export class ParentsComponent {
                 console.log(`Set ${fieldId} to:`, value);
             }
         });
+        
+        // Populate radio buttons for status
+        const fatherStatus = data.father_status || data[`${prefix}father_status`];
+        if (fatherStatus) {
+            const fatherRadio = document.querySelector(`input[name="${prefix}father_status"][value="${fatherStatus}"]`);
+            if (fatherRadio) fatherRadio.checked = true;
+        }
+        
+        const motherStatus = data.mother_status || data[`${prefix}mother_status`];
+        if (motherStatus) {
+            const motherRadio = document.querySelector(`input[name="${prefix}mother_status"][value="${motherStatus}"]`);
+            if (motherRadio) motherRadio.checked = true;
+        }
+        
+        // Check "same as native" checkboxes if residence matches native
+        const fatherNative = fields[`${prefix}fatherNative`];
+        const fatherResidence = fields[`${prefix}fatherResidence`];
+        if (fatherNative && fatherResidence && fatherNative === fatherResidence) {
+            const checkbox = document.getElementById(`${prefix}fatherSameAsNative`);
+            if (checkbox) {
+                checkbox.checked = true;
+                const residenceField = document.getElementById(`${prefix}fatherResidence`);
+                if (residenceField) residenceField.disabled = true;
+            }
+        }
+        
+        const motherNative = fields[`${prefix}motherNative`];
+        const motherResidence = fields[`${prefix}motherResidence`];
+        if (motherNative && motherResidence && motherNative === motherResidence) {
+            const checkbox = document.getElementById(`${prefix}motherSameAsNative`);
+            if (checkbox) {
+                checkbox.checked = true;
+                const residenceField = document.getElementById(`${prefix}motherResidence`);
+                if (residenceField) residenceField.disabled = true;
+            }
+        }
     }
 
     getData() {
         const { prefix } = this.options;
         return {
             'father_name': document.getElementById(`${prefix}fatherName`)?.value || '',
-            'mother_name': document.getElementById(`${prefix}motherName`)?.value || ''
+            'mother_name': document.getElementById(`${prefix}motherName`)?.value || '',
+            'father_native': document.getElementById(`${prefix}fatherNative`)?.value || '',
+            'father_residence': document.getElementById(`${prefix}fatherResidence`)?.value || '',
+            'father_status': document.querySelector(`input[name="${prefix}father_status"]:checked`)?.value || '',
+            'mother_native': document.getElementById(`${prefix}motherNative`)?.value || '',
+            'mother_residence': document.getElementById(`${prefix}motherResidence`)?.value || '',
+            'mother_status': document.querySelector(`input[name="${prefix}mother_status"]:checked`)?.value || ''
         };
     }
 
     validate() {
         const data = this.getData();
-        // Parents are optional, so no validation required
+        const { prefix } = this.options;
+        
+        // Check if any parent name is filled, then status is required
+        if (data.father_name && data.father_name.trim()) {
+            if (!data.father_status) {
+                return {
+                    valid: false,
+                    message: 'Please select father\'s status (Live/Deceased)'
+                };
+            }
+        }
+        
+        if (data.mother_name && data.mother_name.trim()) {
+            if (!data.mother_status) {
+                return {
+                    valid: false,
+                    message: 'Please select mother\'s status (Live/Deceased)'
+                };
+            }
+        }
+        
         return { valid: true };
     }
 

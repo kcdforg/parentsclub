@@ -1,4 +1,5 @@
 import { apiFetch } from './api.js';
+import { formRelationships } from './form-relationships.js';
 import { MemberDetailsComponent } from './components/MemberDetailsComponent.js';
 import { SpouseDetailsComponent } from './components/SpouseDetailsComponent.js';
 import { ChildrenDetailsComponent } from './components/ChildrenDetailsComponent.js';
@@ -53,6 +54,15 @@ async function initializePage() {
     
     // Initialize DOB functionality
     initializeDOBFields();
+    
+    // Initialize Kulam functionality
+    initializeKulamFields();
+    
+    // Initialize Education functionality
+    initializeEducationFields();
+    
+    // Initialize Profession functionality
+    initializeProfessionFields();
 }
 
 function initializeEventListeners() {
@@ -67,6 +77,575 @@ function initializeEventListeners() {
 
     // Child management
     document.getElementById('addChildBtn')?.addEventListener('click', addChildForm);
+    
+    // Add form change listeners to reset save button states
+    setupFormChangeListeners();
+}
+
+function setupFormChangeListeners() {
+    // Member details form
+    const memberForm = document.getElementById('memberDetailsForm');
+    if (memberForm) {
+        memberForm.addEventListener('input', () => {
+            if (sectionSaveStates['member-details']) {
+                setSaveButtonState('saveMemberDetails', 'saveMemberText', 'save');
+                sectionSaveStates['member-details'] = false;
+            }
+        });
+        memberForm.addEventListener('change', () => {
+            if (sectionSaveStates['member-details']) {
+                setSaveButtonState('saveMemberDetails', 'saveMemberText', 'save');
+                sectionSaveStates['member-details'] = false;
+            }
+        });
+    }
+    
+    // Spouse details form
+    const spouseForm = document.getElementById('spouseDetailsForm');
+    if (spouseForm) {
+        spouseForm.addEventListener('input', () => {
+            if (sectionSaveStates['spouse-details']) {
+                setSaveButtonState('saveSpouseDetails', 'saveSpouseText', 'save');
+                sectionSaveStates['spouse-details'] = false;
+            }
+        });
+        spouseForm.addEventListener('change', () => {
+            if (sectionSaveStates['spouse-details']) {
+                setSaveButtonState('saveSpouseDetails', 'saveSpouseText', 'save');
+                sectionSaveStates['spouse-details'] = false;
+            }
+        });
+    }
+    
+    // Children details - we'll handle this in the addChildForm function for dynamic forms
+}
+
+function initializeKulamFields() {
+    // Setup "Other" option toggles for Member Kulam fields
+    setupKulamOtherToggle('kulam', 'kulamOther');
+    setupKulamOtherToggle('kulaDeivam', 'kulaDeivamOther');
+    setupKulamOtherToggle('kaani', 'kaaniOther');
+    
+    // Setup "Other" option toggles for Spouse Kulam fields
+    setupKulamOtherToggle('spouseKulam', 'spouseKulamOther');
+    setupKulamOtherToggle('spouseKulaDeivam', 'spouseKulaDeivamOther');
+    setupKulamOtherToggle('spouseKaani', 'spouseKaaniOther');
+    
+    // Load Kulam data options (placeholder for now - will be populated from admin settings)
+    populateKulamOptions();
+}
+
+function setupKulamOtherToggle(selectId, otherInputId) {
+    const selectElement = document.getElementById(selectId);
+    const otherInput = document.getElementById(otherInputId);
+    
+    if (selectElement && otherInput) {
+        selectElement.addEventListener('change', function() {
+            if (this.value === 'other') {
+                otherInput.classList.remove('hidden');
+                otherInput.required = true;
+            } else {
+                otherInput.classList.add('hidden');
+                otherInput.required = false;
+                otherInput.value = '';
+            }
+        });
+    }
+}
+
+function populateKulamOptions() {
+    // Add CSS classes for relationship management
+    const kulamDropdowns = ['kulam', 'spouseKulam'];
+    const kulaDeivamDropdowns = ['kulaDeivam', 'spouseKulaDeivam'];
+    const kaaniDropdowns = ['kaani', 'spouseKaani'];
+    
+    kulamDropdowns.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.classList.add('kulam-dropdown');
+    });
+    
+    kulaDeivamDropdowns.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.classList.add('kula-deivam-dropdown');
+    });
+    
+    kaaniDropdowns.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.classList.add('kaani-dropdown');
+    });
+    
+    // The actual population will be handled by formRelationships
+}
+
+function populateDropdown(selectId, options) {
+    const selectElement = document.getElementById(selectId);
+    if (!selectElement) return;
+    
+    // Clear existing options except the first two (default and "other")
+    while (selectElement.children.length > 2) {
+        selectElement.removeChild(selectElement.lastChild);
+    }
+    
+    // Add new options
+    options.forEach(option => {
+        const optionElement = document.createElement('option');
+        optionElement.value = option.toLowerCase().replace(/\s+/g, '_');
+        optionElement.textContent = option;
+        selectElement.insertBefore(optionElement, selectElement.lastElementChild);
+    });
+}
+
+function populateChildKulamDropdowns(childNumber) {
+    // Add CSS classes for relationship management
+    const childKulamId = `childKulam_${childNumber}`;
+    const childKulaDeivamId = `childKulaDeivam_${childNumber}`;
+    const childKaaniId = `childKaani_${childNumber}`;
+    
+    const kulamElement = document.getElementById(childKulamId);
+    const kulaDeivamElement = document.getElementById(childKulaDeivamId);
+    const kaaniElement = document.getElementById(childKaaniId);
+    
+    if (kulamElement) kulamElement.classList.add('kulam-dropdown');
+    if (kulaDeivamElement) kulaDeivamElement.classList.add('kula-deivam-dropdown');
+    if (kaaniElement) kaaniElement.classList.add('kaani-dropdown');
+    
+    // Populate the new dropdowns using the form relationships system
+    if (formRelationships.isLoaded) {
+        formRelationships.populateAllDropdowns();
+    }
+}
+
+function initializeEducationFields() {
+    // Setup add education button event listeners
+    document.getElementById('addMemberEducationBtn')?.addEventListener('click', () => addEducationEntry('member'));
+    document.getElementById('addSpouseEducationBtn')?.addEventListener('click', () => addEducationEntry('spouse'));
+    
+    // Setup delegation for child education buttons (they're dynamic)
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('addChildEducationBtn')) {
+            const childNumber = e.target.getAttribute('data-child');
+            addEducationEntry('child', childNumber);
+        }
+    });
+}
+
+let educationCounter = {
+    member: 0,
+    spouse: 0,
+    child: {}
+};
+
+function addEducationEntry(type, childNumber = null) {
+    const containerId = type === 'child' ? `childEducationContainer_${childNumber}` : `${type}EducationContainer`;
+    const container = document.getElementById(containerId);
+    
+    if (!container) {
+        console.error(`Education container ${containerId} not found`);
+        return;
+    }
+    
+    // Initialize counter for this type/child
+    if (type === 'child') {
+        if (!educationCounter.child[childNumber]) {
+            educationCounter.child[childNumber] = 0;
+        }
+        educationCounter.child[childNumber]++;
+    } else {
+        educationCounter[type]++;
+    }
+    
+    const entryNumber = type === 'child' ? educationCounter.child[childNumber] : educationCounter[type];
+    const entryId = type === 'child' ? `${type}_${childNumber}_education_${entryNumber}` : `${type}_education_${entryNumber}`;
+    
+    const educationHTML = `
+        <div class="education-entry border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50" id="${entryId}">
+            <div class="flex justify-between items-center mb-4">
+                <h6 class="text-sm font-semibold text-gray-900">Education ${entryNumber}</h6>
+                <button type="button" class="remove-education-btn text-red-600 hover:text-red-800 p-1 rounded text-sm">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Degree <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <input type="text" name="${entryId}_degree" required
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary education-degree degree-input"
+                               placeholder="e.g., B.Tech, MBA, Ph.D"
+                               list="${entryId}_degree_list">
+                        <i class="fas fa-graduation-cap absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <datalist id="${entryId}_degree_list" class="degree-datalist">
+                            <!-- Will be populated with autocomplete options -->
+                        </datalist>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Department/Field
+                    </label>
+                    <div class="relative">
+                        <input type="text" name="${entryId}_department"
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary education-department"
+                               placeholder="e.g., Computer Science, Business"
+                               list="${entryId}_department_list">
+                        <i class="fas fa-book absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <datalist id="${entryId}_department_list" class="department-datalist">
+                            <!-- Will be populated with autocomplete options -->
+                        </datalist>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Year of Completion <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <select name="${entryId}_year" required
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white">
+                            <option value="">Select Year</option>
+                            <!-- Years will be populated by JavaScript -->
+                        </select>
+                        <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Institution
+                    </label>
+                    <div class="relative">
+                        <input type="text" name="${entryId}_institution"
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary education-institution"
+                               placeholder="e.g., IIT Madras, Anna University"
+                               list="${entryId}_institution_list">
+                        <i class="fas fa-university absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <datalist id="${entryId}_institution_list" class="institution-datalist">
+                            <!-- Will be populated with autocomplete options -->
+                        </datalist>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', educationHTML);
+    
+    // Add event listener for remove button
+    const newEntry = container.lastElementChild;
+    const removeBtn = newEntry.querySelector('.remove-education-btn');
+    removeBtn.addEventListener('click', () => {
+        newEntry.remove();
+        // Reset save state when form is modified
+        if (type === 'member' && sectionSaveStates['member-details']) {
+            setSaveButtonState('saveMemberDetails', 'saveMemberText', 'save');
+            sectionSaveStates['member-details'] = false;
+        } else if (type === 'spouse' && sectionSaveStates['spouse-details']) {
+            setSaveButtonState('saveSpouseDetails', 'saveSpouseText', 'save');
+            sectionSaveStates['spouse-details'] = false;
+        } else if (type === 'child' && sectionSaveStates['children-details']) {
+            setSaveButtonState('saveChildrenDetails', 'saveChildrenText', 'save');
+            sectionSaveStates['children-details'] = false;
+        }
+    });
+    
+    // Populate year dropdown
+    populateYearDropdown(newEntry.querySelector(`select[name="${entryId}_year"]`));
+    
+    // Setup autocomplete for this entry
+    setupEducationAutocomplete(entryId);
+    
+    // Populate the new datalists using the form relationships system
+    if (formRelationships.isLoaded) {
+        formRelationships.populateAllDropdowns();
+    }
+    
+    // Add change listeners for save state management
+    const inputs = newEntry.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        input.addEventListener('input', () => {
+            if (type === 'member' && sectionSaveStates['member-details']) {
+                setSaveButtonState('saveMemberDetails', 'saveMemberText', 'save');
+                sectionSaveStates['member-details'] = false;
+            } else if (type === 'spouse' && sectionSaveStates['spouse-details']) {
+                setSaveButtonState('saveSpouseDetails', 'saveSpouseText', 'save');
+                sectionSaveStates['spouse-details'] = false;
+            } else if (type === 'child' && sectionSaveStates['children-details']) {
+                setSaveButtonState('saveChildrenDetails', 'saveChildrenText', 'save');
+                sectionSaveStates['children-details'] = false;
+            }
+        });
+    });
+}
+
+function populateYearDropdown(selectElement) {
+    if (!selectElement) return;
+    
+    const currentYear = new Date().getFullYear();
+    for (let year = currentYear; year >= 1960; year--) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        selectElement.appendChild(option);
+    }
+}
+
+function setupEducationAutocomplete(entryId) {
+    // Education autocomplete is now handled by the form relationships system
+    // which loads data from admin-managed database via API
+    
+    // The datalists will be populated by formRelationships.populateAllDropdowns()
+    // which runs during page initialization and loads:
+    // - Degree options from database (with fallback data)
+    // - Department options with smart filtering based on selected degree
+    // - Institution options from database (with fallback data)
+    
+    // The CSS classes are already added in addEducationEntry() function:
+    // - 'degree-datalist' for degree autocomplete
+    // - 'department-datalist' for department autocomplete (with relationships)
+    // - 'institution-datalist' for institution autocomplete
+    
+    // No additional setup needed - the form-relationships.js handles everything
+}
+
+// populateDatalist function removed - now handled by form-relationships.js system
+
+function initializeProfessionFields() {
+    // Setup add profession button event listeners
+    document.getElementById('addMemberProfessionBtn')?.addEventListener('click', () => addProfessionEntry('member'));
+    document.getElementById('addSpouseProfessionBtn')?.addEventListener('click', () => addProfessionEntry('spouse'));
+    
+    // Setup delegation for child profession buttons (they're dynamic)
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('addChildProfessionBtn')) {
+            const childNumber = e.target.getAttribute('data-child');
+            addProfessionEntry('child', childNumber);
+        }
+    });
+}
+
+let professionCounter = {
+    member: 0,
+    spouse: 0,
+    child: {}
+};
+
+function addProfessionEntry(type, childNumber = null) {
+    const containerId = type === 'child' ? `childProfessionContainer_${childNumber}` : `${type}ProfessionContainer`;
+    const container = document.getElementById(containerId);
+    
+    if (!container) {
+        console.error(`Profession container ${containerId} not found`);
+        return;
+    }
+    
+    // Initialize counter for this type/child
+    if (type === 'child') {
+        if (!professionCounter.child[childNumber]) {
+            professionCounter.child[childNumber] = 0;
+        }
+        professionCounter.child[childNumber]++;
+    } else {
+        professionCounter[type]++;
+    }
+    
+    const entryNumber = type === 'child' ? professionCounter.child[childNumber] : professionCounter[type];
+    const entryId = type === 'child' ? `${type}_${childNumber}_profession_${entryNumber}` : `${type}_profession_${entryNumber}`;
+    
+    const professionHTML = `
+        <div class="profession-entry border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50" id="${entryId}">
+            <div class="flex justify-between items-center mb-4">
+                <h6 class="text-sm font-semibold text-gray-900">Profession ${entryNumber}</h6>
+                <button type="button" class="remove-profession-btn text-red-600 hover:text-red-800 p-1 rounded text-sm">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Job Type <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <select name="${entryId}_job_type" required
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white profession-job-type">
+                            <option value="">Select Job Type</option>
+                            <option value="self_employed">Self-employed</option>
+                            <option value="government">Government</option>
+                            <option value="private">Private</option>
+                            <option value="others">Others</option>
+                        </select>
+                        <i class="fas fa-briefcase absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    <input type="text" name="${entryId}_job_type_other" placeholder="Please specify job type"
+                           class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden job-type-other">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Company Name
+                    </label>
+                    <div class="relative">
+                        <input type="text" name="${entryId}_company"
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary profession-company"
+                               placeholder="e.g., TCS, Infosys, Google"
+                               list="${entryId}_company_list">
+                        <i class="fas fa-building absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <datalist id="${entryId}_company_list" class="company-datalist">
+                            <!-- Will be populated with autocomplete options -->
+                        </datalist>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Position/Role
+                    </label>
+                    <div class="relative">
+                        <input type="text" name="${entryId}_position"
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary profession-position"
+                               placeholder="e.g., Software Engineer, Manager"
+                               list="${entryId}_position_list">
+                        <i class="fas fa-user-tie absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <datalist id="${entryId}_position_list" class="position-datalist">
+                            <!-- Will be populated with autocomplete options -->
+                        </datalist>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Experience
+                    </label>
+                    <div class="flex space-x-2">
+                        <div class="flex-1">
+                            <div class="relative">
+                                <select name="${entryId}_experience_years"
+                                        class="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white">
+                                    <option value="">Years</option>
+                                    <!-- Years will be populated by JavaScript -->
+                                </select>
+                                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs">Yr</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="relative">
+                                <select name="${entryId}_experience_months"
+                                        class="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white">
+                                    <option value="">Months</option>
+                                    <!-- Months will be populated by JavaScript -->
+                                </select>
+                                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs">Mo</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', professionHTML);
+    
+    // Add event listener for remove button
+    const newEntry = container.lastElementChild;
+    const removeBtn = newEntry.querySelector('.remove-profession-btn');
+    removeBtn.addEventListener('click', () => {
+        newEntry.remove();
+        // Reset save state when form is modified
+        if (type === 'member' && sectionSaveStates['member-details']) {
+            setSaveButtonState('saveMemberDetails', 'saveMemberText', 'save');
+            sectionSaveStates['member-details'] = false;
+        } else if (type === 'spouse' && sectionSaveStates['spouse-details']) {
+            setSaveButtonState('saveSpouseDetails', 'saveSpouseText', 'save');
+            sectionSaveStates['spouse-details'] = false;
+        } else if (type === 'child' && sectionSaveStates['children-details']) {
+            setSaveButtonState('saveChildrenDetails', 'saveChildrenText', 'save');
+            sectionSaveStates['children-details'] = false;
+        }
+    });
+    
+    // Setup job type "Others" toggle
+    const jobTypeSelect = newEntry.querySelector('.profession-job-type');
+    const jobTypeOther = newEntry.querySelector('.job-type-other');
+    
+    jobTypeSelect.addEventListener('change', function() {
+        if (this.value === 'others') {
+            jobTypeOther.classList.remove('hidden');
+            jobTypeOther.required = true;
+        } else {
+            jobTypeOther.classList.add('hidden');
+            jobTypeOther.required = false;
+            jobTypeOther.value = '';
+        }
+    });
+    
+    // Populate experience dropdowns
+    populateExperienceDropdowns(newEntry.querySelector(`select[name="${entryId}_experience_years"]`), 
+                                newEntry.querySelector(`select[name="${entryId}_experience_months"]`));
+    
+    // Setup autocomplete for this entry
+    setupProfessionAutocomplete(entryId);
+    
+    // Populate the new datalists using the form relationships system
+    if (formRelationships.isLoaded) {
+        formRelationships.populateAllDropdowns();
+    }
+    
+    // Add change listeners for save state management
+    const inputs = newEntry.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        input.addEventListener('input', () => {
+            if (type === 'member' && sectionSaveStates['member-details']) {
+                setSaveButtonState('saveMemberDetails', 'saveMemberText', 'save');
+                sectionSaveStates['member-details'] = false;
+            } else if (type === 'spouse' && sectionSaveStates['spouse-details']) {
+                setSaveButtonState('saveSpouseDetails', 'saveSpouseText', 'save');
+                sectionSaveStates['spouse-details'] = false;
+            } else if (type === 'child' && sectionSaveStates['children-details']) {
+                setSaveButtonState('saveChildrenDetails', 'saveChildrenText', 'save');
+                sectionSaveStates['children-details'] = false;
+            }
+        });
+    });
+}
+
+function populateExperienceDropdowns(yearsSelect, monthsSelect) {
+    if (yearsSelect) {
+        for (let years = 0; years <= 50; years++) {
+            const option = document.createElement('option');
+            option.value = years;
+            option.textContent = years === 0 ? '0' : years === 1 ? '1 year' : `${years} years`;
+            yearsSelect.appendChild(option);
+        }
+    }
+    
+    if (monthsSelect) {
+        for (let months = 0; months <= 11; months++) {
+            const option = document.createElement('option');
+            option.value = months;
+            option.textContent = months === 0 ? '0' : months === 1 ? '1 month' : `${months} months`;
+            monthsSelect.appendChild(option);
+        }
+    }
+}
+
+function setupProfessionAutocomplete(entryId) {
+    // Profession autocomplete is now handled by the form relationships system
+    // which loads data from admin-managed database via API
+    
+    // The datalists will be populated by formRelationships.populateAllDropdowns()
+    // which runs during page initialization and loads:
+    // - Company options from database (with fallback data)
+    // - Position options from database (with fallback data)
+    
+    // The CSS classes are already added in addProfessionEntry() function:
+    // - 'company-datalist' for company autocomplete
+    // - 'position-datalist' for position autocomplete
+    
+    // No additional setup needed - the form-relationships.js handles everything
 }
 
 function updateSectionVisibility() {
@@ -258,24 +837,40 @@ function validateSession() {
 async function saveMemberDetails() {
     if (!validateSession()) return;
     
-    const btn = document.getElementById('saveMemberDetails');
-    const text = document.getElementById('saveMemberText');
     const spinner = document.getElementById('saveMemberSpinner');
     
     try {
-        setButtonLoading(btn, text, spinner, 'Saving...', true);
+        setSaveButtonState('saveMemberDetails', 'saveMemberText', 'save', true);
+        spinner.classList.remove('hidden');
         
         // Validate age before saving
         const dobInput = document.getElementById('dateOfBirth');
         if (dobInput && dobInput.value) {
+            // First validate for future dates
+            if (!validateFutureDate(dobInput.value)) {
+                markSectionError('member-details');
+                showNotification('Date of birth cannot be in the future.', 'error');
+                return;
+            }
+            
+            // Then validate age requirement
             if (!validateMemberAge(dobInput.value)) {
                 markSectionError('member-details');
                 showNotification('You must be at least 18 years old to register.', 'error');
                 return;
             }
+        } else {
+            markSectionError('member-details');
+            showNotification('Date of birth is required.', 'error');
+            return;
         }
         
         const memberDetails = getFormData('memberDetailsForm');
+        
+        // Add education data
+        memberDetails.education = getEducationData('member');
+        // Add profession data
+        memberDetails.profession = getProfessionData('member');
         
         // Validate email format if provided
         if (memberDetails.email && memberDetails.email.trim()) {
@@ -301,10 +896,13 @@ async function saveMemberDetails() {
 
         if (response.success) {
             markSectionComplete('member-details');
+            setSaveButtonState('saveMemberDetails', 'saveMemberText', 'saved');
+            sectionSaveStates['member-details'] = true;
             showNotification('Member details saved successfully!', 'success');
             checkProfileCompletion();
         } else {
             markSectionError('member-details');
+            setSaveButtonState('saveMemberDetails', 'saveMemberText', 'save');
             throw new Error(response.error || 'Failed to save member details.');
         }
     } catch (error) {
@@ -328,9 +926,11 @@ async function saveMemberDetails() {
             errorMessage += ': ' + error.message;
         }
         
+        setSaveButtonState('saveMemberDetails', 'saveMemberText', 'save');
         showNotification(errorMessage, 'error');
     } finally {
-        setButtonLoading(btn, text, spinner, 'Save Section', false);
+        const spinner = document.getElementById('saveMemberSpinner');
+        if (spinner) spinner.classList.add('hidden');
     }
 }
 
@@ -338,14 +938,29 @@ async function saveSpouseDetails() {
     if (userData.isMarried !== 'yes') return;
     if (!validateSession()) return;
     
-    const btn = document.getElementById('saveSpouseDetails');
-    const text = document.getElementById('saveSpouseText');
     const spinner = document.getElementById('saveSpouseSpinner');
     
     try {
-        setButtonLoading(btn, text, spinner, 'Saving...', true);
+        setSaveButtonState('saveSpouseDetails', 'saveSpouseText', 'save', true);
+        spinner.classList.remove('hidden');
+        
+        // Validate spouse DOB if provided
+        const spouseDobInput = document.getElementById('spouseDateOfBirth');
+        if (spouseDobInput && spouseDobInput.value) {
+            // First validate for future dates
+            if (!validateFutureDate(spouseDobInput.value)) {
+                markSectionError('spouse-details');
+                showNotification('Spouse date of birth cannot be in the future.', 'error');
+                return;
+            }
+        }
         
         const spouseDetails = getFormData('spouseDetailsForm');
+        
+        // Add education data
+        spouseDetails.education = getEducationData('spouse');
+        // Add profession data
+        spouseDetails.profession = getProfessionData('spouse');
         
         // Validate spouse email format if provided
         if (spouseDetails.spouse_email && spouseDetails.spouse_email.trim()) {
@@ -371,18 +986,23 @@ async function saveSpouseDetails() {
 
         if (response.success) {
             markSectionComplete('spouse-details');
+            setSaveButtonState('saveSpouseDetails', 'saveSpouseText', 'saved');
+            sectionSaveStates['spouse-details'] = true;
             showNotification('Spouse details saved successfully!', 'success');
             checkProfileCompletion();
         } else {
             markSectionError('spouse-details');
+            setSaveButtonState('saveSpouseDetails', 'saveSpouseText', 'save');
             throw new Error(response.error || 'Failed to save spouse details.');
         }
     } catch (error) {
         console.error('Error saving spouse details:', error);
         markSectionError('spouse-details');
+        setSaveButtonState('saveSpouseDetails', 'saveSpouseText', 'save');
         showNotification('Failed to save spouse details: ' + error.message, 'error');
     } finally {
-        setButtonLoading(btn, text, spinner, 'Save Section', false);
+        const spinner = document.getElementById('saveSpouseSpinner');
+        if (spinner) spinner.classList.add('hidden');
     }
 }
 
@@ -390,12 +1010,25 @@ async function saveChildrenDetails() {
     if (userData.hasChildren !== 'yes') return;
     if (!validateSession()) return;
     
-    const btn = document.getElementById('saveChildrenDetails');
-    const text = document.getElementById('saveChildrenText');
     const spinner = document.getElementById('saveChildrenSpinner');
     
     try {
-        setButtonLoading(btn, text, spinner, 'Saving...', true);
+        setSaveButtonState('saveChildrenDetails', 'saveChildrenText', 'save', true);
+        spinner.classList.remove('hidden');
+        
+        // Validate all children DOB
+        const childForms = document.querySelectorAll('.child-form');
+        for (let i = 0; i < childForms.length; i++) {
+            const childDobInput = childForms[i].querySelector(`input[name*="child_date_of_birth"]`);
+            if (childDobInput && childDobInput.value) {
+                // Validate for future dates
+                if (!validateFutureDate(childDobInput.value)) {
+                    markSectionError('children-details');
+                    showNotification(`Child ${i + 1} date of birth cannot be in the future.`, 'error');
+                    return;
+                }
+            }
+        }
         
         const childrenDetails = getChildrenData();
         
@@ -413,18 +1046,23 @@ async function saveChildrenDetails() {
 
         if (response.success) {
             markSectionComplete('children-details');
+            setSaveButtonState('saveChildrenDetails', 'saveChildrenText', 'saved');
+            sectionSaveStates['children-details'] = true;
             showNotification('Children details saved successfully!', 'success');
             checkProfileCompletion();
         } else {
             markSectionError('children-details');
+            setSaveButtonState('saveChildrenDetails', 'saveChildrenText', 'save');
             throw new Error(response.error || 'Failed to save children details.');
         }
     } catch (error) {
         console.error('Error saving children details:', error);
         markSectionError('children-details');
+        setSaveButtonState('saveChildrenDetails', 'saveChildrenText', 'save');
         showNotification('Failed to save children details: ' + error.message, 'error');
     } finally {
-        setButtonLoading(btn, text, spinner, 'Save Section', false);
+        const spinner = document.getElementById('saveChildrenSpinner');
+        if (spinner) spinner.classList.add('hidden');
     }
 }
 
@@ -706,11 +1344,92 @@ function getChildrenData() {
         });
         
         if (childData.child_first_name) {
+            // Add education data for this child
+            childData.education = getEducationData('child', index + 1);
+            // Add profession data for this child
+            childData.profession = getProfessionData('child', index + 1);
             childrenData.push(childData);
         }
     });
     
     return childrenData;
+}
+
+function getEducationData(type, childNumber = null) {
+    const containerId = type === 'child' ? `childEducationContainer_${childNumber}` : `${type}EducationContainer`;
+    const container = document.getElementById(containerId);
+    
+    if (!container) return [];
+    
+    const educationEntries = container.querySelectorAll('.education-entry');
+    const educationData = [];
+    
+    educationEntries.forEach(entry => {
+        const inputs = entry.querySelectorAll('input, select');
+        const entryData = {};
+        
+        inputs.forEach(input => {
+            if (input.name) {
+                const key = input.name.split('_').pop(); // Get the last part (degree, department, year, institution)
+                entryData[key] = input.value;
+            }
+        });
+        
+        // Only include if degree is filled (required field)
+        if (entryData.degree && entryData.degree.trim()) {
+            educationData.push(entryData);
+        }
+    });
+    
+    // Sort by year (latest first)
+    return educationData.sort((a, b) => {
+        const yearA = parseInt(a.year) || 0;
+        const yearB = parseInt(b.year) || 0;
+        return yearB - yearA;
+    });
+}
+
+function getProfessionData(type, childNumber = null) {
+    const containerId = type === 'child' ? `childProfessionContainer_${childNumber}` : `${type}ProfessionContainer`;
+    const container = document.getElementById(containerId);
+    
+    if (!container) return [];
+    
+    const professionEntries = container.querySelectorAll('.profession-entry');
+    const professionData = [];
+    
+    professionEntries.forEach(entry => {
+        const inputs = entry.querySelectorAll('input, select');
+        const entryData = {};
+        
+        inputs.forEach(input => {
+            if (input.name) {
+                let key = input.name.split('_').pop(); // Get the last part
+                if (key === 'type' && input.name.includes('job_type')) {
+                    key = 'job_type';
+                } else if (key === 'other' && input.name.includes('job_type_other')) {
+                    key = 'job_type_other';
+                } else if (key === 'years') {
+                    key = 'experience_years';
+                } else if (key === 'months') {
+                    key = 'experience_months';
+                }
+                entryData[key] = input.value;
+            }
+        });
+        
+        // Only include if job type is filled (required field)
+        if (entryData.job_type && entryData.job_type.trim()) {
+            professionData.push(entryData);
+        }
+    });
+    
+    // Sort by experience (most experienced first)
+    return professionData.sort((a, b) => {
+        const expA = (parseInt(a.experience_years) || 0) * 12 + (parseInt(a.experience_months) || 0);
+        const expB = (parseInt(b.experience_years) || 0) * 12 + (parseInt(b.experience_months) || 0);
+        return expB - expA;
+    });
 }
 
 let childrenCount = 0;
@@ -764,20 +1483,202 @@ function addChildForm() {
                 </label>
                 <div class="relative">
                 <input type="date" name="child_date_of_birth_${childrenCount}" required
-                           class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                           class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                           placeholder="DD-MM-YYYY">
                     <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
                 <p class="text-xs text-gray-500 mt-1">Enter child's date of birth</p>
                 <p id="childDobHelp_${childrenCount}" class="text-sm text-blue-600 mt-1">📅 Please enter the actual date of birth</p>
             </div>
+            
+            <div id="childAgeFieldContainer_${childrenCount}" class="hidden">
+                <label for="childAgeField_${childrenCount}" class="block text-sm font-medium text-gray-700 mb-2">
+                    Age (Auto-calculated)
+                </label>
+                <div class="relative">
+                    <input type="text" id="childAgeField_${childrenCount}" readonly
+                           class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                           placeholder="Age will be calculated from DOB">
+                    <i class="fas fa-clock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Child Kulam Details Section -->
+        <div class="border-t border-gray-200 pt-4 mt-4">
+            <h5 class="text-md font-semibold text-gray-900 mb-3 flex items-center">
+                <i class="fas fa-temple mr-2 text-orange-500"></i>Kulam Details
+            </h5>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="childKulam_${childrenCount}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Kulam
+                    </label>
+                    <div class="relative">
+                        <select id="childKulam_${childrenCount}" name="child_kulam_${childrenCount}"
+                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
+                            <option value="">Select Kulam</option>
+                            <option value="other">Other (specify below)</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                        <i class="fas fa-users absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    <input type="text" id="childKulamOther_${childrenCount}" name="child_kulam_other_${childrenCount}" placeholder="Please specify child's Kulam"
+                           class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden">
+                </div>
+
+                <div>
+                    <label for="childKulaDeivam_${childrenCount}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Kula Deivam
+                    </label>
+                    <div class="relative">
+                        <select id="childKulaDeivam_${childrenCount}" name="child_kula_deivam_${childrenCount}"
+                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
+                            <option value="">Select Kula Deivam</option>
+                            <option value="other">Other (specify below)</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                        <i class="fas fa-om absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    <input type="text" id="childKulaDeivamOther_${childrenCount}" name="child_kula_deivam_other_${childrenCount}" placeholder="Please specify child's Kula Deivam"
+                           class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden">
+                </div>
+
+                <div>
+                    <label for="childKaani_${childrenCount}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Kaani
+                    </label>
+                    <div class="relative">
+                        <select id="childKaani_${childrenCount}" name="child_kaani_${childrenCount}"
+                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
+                            <option value="">Select Kaani</option>
+                            <option value="other">Other (specify below)</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                        <i class="fas fa-place-of-worship absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    <input type="text" id="childKaaniOther_${childrenCount}" name="child_kaani_other_${childrenCount}" placeholder="Please specify child's Kaani"
+                           class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Child Education Details Section -->
+        <div class="border-t border-gray-200 pt-4 mt-4">
+            <h5 class="text-md font-semibold text-gray-900 mb-3 flex items-center">
+                <i class="fas fa-graduation-cap mr-2 text-blue-500"></i>Education Details
+            </h5>
+            <div id="childEducationContainer_${childrenCount}">
+                <!-- Education entries will be added here dynamically -->
+            </div>
+            <button type="button" class="addChildEducationBtn mt-3 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors" data-child="${childrenCount}">
+                <i class="fas fa-plus mr-1"></i>Add Education
+            </button>
+        </div>
+        
+        <!-- Child Profession Details Section -->
+        <div class="border-t border-gray-200 pt-4 mt-4">
+            <h5 class="text-md font-semibold text-gray-900 mb-3 flex items-center">
+                <i class="fas fa-briefcase mr-2 text-green-500"></i>Profession Details
+            </h5>
+            <div id="childProfessionContainer_${childrenCount}">
+                <!-- Profession entries will be added here dynamically -->
+            </div>
+            <button type="button" class="addChildProfessionBtn mt-3 bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors" data-child="${childrenCount}">
+                <i class="fas fa-plus mr-1"></i>Add Profession
+            </button>
         </div>
     `;
     
     container.appendChild(childForm);
     
+    // Add event listeners
     childForm.querySelector('.remove-child-btn').addEventListener('click', () => {
         childForm.remove();
+        // Reset children save state when form is modified
+        if (sectionSaveStates['children-details']) {
+            setSaveButtonState('saveChildrenDetails', 'saveChildrenText', 'save');
+            sectionSaveStates['children-details'] = false;
+        }
     });
+    
+    // Add change listeners to all child form inputs
+    const childInputs = childForm.querySelectorAll('input, select');
+    childInputs.forEach(input => {
+        input.addEventListener('input', () => {
+            if (sectionSaveStates['children-details']) {
+                setSaveButtonState('saveChildrenDetails', 'saveChildrenText', 'save');
+                sectionSaveStates['children-details'] = false;
+            }
+        });
+        input.addEventListener('change', () => {
+            if (sectionSaveStates['children-details']) {
+                setSaveButtonState('saveChildrenDetails', 'saveChildrenText', 'save');
+                sectionSaveStates['children-details'] = false;
+            }
+        });
+    });
+    
+    // Setup Kulam "Other" toggles for this child
+    setupKulamOtherToggle(`childKulam_${childrenCount}`, `childKulamOther_${childrenCount}`);
+    setupKulamOtherToggle(`childKulaDeivam_${childrenCount}`, `childKulaDeivamOther_${childrenCount}`);
+    setupKulamOtherToggle(`childKaani_${childrenCount}`, `childKaaniOther_${childrenCount}`);
+    
+    // Populate child Kulam dropdowns
+    populateChildKulamDropdowns(childrenCount);
+    
+    // Add event listener for child education button
+    const childEducationBtn = childForm.querySelector('.addChildEducationBtn');
+    if (childEducationBtn) {
+        childEducationBtn.addEventListener('click', () => {
+            addEducationEntry('child', childrenCount);
+        });
+    }
+    
+    // Add event listener for child profession button
+    const childProfessionBtn = childForm.querySelector('.addChildProfessionBtn');
+    if (childProfessionBtn) {
+        childProfessionBtn.addEventListener('click', () => {
+            addProfessionEntry('child', childrenCount);
+        });
+    }
+    
+    // Add DOB validation for child
+    const childDobInput = childForm.querySelector(`input[name="child_date_of_birth_${childrenCount}"]`);
+    if (childDobInput) {
+        childDobInput.addEventListener('change', function() {
+            if (this.value) {
+                // Validate for future dates
+                if (validateFutureDate(this.value)) {
+                    updateAgeDisplay(this.value, `childAgeField_${childrenCount}`, `childAgeFieldContainer_${childrenCount}`);
+                    const childDobHelp = document.getElementById(`childDobHelp_${childrenCount}`);
+                    if (childDobHelp) {
+                        childDobHelp.textContent = '📅 Please enter the actual date of birth';
+                        childDobHelp.className = 'text-sm text-blue-600 mt-1';
+                    }
+                } else {
+                    // Clear the field if it's a future date
+                    this.value = '';
+                    const childAgeDisplay = document.getElementById(`childAgeFieldContainer_${childrenCount}`);
+                    if (childAgeDisplay) childAgeDisplay.classList.add('hidden');
+                    const childDobHelp = document.getElementById(`childDobHelp_${childrenCount}`);
+                    if (childDobHelp) {
+                        childDobHelp.textContent = '❌ Date of birth cannot be in the future';
+                        childDobHelp.className = 'text-sm text-red-600 mt-1';
+                    }
+                }
+            } else {
+                // Hide age display when field is empty
+                const childAgeDisplay = document.getElementById(`childAgeFieldContainer_${childrenCount}`);
+                if (childAgeDisplay) childAgeDisplay.classList.add('hidden');
+                const childDobHelp = document.getElementById(`childDobHelp_${childrenCount}`);
+                if (childDobHelp) {
+                    childDobHelp.textContent = '📅 Please enter the actual date of birth';
+                    childDobHelp.className = 'text-sm text-blue-600 mt-1';
+                }
+            }
+        });
+    }
 }
 
 function populateLocationData() {
@@ -822,7 +1723,11 @@ async function loadExistingProfile() {
         console.log('API response data in loadExistingProfile:', data);
         
         if (data.success && data.profile) {
-            if (data.profile.profile_completed) {
+            // Check if this is an edit request from profile page
+            const urlParams = new URLSearchParams(window.location.search);
+            const isEditMode = urlParams.get('edit') === 'true';
+            
+            if (data.profile.profile_completed && !isEditMode) {
                 window.location.href = 'dashboard.html';
                 return;
             }
@@ -1058,11 +1963,14 @@ function populateForm(profile) {
         const dob = profile.date_of_birth;
         if (dob && dob !== '0000-00-00' && dob !== '1900-01-01' && dob !== 'NULL') {
             dobInput.value = dob;
+            // Update age display immediately
+            updateAgeDisplay(dob, 'memberAgeField', 'ageFieldContainer');
         } else {
-            // Set default to 25 years ago if no valid DOB in database
-            const twentyFiveYearsAgo = new Date();
-            twentyFiveYearsAgo.setFullYear(twentyFiveYearsAgo.getFullYear() - 25);
-            dobInput.value = twentyFiveYearsAgo.toISOString().split('T')[0];
+            // Leave field blank if no valid DOB in database
+            dobInput.value = '';
+            // Hide age display
+            const ageDisplay = document.getElementById('ageFieldContainer');
+            if (ageDisplay) ageDisplay.classList.add('hidden');
         }
     }
     
@@ -1245,34 +2153,69 @@ function parsePhoneNumber(phone) {
 }
 
 function initializeDOBFields() {
-    // Get a reasonable birth date (not today - set to 25 years ago as default)
-    const twentyFiveYearsAgo = new Date();
-    twentyFiveYearsAgo.setFullYear(twentyFiveYearsAgo.getFullYear() - 25);
-    const defaultDate = twentyFiveYearsAgo.toISOString().split('T')[0];
-    
-    // Set default for member DOB
-    const memberDobInput = document.getElementById('dateOfBirth');
-    if (memberDobInput && !memberDobInput.value) {
-        memberDobInput.value = defaultDate;
-    }
-    
-    // Set default for spouse DOB
-    const spouseDobInput = document.getElementById('spouseDateOfBirth');
-    if (spouseDobInput && !spouseDobInput.value) {
-        spouseDobInput.value = defaultDate;
-    }
-    
     // Add DOB validation listeners
+    const memberDobInput = document.getElementById('dateOfBirth');
     if (memberDobInput) {
         memberDobInput.addEventListener('change', function() {
-            validateMemberAge(this.value);
+            if (this.value) {
+                // Validate for future dates
+                if (validateFutureDate(this.value)) {
+                    validateMemberAge(this.value);
+                    updateAgeDisplay(this.value, 'memberAgeField', 'ageFieldContainer');
+                } else {
+                    // Clear the field if it's a future date
+                    this.value = '';
+                    const ageDisplay = document.getElementById('ageFieldContainer');
+                    if (ageDisplay) ageDisplay.classList.add('hidden');
+                    const dobHelp = document.getElementById('dobHelp');
+                    if (dobHelp) {
+                        dobHelp.textContent = '❌ Date of birth cannot be in the future';
+                        dobHelp.className = 'text-sm text-red-600 mt-1';
+                    }
+                }
+            } else {
+                // Hide age display when field is empty
+                const ageDisplay = document.getElementById('ageFieldContainer');
+                if (ageDisplay) ageDisplay.classList.add('hidden');
+                const dobHelp = document.getElementById('dobHelp');
+                if (dobHelp) {
+                    dobHelp.textContent = '📅 Please enter your actual date of birth';
+                    dobHelp.className = 'text-sm text-blue-600 mt-1';
+                }
+            }
             debouncedAutoPopulateSpouseGender();
         });
     }
     
+    const spouseDobInput = document.getElementById('spouseDateOfBirth');
     if (spouseDobInput) {
         spouseDobInput.addEventListener('change', function() {
-            validateSpouseAge(this.value);
+            if (this.value) {
+                // Validate for future dates
+                if (validateFutureDate(this.value)) {
+                    validateSpouseAge(this.value);
+                    updateAgeDisplay(this.value, 'spouseAgeField', 'spouseAgeFieldContainer');
+                } else {
+                    // Clear the field if it's a future date
+                    this.value = '';
+                    const spouseAgeDisplay = document.getElementById('spouseAgeFieldContainer');
+                    if (spouseAgeDisplay) spouseAgeDisplay.classList.add('hidden');
+                    const spouseDobHelp = document.getElementById('spouseDobHelp');
+                    if (spouseDobHelp) {
+                        spouseDobHelp.textContent = '❌ Date of birth cannot be in the future';
+                        spouseDobHelp.className = 'text-sm text-red-600 mt-1';
+                    }
+                }
+            } else {
+                // Hide age display when field is empty
+                const spouseAgeDisplay = document.getElementById('spouseAgeFieldContainer');
+                if (spouseAgeDisplay) spouseAgeDisplay.classList.add('hidden');
+                const spouseDobHelp = document.getElementById('spouseDobHelp');
+                if (spouseDobHelp) {
+                    spouseDobHelp.textContent = '📅 Please enter the actual date of birth';
+                    spouseDobHelp.className = 'text-sm text-blue-600 mt-1';
+                }
+            }
         });
     }
     
@@ -1280,6 +2223,39 @@ function initializeDOBFields() {
     const genderInput = document.getElementById('gender');
     if (genderInput) {
         genderInput.addEventListener('change', debouncedAutoPopulateSpouseGender);
+    }
+}
+
+// Helper function to validate future dates
+function validateFutureDate(dateString) {
+    if (!dateString) return true;
+    
+    const inputDate = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+    
+    return inputDate <= today;
+}
+
+// Helper function to update age display in the new field format
+function updateAgeDisplay(dateOfBirth, ageFieldId, containerElementId) {
+    if (!dateOfBirth) return;
+    
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    
+    const ageField = document.getElementById(ageFieldId);
+    const containerElement = document.getElementById(containerElementId);
+    
+    if (ageField && containerElement) {
+        ageField.value = `${age} years`;
+        containerElement.classList.remove('hidden');
     }
 }
 
@@ -1358,20 +2334,69 @@ function autoPopulateSpouseGender() {
     // For "others" gender, leave spouse gender empty for manual selection
 }
 
+// Helper functions for button state management
+function setSaveButtonState(buttonId, textId, state, isLoading = false) {
+    const button = document.getElementById(buttonId);
+    const textElement = document.getElementById(textId);
+    
+    if (!button || !textElement) return;
+    
+    if (isLoading) {
+        button.disabled = true;
+        textElement.textContent = 'Saving...';
+        button.className = 'bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors';
+    } else if (state === 'saved') {
+        button.disabled = false;
+        textElement.textContent = 'Saved';
+        button.className = 'bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium transition-colors';
+    } else { // state === 'save'
+        button.disabled = false;
+        textElement.textContent = 'Save';
+        button.className = 'bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-medium transition-colors';
+    }
+}
+
+function setSubmitButtonState(state, isLoading = false) {
+    const button = document.getElementById('saveSubmitBtn');
+    const textElement = document.getElementById('saveSubmitText');
+    const icon = document.getElementById('saveSubmitIcon');
+    
+    if (!button || !textElement || !icon) return;
+    
+    if (isLoading) {
+        button.disabled = true;
+        textElement.textContent = 'Submitting...';
+        button.className = 'bg-blue-500 hover:bg-blue-600 text-white px-12 py-4 rounded-lg text-lg font-semibold transition-colors shadow-lg';
+        icon.className = 'fas fa-spinner fa-spin ml-2';
+    } else if (state === 'submitted') {
+        button.disabled = true;
+        textElement.textContent = 'Submitted';
+        button.className = 'bg-green-500 hover:bg-green-600 text-white px-12 py-4 rounded-lg text-lg font-semibold transition-colors shadow-lg';
+        icon.className = 'fas fa-check ml-2';
+    } else { // state === 'submit'
+        button.disabled = false;
+        textElement.textContent = 'Submit';
+        button.className = 'bg-gray-400 hover:bg-gray-500 text-white px-12 py-4 rounded-lg text-lg font-semibold transition-colors shadow-lg';
+        icon.className = 'fas fa-paper-plane ml-2';
+    }
+}
+
+// Track which sections have been saved
+let sectionSaveStates = {
+    'member-details': false,
+    'spouse-details': false,
+    'children-details': false
+};
+
 // Make function available globally for components
 window.autoPopulateSpouseGender = autoPopulateSpouseGender;
 window.debouncedAutoPopulateSpouseGender = debouncedAutoPopulateSpouseGender;
 
 async function saveAllChanges() {
-    const saveAllBtn = document.getElementById('saveAllBtn');
-    const saveAllText = document.getElementById('saveAllText');
-    const saveAllSpinner = document.getElementById('saveAllSpinner');
+    // This function is called by handleSaveSubmit, so we don't need to manage UI state here
+    // The calling function handles the button state
     
     try {
-        // Start loading state
-        saveAllBtn.disabled = true;
-        saveAllText.textContent = 'Saving...';
-        saveAllSpinner.classList.remove('hidden');
         
         let savedSections = 0;
         let totalSections = 0;
@@ -1553,11 +2578,7 @@ async function saveAllChanges() {
     } catch (error) {
         console.error('Error in saveAllChanges:', error);
         showNotification('An unexpected error occurred while saving.', 'error');
-    } finally {
-        // Reset button state
-        saveAllBtn.disabled = false;
-        saveAllText.textContent = 'Save All Changes';
-        saveAllSpinner.classList.add('hidden');
+        throw error; // Re-throw to let calling function handle it
     }
 }
 
@@ -1571,11 +2592,6 @@ function checkProfileCompletion() {
 }
 
 async function handleSaveSubmit() {
-    const saveSubmitBtn = document.getElementById('saveSubmitBtn');
-    const saveSubmitText = document.getElementById('saveSubmitText');
-    const saveSubmitSpinner = document.getElementById('saveSubmitSpinner');
-    const saveSubmitIcon = document.getElementById('saveSubmitIcon');
-    
     // Check if all required sections are completed
     const requiredSections = ['member-details'];
     if (userData.isMarried === 'yes') {
@@ -1605,26 +2621,29 @@ async function handleSaveSubmit() {
     
     try {
         // Start loading state
-        saveSubmitBtn.disabled = true;
-        saveSubmitText.textContent = 'Saving & Submitting...';
-        saveSubmitSpinner.classList.remove('hidden');
-        saveSubmitIcon.classList.add('hidden');
+        setSubmitButtonState('submit', true);
         
-        // First save all changes
-        await saveAllChanges();
+        // First save all changes if needed
+        const needsSaving = !sectionSaveStates['member-details'] || 
+                           (userData.isMarried === 'yes' && !sectionSaveStates['spouse-details']) ||
+                           (userData.hasChildren === 'yes' && !sectionSaveStates['children-details']);
+        
+        if (needsSaving) {
+            await saveAllChanges();
+        }
         
         // Then submit the profile
         await finalSubmitProfile();
+        
+        // Set submitted state
+        setSubmitButtonState('submitted');
         
     } catch (error) {
         console.error('Error in handleSaveSubmit:', error);
         showNotification('Failed to save and submit profile: ' + error.message, 'error');
         
         // Reset button state
-        saveSubmitBtn.disabled = false;
-        updateSaveSubmitButton();
-        saveSubmitSpinner.classList.add('hidden');
-        saveSubmitIcon.classList.remove('hidden');
+        setSubmitButtonState('submit');
     }
 }
 
@@ -1672,11 +2691,14 @@ function populateSpouseForm(spouse) {
         const dob = spouse.date_of_birth;
         if (dob && dob !== '0000-00-00' && dob !== '1900-01-01' && dob !== 'NULL') {
             spouseDobInput.value = dob;
+            // Update age display immediately
+            updateAgeDisplay(dob, 'spouseAgeField', 'spouseAgeFieldContainer');
         } else {
-            // Set default to 25 years ago if no valid DOB in database
-            const twentyFiveYearsAgo = new Date();
-            twentyFiveYearsAgo.setFullYear(twentyFiveYearsAgo.getFullYear() - 25);
-            spouseDobInput.value = twentyFiveYearsAgo.toISOString().split('T')[0];
+            // Leave field blank if no valid DOB in database
+            spouseDobInput.value = '';
+            // Hide age display
+            const spouseAgeDisplay = document.getElementById('spouseAgeFieldContainer');
+            if (spouseAgeDisplay) spouseAgeDisplay.classList.add('hidden');
         }
     }
     
@@ -1715,7 +2737,16 @@ function populateChildrenForms(children) {
             if (firstNameInput) firstNameInput.value = child.first_name || '';
             if (secondNameInput) secondNameInput.value = child.second_name || '';
             if (genderSelect) genderSelect.value = child.gender || '';
-            if (dobInput) dobInput.value = child.date_of_birth || '';
+            if (dobInput) {
+                const dob = child.date_of_birth;
+                if (dob && dob !== '0000-00-00' && dob !== '1900-01-01' && dob !== 'NULL') {
+                    dobInput.value = dob;
+                    // Update age display for existing child
+                    updateAgeDisplay(dob, `childAgeField_${index + 1}`, `childAgeFieldContainer_${index + 1}`);
+                } else {
+                    dobInput.value = '';
+                }
+            }
         }
     });
 }
