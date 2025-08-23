@@ -1,6 +1,6 @@
 <?php
 require_once '../../config/database.php';
-require_once '../../middleware/admin_auth.php';
+require_once '../../config/session.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -11,8 +11,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-// Require admin authentication
-requireAdminAuth();
+// Authenticate admin
+$headers = getallheaders();
+$authHeader = $headers['Authorization'] ?? '';
+
+if (!$authHeader || !preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Authorization token required']);
+    exit;
+}
+
+$sessionToken = $matches[1];
+$sessionManager = SessionManager::getInstance();
+$admin = $sessionManager->getUserFromSession($sessionToken);
+
+if (!$admin || $admin['user_type'] !== 'admin') {
+    http_response_code(401);
+    echo json_encode(['error' => 'Invalid or expired session']);
+    exit;
+}
+
+// Validate admin session is still valid
+if (!$admin || !$admin['is_active']) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Admin account is not active']);
+    exit;
+}
 
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true);
