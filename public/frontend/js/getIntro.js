@@ -16,8 +16,8 @@ let userData = {
 };
 
 // Initialize page
-document.addEventListener('DOMContentLoaded', function() {
-    // Check if user has session
+document.addEventListener('DOMContentLoaded', async function() {
+    // Check if user has session first
     const sessionToken = localStorage.getItem('user_session_token');
     if (!sessionToken) {
         window.location.href = 'login.html';

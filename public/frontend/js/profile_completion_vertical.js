@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function initializePage() {
-    // Check authentication
+    // Check authentication first
     const sessionToken = localStorage.getItem('user_session_token');
     if (!sessionToken) {
         window.location.href = 'login.html';
@@ -41,10 +41,12 @@ async function initializePage() {
     }
 
     initializeEventListeners();
-    populateLocationData();
     
     // Load existing profile data and populate form (this will include intro data from database)
     await loadExistingProfile();
+    
+    // Populate location data after DOM is ready
+    populateLocationData();
     
     // Initialize sections
     initializeSections();
@@ -57,6 +59,15 @@ async function initializePage() {
     
     // Initialize Kulam functionality
     initializeKulamFields();
+    
+    // Wait for form relationships to load and populate dropdowns
+    setTimeout(() => {
+        console.log('Form relationships loaded:', formRelationships.isLoaded);
+        if (!formRelationships.isLoaded) {
+            console.log('Waiting for form relationships to load...');
+            formRelationships.init();
+        }
+    }, 500);
     
     // Initialize Education functionality
     initializeEducationFields();
@@ -216,9 +227,26 @@ function populateChildKulamDropdowns(childNumber) {
 }
 
 function initializeEducationFields() {
-    // Setup add education button event listeners
-    document.getElementById('addMemberEducationBtn')?.addEventListener('click', () => addEducationEntry('member'));
-    document.getElementById('addSpouseEducationBtn')?.addEventListener('click', () => addEducationEntry('spouse'));
+    // Setup add education button event listeners with debugging
+    const memberEducationBtn = document.getElementById('addMemberEducationBtn');
+    const spouseEducationBtn = document.getElementById('addSpouseEducationBtn');
+    
+    console.log('Member education button found:', !!memberEducationBtn);
+    console.log('Spouse education button found:', !!spouseEducationBtn);
+    
+    if (memberEducationBtn) {
+        memberEducationBtn.addEventListener('click', () => {
+            console.log('Member education button clicked');
+            addEducationEntry('member');
+        });
+    }
+    
+    if (spouseEducationBtn) {
+        spouseEducationBtn.addEventListener('click', () => {
+            console.log('Spouse education button clicked'); 
+            addEducationEntry('spouse');
+        });
+    }
     
     // Setup delegation for child education buttons (they're dynamic)
     document.addEventListener('click', function(e) {
@@ -414,9 +442,26 @@ function setupEducationAutocomplete(entryId) {
 // populateDatalist function removed - now handled by form-relationships.js system
 
 function initializeProfessionFields() {
-    // Setup add profession button event listeners
-    document.getElementById('addMemberProfessionBtn')?.addEventListener('click', () => addProfessionEntry('member'));
-    document.getElementById('addSpouseProfessionBtn')?.addEventListener('click', () => addProfessionEntry('spouse'));
+    // Setup add profession button event listeners with debugging
+    const memberProfessionBtn = document.getElementById('addMemberProfessionBtn');
+    const spouseProfessionBtn = document.getElementById('addSpouseProfessionBtn');
+    
+    console.log('Member profession button found:', !!memberProfessionBtn);
+    console.log('Spouse profession button found:', !!spouseProfessionBtn);
+    
+    if (memberProfessionBtn) {
+        memberProfessionBtn.addEventListener('click', () => {
+            console.log('Member profession button clicked');
+            addProfessionEntry('member');
+        });
+    }
+    
+    if (spouseProfessionBtn) {
+        spouseProfessionBtn.addEventListener('click', () => {
+            console.log('Spouse profession button clicked');
+            addProfessionEntry('spouse');
+        });
+    }
     
     // Setup delegation for child profession buttons (they're dynamic)
     document.addEventListener('click', function(e) {
@@ -793,18 +838,32 @@ function initializeComponents() {
 
 // Global functions for HTML onclick handlers
 window.toggleSection = function(sectionId) {
+    console.log('Toggle section called for:', sectionId);
     const content = document.getElementById(sectionId + '-content');
     const icon = document.getElementById(sectionId + '-icon');
     
+    console.log('Content element found:', !!content);
+    console.log('Icon element found:', !!icon);
+    
     if (content && icon) {
-        if (content.style.display === 'none' || content.style.display === '') {
+        const isHidden = content.style.display === 'none' || content.style.display === '';
+        if (isHidden) {
             content.style.display = 'block';
             icon.classList.add('rotate-180');
+            console.log('✅ Section expanded:', sectionId);
         } else {
             content.style.display = 'none';
             icon.classList.remove('rotate-180');
+            console.log('✅ Section collapsed:', sectionId);
         }
+    } else {
+        console.log('❌ Elements not found for section:', sectionId);
     }
+}
+
+// Ensure toggleSection is globally available
+if (typeof window !== 'undefined') {
+    window.toggleSection = window.toggleSection;
 };
 
 window.toggleSubsection = function(subsectionId) {
@@ -880,6 +939,12 @@ async function saveMemberDetails() {
                 showNotification('Please enter a valid email address.', 'error');
                 return;
             }
+        }
+        
+        // Ensure phone number is properly formatted with country code
+        if (memberDetails.phone && memberDetails.country_code) {
+            memberDetails.phone = memberDetails.country_code + memberDetails.phone;
+            console.log('Phone number formatted:', memberDetails.phone);
         }
         
         console.log('Saving member details:', memberDetails);
@@ -1716,35 +1781,37 @@ function populateLocationData() {
 
 async function loadExistingProfile() {
     try {
-        const data = await apiFetch('profile.php', {
+        const data = await apiFetch('account.php', {
             method: 'GET'
         });
 
         console.log('API response data in loadExistingProfile:', data);
         
-        if (data.success && data.profile) {
+        if (data.success && data.user) {
+            // Use user data from account.php
+            const profile = data.user;
             // Check if this is an edit request from profile page
             const urlParams = new URLSearchParams(window.location.search);
             const isEditMode = urlParams.get('edit') === 'true';
             
-            if (data.profile.profile_completed && !isEditMode) {
+            if (profile.profile_completed && !isEditMode) {
                 window.location.href = 'dashboard.html';
                 return;
             }
-            console.log('Profile data to populate:', data.profile);
-            console.log('Gender from profile:', data.profile.gender);
-            console.log('IsMarried from profile:', data.profile.isMarried);
-            console.log('HasChildren from profile:', data.profile.hasChildren);
-            console.log('All profile columns:', Object.keys(data.profile));
+            console.log('Profile data to populate:', profile);
+            console.log('Gender from profile:', profile.gender);
+            console.log('IsMarried from profile:', profile.isMarried);
+            console.log('HasChildren from profile:', profile.hasChildren);
+            console.log('All profile columns:', Object.keys(profile));
             
             // Extract intro data from profile for userData
-            if (data.profile.gender || data.profile.isMarried || data.profile.hasChildren) {
-                userData.gender = data.profile.gender;
-                userData.isMarried = data.profile.isMarried;
-                userData.hasChildren = data.profile.hasChildren;
-                userData.marriageType = data.profile.marriageType;
-                userData.marriageStatus = data.profile.marriageStatus;
-                userData.role = data.profile.role;
+            if (profile.gender || profile.isMarried || profile.hasChildren) {
+                userData.gender = profile.gender;
+                userData.isMarried = profile.isMarried;
+                userData.hasChildren = profile.hasChildren;
+                userData.marriageType = profile.marriageType;
+                userData.marriageStatus = profile.marriageStatus;
+                userData.role = profile.role;
                 console.log('Updated userData with database intro data:', userData);
             } else {
                 console.log('No intro data found in database, user may need to complete intro questions first');
@@ -1753,10 +1820,17 @@ async function loadExistingProfile() {
                 userData.hasChildren = 'no';
             }
             
-            populateForm(data.profile);
+            populateForm(profile);
             
             // Update section visibility based on database intro data
+            console.log('Updating section visibility with userData:', userData);
             updateSectionVisibility();
+            
+            // Force re-check section visibility after a short delay
+            setTimeout(() => {
+                console.log('Re-checking section visibility...');
+                updateSectionVisibility();
+            }, 500);
             
             // Trigger spouse gender auto-population after a short delay to ensure form is populated
             setTimeout(() => {
@@ -1764,7 +1838,7 @@ async function loadExistingProfile() {
             }, 100);
             
             // Check if member details section should be marked as completed
-            if (data.profile.first_name && data.profile.date_of_birth && data.profile.phone) {
+            if (profile.first_name && profile.date_of_birth && profile.phone) {
                 markSectionComplete('member-details');
             }
             
@@ -1963,8 +2037,14 @@ function populateForm(profile) {
         const dob = profile.date_of_birth;
         if (dob && dob !== '0000-00-00' && dob !== '1900-01-01' && dob !== 'NULL') {
             dobInput.value = dob;
-            // Update age display immediately
+            // Update age display immediately and ensure it's visible
             updateAgeDisplay(dob, 'memberAgeField', 'ageFieldContainer');
+            // Force show the age field container
+            const ageDisplay = document.getElementById('ageFieldContainer');
+            if (ageDisplay) {
+                ageDisplay.classList.remove('hidden');
+                console.log('✅ Age field container made visible');
+            }
         } else {
             // Leave field blank if no valid DOB in database
             dobInput.value = '';
@@ -1977,6 +2057,13 @@ function populateForm(profile) {
     // Populate phone and email
     let phoneToUse = profile.phone || storedUserData.phone || '';
     const emailInput = document.getElementById('email');
+    
+    console.log('Phone data available:', {
+        'profile.phone': profile.phone,
+        'storedUserData.phone': storedUserData.phone,
+        'phoneToUse': phoneToUse
+    });
+    
     if (emailInput && (profile.email || storedUserData.email)) {
         const emailToUse = profile.email || storedUserData.email || '';
         emailInput.value = emailToUse;
@@ -1991,14 +2078,23 @@ function populateForm(profile) {
         const countryCodeSelect = document.getElementById('countryCode');
         const phoneInput = document.getElementById('phone');
         
-        if (countryCodeSelect) countryCodeSelect.value = countryCode || '+91';
+        console.log('Parsed phone data:', { countryCode, phoneNumber });
+        
+        if (countryCodeSelect) {
+            countryCodeSelect.value = countryCode || '+91';
+            console.log('✅ Country code set to:', countryCodeSelect.value);
+        }
         if (phoneInput) {
             phoneInput.value = phoneNumber;
+            console.log('✅ Phone number set to:', phoneInput.value);
             if (storedUserData.phone && storedUserData.created_via_invitation) {
                 phoneInput.readOnly = true;
                 phoneInput.classList.add('bg-gray-50');
+                console.log('✅ Phone made readonly (invitation user)');
             }
         }
+    } else {
+        console.log('❌ No phone data available to populate');
     }
     
     // Handle address fields - populate from individual database columns
@@ -2820,3 +2916,9 @@ function showNotification(message, type = 'info') {
         }
     }, 3000);
 }
+
+// ====================================================================
+// END OF PROFILE COMPLETION SCRIPT
+// ====================================================================
+// Syntax error fix completed - duplicate functions removed
+console.log('Profile completion vertical script loaded successfully');
