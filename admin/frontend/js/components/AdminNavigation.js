@@ -29,6 +29,30 @@ export class AdminNavigation {
                 icon: 'fas fa-envelope' 
             },
             { 
+                id: 'groups', 
+                label: 'Groups', 
+                href: 'groups.html', 
+                icon: 'fas fa-layer-group' 
+            },
+            { 
+                id: 'announcements', 
+                label: 'Announcements', 
+                href: 'announcements.html', 
+                icon: 'fas fa-bullhorn' 
+            },
+            { 
+                id: 'events', 
+                label: 'Events', 
+                href: 'events.html', 
+                icon: 'fas fa-calendar-alt' 
+            },
+            { 
+                id: 'help-posts', 
+                label: 'Help Posts', 
+                href: 'help_posts.html', 
+                icon: 'fas fa-question-circle' 
+            },
+            { 
                 id: 'admin-users', 
                 label: 'Admin Users', 
                 href: 'admin-users.html', 

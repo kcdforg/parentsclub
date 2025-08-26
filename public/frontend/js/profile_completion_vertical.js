@@ -5,6 +5,7 @@ import { SpouseDetailsComponent } from './components/SpouseDetailsComponent.js';
 import { ChildrenDetailsComponent } from './components/ChildrenDetailsComponent.js';
 import { ParentsComponent } from './components/ParentsComponent.js';
 import { GrandparentsComponent } from './components/GrandparentsComponent.js';
+import { initializeLocationFields, prePopulateLocationFields, autoPopulateFromPostOffice } from './location-utils.js';
 
 // State management
 let userData = {};
@@ -47,6 +48,9 @@ async function initializePage() {
     
     // Populate location data after DOM is ready
     populateLocationData();
+    
+    // Initialize location fields (districts, post offices)
+    initializeLocationFields('#memberDetailsForm');
     
     // Initialize sections
     initializeSections();
@@ -2138,6 +2142,8 @@ function populateForm(profile) {
     const cityInput = document.getElementById('city');
     const pinCodeInput = document.getElementById('pinCode');
     const stateInput = document.getElementById('state');
+    const districtInput = document.getElementById('district');
+    const postOfficeAreaInput = document.getElementById('postOfficeArea');
     const countryInput = document.getElementById('country');
     
     if (addressLine1Input) addressLine1Input.value = profile.address_line1 || '';
@@ -2152,9 +2158,23 @@ function populateForm(profile) {
         address_line2: profile.address_line2,
         city: profile.city,
         state: profile.state,
+        district: profile.district,
+        post_office_area: profile.post_office_area,
         country: profile.country,
         pin_code: profile.pin_code
     });
+    
+    // Pre-populate location fields (district and post office area) after basic fields are set
+    setTimeout(async () => {
+        if (profile.state || profile.district || profile.post_office_area) {
+            await prePopulateLocationFields({
+                state: profile.state,
+                district: profile.district,
+                post_office_area: profile.post_office_area,
+                pin_code: profile.pin_code
+            }, '#memberDetailsForm');
+        }
+    }, 500);
     
     // Trigger auto-populate spouse gender if gender is set and ensure userData has the gender
     setTimeout(() => {

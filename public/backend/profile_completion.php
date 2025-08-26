@@ -282,6 +282,8 @@ class ProfileCompletionHandler {
                     address_line2 = ?,
                     city = ?,
                     state = ?,
+                    district = ?,
+                    post_office_area = ?,
                     country = ?,
                     pin_code = ?,
                     permanent_address_line1 = ?,
@@ -307,6 +309,8 @@ class ProfileCompletionHandler {
                 $memberDetails['address_line2'] ?? '',
                 $memberDetails['city'] ?? '',
                 $memberDetails['state'] ?? '',
+                $memberDetails['district'] ?? '',
+                $memberDetails['post_office_area'] ?? '',
                 $memberDetails['country'] ?? '',
                 $memberDetails['pin_code'] ?? '',
                 $memberDetails['permanent_address_line1'] ?? '',
@@ -323,10 +327,10 @@ class ProfileCompletionHandler {
             $stmt = $this->db->prepare("
                 INSERT INTO user_profiles (
                     user_id, name, first_name, second_name, gender, date_of_birth, phone, secondary_phone, email,
-                    address_line1, address_line2, city, state, country, pin_code,
+                    address_line1, address_line2, city, state, district, post_office_area, country, pin_code,
                     permanent_address_line1, permanent_address_line2, permanent_city, permanent_state, permanent_country, permanent_pin_code,
                     same_as_current_address, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
             ");
             $stmt->execute([
                 $userId,
@@ -342,6 +346,8 @@ class ProfileCompletionHandler {
                 $memberDetails['address_line2'] ?? '',
                 $memberDetails['city'] ?? '',
                 $memberDetails['state'] ?? '',
+                $memberDetails['district'] ?? '',
+                $memberDetails['post_office_area'] ?? '',
                 $memberDetails['country'] ?? '',
                 $memberDetails['pin_code'] ?? '',
                 $memberDetails['permanent_address_line1'] ?? '',

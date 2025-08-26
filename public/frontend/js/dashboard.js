@@ -58,6 +58,13 @@ function loadUserData() {
     
     // Then fetch fresh data from server
     refreshUserData();
+    
+    // Load groups and announcements if user is approved
+    if (userData.approval_status === 'approved') {
+        loadUserGroups();
+        loadRecentAnnouncements();
+        loadUpcomingEvents();
+    }
 }
 
 async function refreshUserData() {
@@ -81,6 +88,13 @@ async function refreshUserData() {
             const updatedUserData = { ...currentUserData, ...userData };
             localStorage.setItem('user_data', JSON.stringify(updatedUserData));
             updateUI();
+            
+            // Load groups and announcements if user is approved
+            if (userData.approval_status === 'approved') {
+                loadUserGroups();
+                loadRecentAnnouncements();
+                loadUpcomingEvents();
+            }
         } else {
             console.error('Failed to fetch user data:', data.error);
         }
@@ -266,3 +280,240 @@ function showNotification(message, type = 'info') {
         }
     }, 5000);
 }
+
+// Load user groups
+async function loadUserGroups() {
+    try {
+        const response = await apiFetch('user_groups.php?limit=6');
+        if (response.success && response.data.length > 0) {
+            displayUserGroups(response.data);
+            document.getElementById('groupsSection').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading user groups:', error);
+    }
+}
+
+function displayUserGroups(groups) {
+    const container = document.getElementById('groupCards');
+    container.innerHTML = groups.map(group => `
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200 hover:shadow-md transition-shadow cursor-pointer" onclick="viewGroup(${group.id})">
+            <div class="flex items-center justify-between mb-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getGroupTypeColor(group.type)}">
+                    ${getGroupTypeIcon(group.type)} ${capitalizeFirst(group.type)}
+                </span>
+                ${group.unread_announcements > 0 ? `<span class="bg-red-500 text-white text-xs rounded-full px-2 py-1">${group.unread_announcements}</span>` : ''}
+            </div>
+            <h4 class="text-lg font-medium text-gray-900 mb-1">${escapeHtml(group.name)}</h4>
+            <p class="text-sm text-gray-600 mb-3">${escapeHtml(group.description || '').substring(0, 80)}${group.description && group.description.length > 80 ? '...' : ''}</p>
+            <div class="flex items-center justify-between text-sm text-gray-500">
+                <span><i class="fas fa-users mr-1"></i>${group.member_count} members</span>
+                <span><i class="fas fa-calendar mr-1"></i>${group.upcoming_events_count || 0} events</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Load recent announcements
+async function loadRecentAnnouncements() {
+    try {
+        const response = await apiFetch('announcements.php?limit=3');
+        if (response.success && response.data.length > 0) {
+            displayRecentAnnouncements(response.data);
+            document.getElementById('announcementsSection').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading recent announcements:', error);
+    }
+}
+
+function displayRecentAnnouncements(announcements) {
+    const container = document.getElementById('announcementCards');
+    container.innerHTML = announcements.map(announcement => `
+        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="viewAnnouncement(${announcement.id})">
+            <div class="flex items-start justify-between mb-2">
+                <h4 class="text-lg font-medium text-gray-900 line-clamp-2">${escapeHtml(announcement.title)}</h4>
+                ${announcement.is_pinned ? '<i class="fas fa-thumbtack text-yellow-500 ml-2"></i>' : ''}
+                ${!announcement.user_viewed ? '<span class="bg-blue-500 text-white text-xs rounded-full px-2 py-1 ml-2">New</span>' : ''}
+            </div>
+            <p class="text-gray-600 text-sm mb-3 line-clamp-2">${escapeHtml(announcement.content.substring(0, 120))}...</p>
+            <div class="flex items-center justify-between text-sm text-gray-500">
+                <span>By ${escapeHtml(announcement.created_by_name || 'Unknown')}</span>
+                <span>${formatTimeAgo(announcement.created_at)}</span>
+            </div>
+            <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                <span><i class="fas fa-heart mr-1 ${announcement.user_liked ? 'text-red-500' : ''}"></i>${announcement.likes_count || 0}</span>
+                <span><i class="fas fa-comment mr-1"></i>${announcement.comments_count || 0}</span>
+                <span class="text-xs">${announcement.target_group_names.map(g => g.name).join(', ')}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Helper functions
+function getGroupTypeColor(type) {
+    switch (type) {
+        case 'district': return 'bg-blue-100 text-blue-800';
+        case 'area': return 'bg-green-100 text-green-800';
+        case 'custom': return 'bg-purple-100 text-purple-800';
+        default: return 'bg-gray-100 text-gray-800';
+    }
+}
+
+function getGroupTypeIcon(type) {
+    switch (type) {
+        case 'district': return '<i class="fas fa-building mr-1"></i>';
+        case 'area': return '<i class="fas fa-map-marker-alt mr-1"></i>';
+        case 'custom': return '<i class="fas fa-users mr-1"></i>';
+        default: return '<i class="fas fa-circle mr-1"></i>';
+    }
+}
+
+function capitalizeFirst(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+}
+
+// Global functions for onclick handlers
+window.viewGroup = function(groupId) {
+    window.location.href = `group.html?id=${groupId}`;
+};
+
+window.viewAnnouncement = function(announcementId) {
+    window.location.href = `announcement.html?id=${announcementId}`;
+};
+
+// Load upcoming events
+async function loadUpcomingEvents() {
+    try {
+        const response = await apiFetch('events.php?date_filter=upcoming&limit=3');
+        if (response.success && response.data.length > 0) {
+            displayUpcomingEvents(response.data);
+            document.getElementById('eventsSection').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading upcoming events:', error);
+    }
+}
+
+function displayUpcomingEvents(events) {
+    const container = document.getElementById('eventCards');
+    container.innerHTML = events.map(event => `
+        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="viewEvent(${event.id})">
+            <div class="flex items-start justify-between mb-2">
+                <h4 class="text-lg font-medium text-gray-900 line-clamp-2">${escapeHtml(event.title)}</h4>
+                ${!event.user_viewed ? '<span class="bg-blue-500 text-white text-xs rounded-full px-2 py-1 ml-2">New</span>' : ''}
+            </div>
+            
+            <div class="flex items-center text-sm text-gray-600 mb-2">
+                <i class="fas fa-calendar mr-2 text-primary"></i>
+                ${formatEventDateTime(event.event_date, event.event_time)}
+            </div>
+            
+            ${event.location ? `
+                <div class="flex items-center text-sm text-gray-600 mb-2">
+                    <i class="fas fa-map-marker-alt mr-2 text-primary"></i>
+                    ${escapeHtml(event.location)}
+                </div>
+            ` : ''}
+            
+            <p class="text-gray-600 text-sm mb-3 line-clamp-2">${escapeHtml(event.description.substring(0, 120))}...</p>
+            
+            <div class="flex items-center justify-between text-sm text-gray-500 mb-3">
+                <span>By ${escapeHtml(event.created_by_name || 'Unknown')}</span>
+                <span>${formatTimeAgo(event.created_at)}</span>
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4 text-sm">
+                    <span class="text-green-600"><i class="fas fa-check mr-1"></i>${event.attending_count || 0}</span>
+                    <span class="text-red-600"><i class="fas fa-times mr-1"></i>${event.not_attending_count || 0}</span>
+                    <span class="text-yellow-600"><i class="fas fa-question mr-1"></i>${event.maybe_count || 0}</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    ${event.user_rsvp_status ? `
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRSVPColor(event.user_rsvp_status)}">
+                            ${getRSVPIcon(event.user_rsvp_status)} ${capitalizeFirst(event.user_rsvp_status.replace('_', ' '))}
+                        </span>
+                    ` : `
+                        <span class="text-xs text-gray-500">No RSVP</span>
+                    `}
+                </div>
+            </div>
+            
+            <div class="text-xs text-gray-500 mt-2">
+                ${event.target_group_names.map(g => g.name).join(', ')}
+            </div>
+        </div>
+    `).join('');
+}
+
+function formatEventDateTime(dateString, timeString) {
+    const date = new Date(dateString);
+    const time = timeString.split(':');
+    const hour = parseInt(time[0]);
+    const minute = time[1];
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    let dateDisplay;
+    if (date.toDateString() === today.toDateString()) {
+        dateDisplay = 'Today';
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+        dateDisplay = 'Tomorrow';
+    } else {
+        dateDisplay = date.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+    
+    return `${dateDisplay} at ${displayHour}:${minute} ${ampm}`;
+}
+
+function getRSVPColor(status) {
+    switch (status) {
+        case 'attending': return 'bg-green-100 text-green-800';
+        case 'not_attending': return 'bg-red-100 text-red-800';
+        case 'maybe': return 'bg-yellow-100 text-yellow-800';
+        default: return 'bg-gray-100 text-gray-800';
+    }
+}
+
+function getRSVPIcon(status) {
+    switch (status) {
+        case 'attending': return '<i class="fas fa-check mr-1"></i>';
+        case 'not_attending': return '<i class="fas fa-times mr-1"></i>';
+        case 'maybe': return '<i class="fas fa-question mr-1"></i>';
+        default: return '';
+    }
+}
+
+window.viewEvent = function(eventId) {
+    window.location.href = `event.html?id=${eventId}`;
+};
