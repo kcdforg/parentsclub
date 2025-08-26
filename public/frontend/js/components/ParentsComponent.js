@@ -204,6 +204,7 @@ export class ParentsComponent {
                                         <select id="${prefix}fatherKulam" name="${prefix}father_kulam"
                                                 class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white kulam-dropdown">
                                             <option value="">Select Kulam</option>
+                                            <option value="Other">Other (specify below)</option>
                                             <!-- Options will be populated by JavaScript -->
                                         </select>
                                         <i class="fas fa-star absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
@@ -257,6 +258,7 @@ export class ParentsComponent {
                                         <select id="${prefix}motherKulam" name="${prefix}mother_kulam"
                                                 class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white kulam-dropdown">
                                             <option value="">Select Kulam</option>
+                                            <option value="Other">Other (specify below)</option>
                                             <!-- Options will be populated by JavaScript -->
                                         </select>
                                         <i class="fas fa-star absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
@@ -296,6 +298,35 @@ export class ParentsComponent {
                                     <input type="text" id="${prefix}motherKaaniOther" name="${prefix}mother_kaani_other"
                                            placeholder="Please specify kaani"
                                            class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Residence Auto-populate Options -->
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mt-6">
+                            <h6 class="text-sm font-semibold text-green-800 mb-3">
+                                <i class="fas fa-home mr-2"></i>Residence Auto-populate
+                            </h6>
+                            <div class="space-y-2">
+                                <div class="flex items-center">
+                                    <input type="checkbox" 
+                                           id="auto_populate_${prefix}father_residence" 
+                                           data-auto-populate-residence="${prefix}father"
+                                           class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                                           onchange="handleResidenceAutoPopulate('${prefix}father', this.checked)">
+                                    <label for="auto_populate_${prefix}father_residence" class="ml-2 text-sm text-green-700">
+                                        Same as Native for Father's Residence
+                                    </label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" 
+                                           id="auto_populate_${prefix}mother_residence" 
+                                           data-auto-populate-residence="${prefix}mother"
+                                           class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                                           onchange="handleResidenceAutoPopulate('${prefix}mother', this.checked)">
+                                    <label for="auto_populate_${prefix}mother_residence" class="ml-2 text-sm text-green-700">
+                                        Same as Native for Mother's Residence
+                                    </label>
                                 </div>
                             </div>
                         </div>

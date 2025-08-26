@@ -30,6 +30,30 @@
             <p class="text-gray-600">Fill out all sections to complete your registration</p>
         </div>
 
+        <!-- Intro Questions Notice -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+            <div class="flex items-start space-x-4">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-500 text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-blue-900 mb-2">Profile Completion Based on Your Introduction Answers</h3>
+                    <p class="text-blue-800 mb-4">
+                        Here is your Profile completion page based on your answers to introduction questions. 
+                        Add all your family details here for submitting the profile.
+                    </p>
+                    <p class="text-blue-800 mb-4">
+                        To edit your answers go back to <strong>Intro Questions</strong> and come here for updated flow!
+                    </p>
+                    <button onclick="goBackToIntroQuestions()" 
+                            class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Intro Questions
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Profile Completion Form -->
         <div class="space-y-6">
             <!-- Section 1: Member Details -->
@@ -85,10 +109,10 @@
                             <div class="relative">
                                 <select id="gender" name="gender" required
                                         class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
-                                    <option value="" disabled selected>Select your gender</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                    <option value="others">Others</option>
+                                    <option value="" disabled>Select your gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Others">Others</option>
                                 </select>
                                 <i class="fas fa-venus-mars absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
@@ -120,56 +144,104 @@
                             </div>
                         </div>
 
-                        <div>
-                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
-                                Phone Number <span class="text-red-500">*</span>
-                            </label>
-                            <div class="flex">
-                                <select id="countryCode" name="country_code" 
-                                        class="px-3 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary bg-gray-50">
-                                    <option value="+91" selected>🇮🇳 +91</option>
-                                    <option value="+1">🇺🇸 +1</option>
-                                    <option value="+44">🇬🇧 +44</option>
-                                    <option value="+61">🇦🇺 +61</option>
-                                    <option value="+81">🇯🇵 +81</option>
-                                    <option value="+49">🇩🇪 +49</option>
-                                    <option value="+33">🇫🇷 +33</option>
-                                    <option value="+39">🇮🇹 +39</option>
-                                    <option value="+34">🇪🇸 +34</option>
-                                    <option value="+86">🇨🇳 +86</option>
-                                </select>
-                                <input type="tel" id="phone" name="phone" required
-                                       class="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                                       placeholder="9876543210" maxlength="10">
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">
-                                <span id="phoneHelp">🇮🇳 Enter 10 digits starting with 6, 7, 8, or 9</span>
-                            </p>
-                        </div>
+                    </div>
 
-                        <div>
-                            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-                                Email Address (Optional)
-                            </label>
-                            <div class="relative">
-                                <input type="email" id="email" name="email"
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                                       placeholder="Enter your email address (optional)">
-                                <i class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <!-- Contact Details Section -->
+                    <div class="border-t border-gray-200 pt-6 mt-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                            <i class="fas fa-address-book mr-2 text-blue-500"></i>Contact Details
+                        </h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Primary Phone <span class="text-red-500">*</span>
+                                </label>
+                                <div class="flex">
+                                    <select id="countryCode" name="country_code" 
+                                            class="px-3 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary bg-gray-50">
+                                        <option value="+91" selected>🇮🇳 +91</option>
+                                        <option value="+1">🇺🇸 +1</option>
+                                        <option value="+44">🇬🇧 +44</option>
+                                        <option value="+61">🇦🇺 +61</option>
+                                        <option value="+81">🇯🇵 +81</option>
+                                        <option value="+49">🇩🇪 +49</option>
+                                        <option value="+33">🇫🇷 +33</option>
+                                        <option value="+39">🇮🇹 +39</option>
+                                        <option value="+34">🇪🇸 +34</option>
+                                        <option value="+86">🇨🇳 +86</option>
+                                    </select>
+                                    <input type="tel" id="phone" name="phone" required
+                                           class="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                                           placeholder="9876543210" maxlength="10">
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Auto-populated, used for login, no duplicates allowed
+                                </p>
                             </div>
-                        </div>
 
-                        <div class="md:col-span-2">
-                            <label for="addressLine1" class="block text-sm font-medium text-gray-700 mb-2">
-                                Address Line 1 <span class="text-red-500">*</span>
-                            </label>
-                            <div class="relative">
-                                <input type="text" id="addressLine1" name="address_line1" required
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                                       placeholder="Address Line 1">
-                                <i class="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <div>
+                                <label for="secondaryPhone" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Secondary Phone (Optional)
+                                </label>
+                                <div class="flex">
+                                    <select id="secondaryCountryCode" name="secondary_country_code" 
+                                            class="px-3 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white">
+                                        <option value="+91" selected>🇮🇳 +91</option>
+                                        <option value="+1">🇺🇸 +1</option>
+                                        <option value="+44">🇬🇧 +44</option>
+                                        <option value="+61">🇦🇺 +61</option>
+                                        <option value="+81">🇯🇵 +81</option>
+                                        <option value="+49">🇩🇪 +49</option>
+                                        <option value="+33">🇫🇷 +33</option>
+                                        <option value="+39">🇮🇹 +39</option>
+                                        <option value="+34">🇪🇸 +34</option>
+                                        <option value="+86">🇨🇳 +86</option>
+                                    </select>
+                                    <input type="tel" id="secondaryPhone" name="secondary_phone"
+                                           class="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                                           placeholder="9876543210" maxlength="10">
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Additional contact number (optional)
+                                </p>
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Email (Optional)
+                                </label>
+                                <div class="relative">
+                                    <input type="email" id="email" name="email"
+                                           class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                           placeholder="Enter your email address (optional)">
+                                    <i class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Address Details Section -->
+                    <div class="border-t border-gray-200 pt-6 mt-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                            <i class="fas fa-home mr-2 text-purple-500"></i>Address Details
+                        </h4>
+
+                        <!-- Current Address -->
+                        <div class="bg-blue-50 rounded-lg p-4 mb-6">
+                            <h5 class="text-md font-semibold text-blue-900 mb-4">Current Address</h5>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="md:col-span-2">
+                                    <label for="addressLine1" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Address Line 1 <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <input type="text" id="addressLine1" name="address_line1" required
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                               placeholder="Address Line 1">
+                                        <i class="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                </div>
 
                         <div class="md:col-span-2">
                             <label for="addressLine2" class="block text-sm font-medium text-gray-700 mb-2">
@@ -229,6 +301,96 @@
                                 <i class="fas fa-globe absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
                         </div>
+                            </div>
+                        </div>
+                    </div>
+
+                        <!-- Permanent Address -->
+                        <div class="bg-green-50 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-4">
+                                <h5 class="text-md font-semibold text-green-900">Permanent Address</h5>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="sameAsCurrentAddress" name="same_as_current" 
+                                           class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                                           onchange="togglePermanentAddressFields(this.checked)">
+                                    <label for="sameAsCurrentAddress" class="ml-2 text-sm text-green-700 font-medium">
+                                        Same as Current Address
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div id="permanentAddressFields" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="md:col-span-2">
+                                    <label for="permanentAddressLine1" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Address Line 1 <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <input type="text" id="permanentAddressLine1" name="permanent_address_line1"
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                               placeholder="Permanent Address Line 1">
+                                        <i class="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                </div>
+
+                                <div class="md:col-span-2">
+                                    <label for="permanentAddressLine2" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Address Line 2
+                                    </label>
+                                    <div class="relative">
+                                        <input type="text" id="permanentAddressLine2" name="permanent_address_line2"
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                               placeholder="Permanent Address Line 2 (Optional)">
+                                        <i class="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="permanentCity" class="block text-sm font-medium text-gray-700 mb-2">City <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <input type="text" id="permanentCity" name="permanent_city"
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                               placeholder="City">
+                                        <i class="fas fa-city absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="permanentPinCode" class="block text-sm font-medium text-gray-700 mb-2">
+                                        PIN Code <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <input type="text" id="permanentPinCode" name="permanent_pin_code" maxlength="6"
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                               placeholder="123456">
+                                        <i class="fas fa-location-dot absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="permanentState" class="block text-sm font-medium text-gray-700 mb-2">State <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select id="permanentState" name="permanent_state"
+                                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors bg-white">
+                                            <option value="">Select State</option>
+                                            <!-- States will be populated by JavaScript -->
+                                        </select>
+                                        <i class="fas fa-map-marked-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="permanentCountry" class="block text-sm font-medium text-gray-700 mb-2">Country <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select id="permanentCountry" name="permanent_country"
+                                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors bg-white">
+                                            <option value="">Select Country</option>
+                                            <!-- Countries will be populated by JavaScript -->
+                                        </select>
+                                        <i class="fas fa-globe absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Kulam Details Section -->
@@ -236,6 +398,25 @@
                         <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                             <i class="fas fa-temple mr-2 text-orange-500"></i>Kulam Details
                         </h4>
+                        
+                        <!-- Gender-Based Kulam Collection Note -->
+                        <div class="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-4">
+                            <div class="flex items-start space-x-3">
+                                <i class="fas fa-user-check text-blue-600 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <h6 class="text-sm font-semibold text-blue-900 mb-2">
+                                        Smart Kulam Collection (Gender-Based)
+                                    </h6>
+                                    <p class="text-sm text-blue-800 mb-3">
+                                        Since Kulam is patrilineal, we'll only ask for necessary Kulam details based on your gender and automatically copy them to appropriate family members.
+                                    </p>
+                                    <div id="kulamCollectionInfo" class="grid grid-cols-1 gap-2 text-xs">
+                                        <!-- This will be populated by JavaScript based on detected gender -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label for="kulam" class="block text-sm font-medium text-gray-700 mb-2">
@@ -296,7 +477,7 @@
                             <i class="fas fa-graduation-cap mr-2 text-blue-500"></i>Education Details
                         </h4>
                         <div id="memberEducationContainer">
-                            <!-- Education entries will be added here dynamically -->
+                            <!-- Education entries will be added here dynamically with new format -->
                         </div>
                         <button type="button" id="addMemberEducationBtn" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
                             <i class="fas fa-plus mr-2"></i>Add Education
@@ -393,9 +574,9 @@
                                     <select id="spouseGender" name="spouse_gender" required
                                                 class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
                                         <option value="">Select Gender</option>
-                                        <option value="male">Male</option>
-                                        <option value="female">Female</option>
-                                        <option value="others">Others</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Others">Others</option>
                                     </select>
                                         <i class="fas fa-venus-mars absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                     </div>
@@ -776,5 +957,8 @@
         });
     </script>
     <script src="js/profile_completion_vertical.js" type="module"></script>
+    <script src="js/enhanced-education-component.js"></script>
+    <script src="js/kulam-auto-populate.js"></script>
+    <script src="js/gender-based-kulam-system.js"></script>
 </body>
 </html>

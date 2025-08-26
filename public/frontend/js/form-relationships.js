@@ -33,8 +33,8 @@ export class FormRelationshipsManager {
     
     async loadFormValues() {
         try {
-            // Try to load from admin API
-            const response = await apiFetch('../admin/backend/form_values.php', {
+            // Try to load from admin API (absolute path from regapp2 root)
+            const response = await apiFetch('/regapp2/admin/backend/form_values.php', {
                 method: 'GET'
             });
             

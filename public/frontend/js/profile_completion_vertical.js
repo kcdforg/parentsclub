@@ -227,7 +227,42 @@ function populateChildKulamDropdowns(childNumber) {
 }
 
 function initializeEducationFields() {
-    // Setup add education button event listeners with debugging
+    // Initialize enhanced education components
+    try {
+        if (typeof EnhancedEducationComponent !== 'undefined') {
+            // Initialize enhanced education for member
+            const memberEducation = new EnhancedEducationComponent('member');
+            
+            // Initialize enhanced education for spouse if section exists
+            const spouseEducationContainer = document.getElementById('spouseEducationContainer');
+            if (spouseEducationContainer) {
+                const spouseEducation = new EnhancedEducationComponent('spouse');
+            }
+            
+            // Initialize for children (up to 10 children)
+            window.childrenEducationComponents = [];
+            for (let i = 1; i <= 10; i++) {
+                const childContainer = document.getElementById(`child_${i}_educationContainer`);
+                if (childContainer) {
+                    window.childrenEducationComponents[i] = new EnhancedEducationComponent('child', i);
+                    console.log(`Initialized education component for child ${i}`);
+                }
+            }
+            
+            console.log('Enhanced education components initialized');
+        } else {
+            // Fallback to old system
+            console.log('Enhanced education component not available, using fallback');
+            initializeLegacyEducationFields();
+        }
+    } catch (error) {
+        console.error('Error initializing education fields:', error);
+        initializeLegacyEducationFields();
+    }
+}
+
+function initializeLegacyEducationFields() {
+    // Legacy education field initialization
     const memberEducationBtn = document.getElementById('addMemberEducationBtn');
     const spouseEducationBtn = document.getElementById('addSpouseEducationBtn');
     
@@ -1218,10 +1253,10 @@ async function saveSpouseFamilyTree() {
 }
 
 async function finalSubmitProfile() {
-    const btn = document.getElementById('finalSubmitBtn');
-    const text = document.getElementById('finalSubmitText');
-    const spinner = document.getElementById('finalSubmitSpinner');
-    const icon = document.getElementById('finalSubmitIcon');
+    const btn = document.getElementById('saveSubmitBtn');
+    const text = document.getElementById('saveSubmitText');
+    const spinner = document.getElementById('saveSubmitSpinner');
+    const icon = document.getElementById('saveSubmitIcon');
     
     try {
         btn.disabled = true;
@@ -2419,13 +2454,13 @@ function autoPopulateSpouseGender() {
     
     console.log('Auto-populating spouse gender. Member gender:', memberGender);
     
-    // Set opposite gender for spouse (only for male/female, not others)
-    if (memberGender === 'male') {
-        spouseGenderSelect.value = 'female';
-        console.log('Set spouse gender to female');
-    } else if (memberGender === 'female') {
-        spouseGenderSelect.value = 'male';
-        console.log('Set spouse gender to male');
+    // Set opposite gender for spouse (only for Male/Female, not Others)
+    if (memberGender === 'Male') {
+        spouseGenderSelect.value = 'Female';
+        console.log('Set spouse gender to Female');
+    } else if (memberGender === 'Female') {
+        spouseGenderSelect.value = 'Male';
+        console.log('Set spouse gender to Male');
     }
     // For "others" gender, leave spouse gender empty for manual selection
 }
@@ -2481,12 +2516,65 @@ function setSubmitButtonState(state, isLoading = false) {
 let sectionSaveStates = {
     'member-details': false,
     'spouse-details': false,
-    'children-details': false
+    'children-details': false,
+    'member-family-tree': false,
+    'spouse-family-tree': false
 };
 
-// Make function available globally for components
+// Subsection save states for tracking individual subsection changes
+let subsectionSaveStates = {
+    'parents': false,
+    'paternal-grandparents': false,
+    'maternal-grandparents': false,
+    'spouse-parents': false,
+    'spouse-paternal-grandparents': false,
+    'spouse-maternal-grandparents': false
+};
+
+// Subsection save button management
+function updateSubsectionSaveButtonState(subsectionId) {
+    const saveBtn = document.getElementById(`save${subsectionId}Btn`);
+    const saveText = document.getElementById(`save${subsectionId}Text`);
+    
+    if (saveBtn && saveText) {
+        if (subsectionSaveStates[subsectionId]) {
+            saveBtn.classList.remove('bg-gray-400', 'hover:bg-gray-500');
+            saveBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+            saveText.textContent = 'Saved';
+        } else {
+            saveBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+            saveBtn.classList.add('bg-gray-400', 'hover:bg-gray-500');
+            saveText.textContent = 'Save';
+        }
+    }
+}
+
+function markSubsectionComplete(subsectionId) {
+    subsectionSaveStates[subsectionId] = true;
+    updateSubsectionSaveButtonState(subsectionId);
+    
+    // Update subsection visual indicator
+    const numberElement = document.getElementById(`${subsectionId}-number`);
+    if (numberElement) {
+        numberElement.className = 'w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-medium';
+        numberElement.innerHTML = '<i class="fas fa-check"></i>';
+    }
+}
+
+function markSubsectionError(subsectionId) {
+    const numberElement = document.getElementById(`${subsectionId}-number`);
+    if (numberElement) {
+        numberElement.className = 'w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center text-sm font-medium';
+        numberElement.innerHTML = '<i class="fas fa-exclamation"></i>';
+    }
+}
+
+// Make functions available globally for components
 window.autoPopulateSpouseGender = autoPopulateSpouseGender;
 window.debouncedAutoPopulateSpouseGender = debouncedAutoPopulateSpouseGender;
+window.updateSubsectionSaveButtonState = updateSubsectionSaveButtonState;
+window.markSubsectionComplete = markSubsectionComplete;
+window.markSubsectionError = markSubsectionError;
 
 async function saveAllChanges() {
     // This function is called by handleSaveSubmit, so we don't need to manage UI state here
@@ -2916,6 +3004,161 @@ function showNotification(message, type = 'info') {
         }
     }, 3000);
 }
+
+// ====================================================================
+// NAVIGATION FUNCTIONS
+// ====================================================================
+
+/**
+ * Navigate back to intro questions page
+ */
+function goBackToIntroQuestions() {
+    // Save current profile completion progress
+    const progressData = {
+        timestamp: new Date().toISOString(),
+        currentStep: 'profile_completion',
+        returnTo: 'profile_completion'
+    };
+    
+    // Store in localStorage so user can return to this page
+    localStorage.setItem('profile_completion_progress', JSON.stringify(progressData));
+    
+    // Navigate to intro questions page
+    window.location.href = 'getIntro.html';
+}
+
+// Make function globally available
+window.goBackToIntroQuestions = goBackToIntroQuestions;
+
+// ====================================================================
+// PERMANENT ADDRESS FUNCTIONALITY
+// ====================================================================
+
+/**
+ * Toggle permanent address fields based on "Same as Current" checkbox
+ */
+function togglePermanentAddressFields(isSameAsCurrent) {
+    const permanentFields = document.getElementById('permanentAddressFields');
+    const permanentInputs = permanentFields.querySelectorAll('input, select');
+    
+    if (isSameAsCurrent) {
+        // Copy current address to permanent address
+        copyCurrentToPermanentAddress();
+        
+        // Make permanent address fields readonly
+        permanentInputs.forEach(input => {
+            input.readOnly = true;
+            input.disabled = true;
+            input.classList.add('bg-gray-100', 'cursor-not-allowed');
+        });
+    } else {
+        // Enable permanent address fields for editing
+        permanentInputs.forEach(input => {
+            input.readOnly = false;
+            input.disabled = false;
+            input.classList.remove('bg-gray-100', 'cursor-not-allowed');
+        });
+    }
+}
+
+/**
+ * Copy current address data to permanent address fields
+ */
+function copyCurrentToPermanentAddress() {
+    const addressMappings = [
+        { current: 'addressLine1', permanent: 'permanentAddressLine1' },
+        { current: 'addressLine2', permanent: 'permanentAddressLine2' },
+        { current: 'city', permanent: 'permanentCity' },
+        { current: 'pinCode', permanent: 'permanentPinCode' },
+        { current: 'state', permanent: 'permanentState' },
+        { current: 'country', permanent: 'permanentCountry' }
+    ];
+
+    addressMappings.forEach(mapping => {
+        const currentField = document.getElementById(mapping.current);
+        const permanentField = document.getElementById(mapping.permanent);
+        
+        if (currentField && permanentField) {
+            permanentField.value = currentField.value;
+        }
+    });
+}
+
+// Make function globally available for HTML onclick
+window.togglePermanentAddressFields = togglePermanentAddressFields;
+
+// ====================================================================
+// RESIDENCE AUTO-POPULATE FUNCTIONALITY
+// ====================================================================
+
+/**
+ * Handle residence auto-populate for family tree members
+ */
+function handleResidenceAutoPopulate(memberType, isChecked) {
+    console.log('Residence auto-populate:', memberType, isChecked);
+    
+    if (isChecked) {
+        copyResidenceData(memberType);
+    } else {
+        clearResidenceData(memberType);
+    }
+}
+
+/**
+ * Copy residence data based on type
+ */
+function copyResidenceData(memberType) {
+    // For grandfathers: Same as Native
+    if (memberType.includes('grandfather')) {
+        const nativeField = document.querySelector(`[name="${memberType}_native"]`);
+        const residenceField = document.querySelector(`[name="${memberType}_residence"]`);
+        
+        if (nativeField && residenceField) {
+            residenceField.value = nativeField.value;
+            residenceField.readOnly = true;
+            residenceField.classList.add('bg-gray-100');
+        }
+    }
+    // For grandmothers: Same as respective grandfather's residence
+    else if (memberType.includes('grandmother')) {
+        const grandfatherType = memberType.replace('grandmother', 'grandfather');
+        const grandfatherResidenceField = document.querySelector(`[name="${grandfatherType}_residence"]`);
+        const grandmotherResidenceField = document.querySelector(`[name="${memberType}_residence"]`);
+        
+        if (grandfatherResidenceField && grandmotherResidenceField) {
+            grandmotherResidenceField.value = grandfatherResidenceField.value;
+            grandmotherResidenceField.readOnly = true;
+            grandmotherResidenceField.classList.add('bg-gray-100');
+        }
+    }
+    // For parents: Same as Native
+    else {
+        const nativeField = document.querySelector(`[name="${memberType}_native"]`);
+        const residenceField = document.querySelector(`[name="${memberType}_residence"]`);
+        
+        if (nativeField && residenceField) {
+            residenceField.value = nativeField.value;
+            residenceField.readOnly = true;
+            residenceField.classList.add('bg-gray-100');
+        }
+    }
+}
+
+/**
+ * Clear residence data and enable editing
+ */
+function clearResidenceData(memberType) {
+    const residenceField = document.querySelector(`[name="${memberType}_residence"]`);
+    
+    if (residenceField) {
+        residenceField.value = '';
+        residenceField.readOnly = false;
+        residenceField.classList.remove('bg-gray-100');
+    }
+}
+
+// Make function globally available
+window.handleResidenceAutoPopulate = handleResidenceAutoPopulate;
 
 // ====================================================================
 // END OF PROFILE COMPLETION SCRIPT

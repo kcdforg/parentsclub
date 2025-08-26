@@ -223,6 +223,49 @@ class ProfileCompletionHandler {
             throw new Exception('Invalid email format');
         }
 
+        // Handle primary phone number - it may already include country code from frontend
+        $phoneNumber = '';
+        if (!empty($memberDetails['phone'])) {
+            // If phone already starts with +, use as is (frontend already formatted)
+            if (strpos($memberDetails['phone'], '+') === 0) {
+                $phoneNumber = $memberDetails['phone'];
+                error_log("Primary phone number already formatted: " . $phoneNumber);
+            } else {
+                // Otherwise concatenate country code and phone
+                $phoneNumber = ($memberDetails['country_code'] ?? '') . ($memberDetails['phone'] ?? '');
+                error_log("Primary phone number formatted from parts: " . $phoneNumber);
+            }
+            
+            // Log final phone number length for debugging
+            error_log("Final primary phone number length: " . strlen($phoneNumber) . " characters");
+            
+            // Ensure phone number is not too long for database column
+            if (strlen($phoneNumber) > 20) {
+                error_log("Primary phone number too long: " . $phoneNumber . " (length: " . strlen($phoneNumber) . ")");
+                throw new Exception('Primary phone number is too long');
+            }
+        }
+
+        // Handle secondary phone number (optional)
+        $secondaryPhoneNumber = '';
+        if (!empty($memberDetails['secondary_phone'])) {
+            // If secondary phone already starts with +, use as is
+            if (strpos($memberDetails['secondary_phone'], '+') === 0) {
+                $secondaryPhoneNumber = $memberDetails['secondary_phone'];
+                error_log("Secondary phone number already formatted: " . $secondaryPhoneNumber);
+            } else {
+                // Otherwise concatenate country code and phone
+                $secondaryPhoneNumber = ($memberDetails['secondary_country_code'] ?? '') . ($memberDetails['secondary_phone'] ?? '');
+                error_log("Secondary phone number formatted from parts: " . $secondaryPhoneNumber);
+            }
+            
+            // Validate secondary phone number length
+            if (strlen($secondaryPhoneNumber) > 20) {
+                error_log("Secondary phone number too long: " . $secondaryPhoneNumber . " (length: " . strlen($secondaryPhoneNumber) . ")");
+                throw new Exception('Secondary phone number is too long');
+            }
+        }
+        
         if ($profileExists) {
             // Update existing profile
             $stmt = $this->db->prepare("
@@ -233,6 +276,7 @@ class ProfileCompletionHandler {
                     gender = ?,
                     date_of_birth = ?,
                     phone = ?,
+                    secondary_phone = ?,
                     email = ?,
                     address_line1 = ?,
                     address_line2 = ?,
@@ -240,6 +284,13 @@ class ProfileCompletionHandler {
                     state = ?,
                     country = ?,
                     pin_code = ?,
+                    permanent_address_line1 = ?,
+                    permanent_address_line2 = ?,
+                    permanent_city = ?,
+                    permanent_state = ?,
+                    permanent_country = ?,
+                    permanent_pin_code = ?,
+                    same_as_current_address = ?,
                     updated_at = NOW()
                 WHERE user_id = ?
             ");
@@ -249,7 +300,8 @@ class ProfileCompletionHandler {
                 $memberDetails['second_name'] ?? '',
                 $memberDetails['gender'] ?? null,
                 $memberDetails['date_of_birth'] ?? null,
-                ($memberDetails['country_code'] ?? '') . ($memberDetails['phone'] ?? ''),
+                $phoneNumber,
+                $secondaryPhoneNumber,
                 $memberDetails['email'] ?? '',
                 $memberDetails['address_line1'] ?? '',
                 $memberDetails['address_line2'] ?? '',
@@ -257,16 +309,24 @@ class ProfileCompletionHandler {
                 $memberDetails['state'] ?? '',
                 $memberDetails['country'] ?? '',
                 $memberDetails['pin_code'] ?? '',
+                $memberDetails['permanent_address_line1'] ?? '',
+                $memberDetails['permanent_address_line2'] ?? '',
+                $memberDetails['permanent_city'] ?? '',
+                $memberDetails['permanent_state'] ?? '',
+                $memberDetails['permanent_country'] ?? '',
+                $memberDetails['permanent_pin_code'] ?? '',
+                isset($memberDetails['same_as_current']) ? 1 : 0,
                 $userId
             ]);
         } else {
             // Insert new profile
             $stmt = $this->db->prepare("
                 INSERT INTO user_profiles (
-                    user_id, name, first_name, second_name, gender, date_of_birth, phone, email,
+                    user_id, name, first_name, second_name, gender, date_of_birth, phone, secondary_phone, email,
                     address_line1, address_line2, city, state, country, pin_code,
-                    created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+                    permanent_address_line1, permanent_address_line2, permanent_city, permanent_state, permanent_country, permanent_pin_code,
+                    same_as_current_address, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
             ");
             $stmt->execute([
                 $userId,
@@ -275,14 +335,22 @@ class ProfileCompletionHandler {
                 $memberDetails['second_name'] ?? '',
                 $memberDetails['gender'] ?? null,
                 $memberDetails['date_of_birth'] ?? null,
-                ($memberDetails['country_code'] ?? '') . ($memberDetails['phone'] ?? ''),
+                $phoneNumber,
+                $secondaryPhoneNumber,
                 $memberDetails['email'] ?? '',
                 $memberDetails['address_line1'] ?? '',
                 $memberDetails['address_line2'] ?? '',
                 $memberDetails['city'] ?? '',
                 $memberDetails['state'] ?? '',
                 $memberDetails['country'] ?? '',
-                $memberDetails['pin_code'] ?? ''
+                $memberDetails['pin_code'] ?? '',
+                $memberDetails['permanent_address_line1'] ?? '',
+                $memberDetails['permanent_address_line2'] ?? '',
+                $memberDetails['permanent_city'] ?? '',
+                $memberDetails['permanent_state'] ?? '',
+                $memberDetails['permanent_country'] ?? '',
+                $memberDetails['permanent_pin_code'] ?? '',
+                isset($memberDetails['same_as_current']) ? 1 : 0
             ]);
         }
     }

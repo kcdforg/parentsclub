@@ -329,3 +329,77 @@ function showError(message) {
         document.getElementById('errorSection').classList.add('hidden');
     }, 5000);
 }
+
+// ====================================================================
+// RETURN FROM PROFILE COMPLETION HANDLING
+// ====================================================================
+
+/**
+ * Check if user returned from profile completion and show appropriate message
+ */
+function checkReturnFromProfileCompletion() {
+    const progressData = localStorage.getItem('profile_completion_progress');
+    if (progressData) {
+        try {
+            const data = JSON.parse(progressData);
+            if (data.returnTo === 'profile_completion') {
+                // Show notification that they can return to profile completion
+                showReturnMessage();
+                // Clear the progress data
+                localStorage.removeItem('profile_completion_progress');
+            }
+        } catch (error) {
+            console.error('Error parsing profile completion progress:', error);
+            localStorage.removeItem('profile_completion_progress');
+        }
+    }
+}
+
+/**
+ * Show message about returning to profile completion
+ */
+function showReturnMessage() {
+    const container = document.querySelector('.container');
+    if (container) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'bg-green-50 border border-green-200 rounded-lg p-4 mb-6';
+        messageDiv.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas fa-arrow-left text-green-600 mr-3"></i>
+                <div class="flex-1">
+                    <h3 class="font-semibold text-green-800">Returned from Profile Completion</h3>
+                    <p class="text-green-700 text-sm mt-1">
+                        You can edit your answers below and then return to complete your profile.
+                    </p>
+                </div>
+                <button onclick="returnToProfileCompletion()" 
+                        class="ml-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors">
+                    <i class="fas fa-arrow-right mr-1"></i>
+                    Back to Profile
+                </button>
+            </div>
+        `;
+        
+        // Insert after header
+        const header = container.querySelector('.text-center');
+        if (header) {
+            header.insertAdjacentElement('afterend', messageDiv);
+        }
+    }
+}
+
+/**
+ * Return to profile completion page
+ */
+function returnToProfileCompletion() {
+    window.location.href = 'profile_completion.html';
+}
+
+// Make function globally available
+window.returnToProfileCompletion = returnToProfileCompletion;
+
+// Check for return on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Add a delay to ensure page is fully loaded
+    setTimeout(checkReturnFromProfileCompletion, 500);
+});
