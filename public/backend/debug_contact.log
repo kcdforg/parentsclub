@@ -1,0 +1,32 @@
+2025-09-25 19:21:05 - save_contact_details action called
+2025-09-25 19:21:05 - saveContactDetails DEBUG - Input memberDetails: {"phone":"9998887775","country_code":"+91","secondary_phone":"9998886662","secondary_country_code":"+91","email":"gopis@gmail.com"}
+2025-09-25 19:31:23 - Raw input: {"step":"get_spouse_details"}
+2025-09-25 19:31:23 - Parsed input: {"step":"get_spouse_details"}
+2025-09-25 19:31:23 - Raw input: {"step":"get_children_details"}
+2025-09-25 19:31:23 - Parsed input: {"step":"get_children_details"}
+2025-09-25 19:31:23 - Raw input: {"step":"get_member_family_tree"}
+2025-09-25 19:31:23 - Parsed input: {"step":"get_member_family_tree"}
+2025-09-25 19:31:23 - Raw input: {"step":"get_spouse_family_tree"}
+2025-09-25 19:31:23 - Parsed input: {"step":"get_spouse_family_tree"}
+2025-09-25 19:32:11 - Raw input: {"action":"save_contact_details","memberDetails":{"phone":"9998887775","country_code":"+91","secondary_phone":"9998886663","secondary_country_code":"+91","email":"gopis@gmail.com"}}
+2025-09-25 19:32:11 - Parsed input: {"action":"save_contact_details","memberDetails":{"phone":"9998887775","country_code":"+91","secondary_phone":"9998886663","secondary_country_code":"+91","email":"gopis@gmail.com"}}
+2025-09-25 19:32:11 - save_contact_details action called
+2025-09-25 19:32:11 - saveContactDetails DEBUG - Input memberDetails: {"phone":"9998887775","country_code":"+91","secondary_phone":"9998886663","secondary_country_code":"+91","email":"gopis@gmail.com"}
+2025-09-25 19:39:09 - handleRequest() called
+2025-09-25 19:39:09 - Raw input: {"step":"get_spouse_details"}
+2025-09-25 19:39:09 - Parsed input: {"step":"get_spouse_details"}
+2025-09-25 19:39:09 - handleRequest() called
+2025-09-25 19:39:09 - Raw input: {"step":"get_children_details"}
+2025-09-25 19:39:09 - Parsed input: {"step":"get_children_details"}
+2025-09-25 19:39:09 - handleRequest() called
+2025-09-25 19:39:09 - Raw input: {"step":"get_member_family_tree"}
+2025-09-25 19:39:09 - Parsed input: {"step":"get_member_family_tree"}
+2025-09-25 19:39:09 - handleRequest() called
+2025-09-25 19:39:09 - Raw input: {"step":"get_spouse_family_tree"}
+2025-09-25 19:39:09 - Parsed input: {"step":"get_spouse_family_tree"}
+2025-09-25 19:39:37 - handleRequest() called
+2025-09-25 19:39:37 - Raw input: {"action":"save_contact_details","memberDetails":{"phone":"9998887775","country_code":"+91","secondary_phone":"9998886665","secondary_country_code":"+91","email":"gopis@gmail.com"}}
+2025-09-25 19:39:37 - Parsed input: {"action":"save_contact_details","memberDetails":{"phone":"9998887775","country_code":"+91","secondary_phone":"9998886665","secondary_country_code":"+91","email":"gopis@gmail.com"}}
+2025-09-25 19:39:37 - save_contact_details action called
+2025-09-25 19:39:37 - saveContactDetails DEBUG - Input memberDetails: {"phone":"9998887775","country_code":"+91","secondary_phone":"9998886665","secondary_country_code":"+91","email":"gopis@gmail.com"}
+2025-09-25 19:39:37 - Contact details saved successfully
