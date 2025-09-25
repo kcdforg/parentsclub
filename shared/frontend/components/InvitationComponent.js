@@ -519,9 +519,43 @@ export class InvitationComponent {
     }
 
     async createInvitation() {
-        const formData = new FormData(document.getElementById('invitationForm'));
-        const countryCode = document.getElementById('countryCode').value;
-        const phoneNumber = formData.get('phone').trim();
+        const formElement = document.getElementById('invitationForm');
+        const countryCodeElement = document.getElementById('countryCode');
+        
+        if (!formElement) {
+            this.showFormError('Form not found. Please refresh the page and try again.');
+            return;
+        }
+        
+        if (!countryCodeElement) {
+            this.showFormError('Country code selector not found. Please refresh the page and try again.');
+            return;
+        }
+        
+        const formData = new FormData(formElement);
+        const countryCode = countryCodeElement.value;
+        const phoneNumber = (formData.get('phone') || '').trim();
+        
+        // Debug: Log all form data
+        console.log('=== Debug: Form Data Collection ===');
+        console.log('Form element found:', !!document.getElementById('invitationForm'));
+        console.log('Country code element found:', !!document.getElementById('countryCode'));
+        console.log('Country code value:', countryCode);
+        console.log('Phone from formData:', formData.get('phone'));
+        console.log('Invited name from formData:', formData.get('invited_name'));
+        
+        // Log all form entries for debugging
+        console.log('All FormData entries:');
+        for (let [key, value] of formData.entries()) {
+            console.log(`  ${key}: "${value}"`);
+        }
+        
+        // Get and validate name
+        const name = formData.get('invited_name')?.trim();
+        if (!name) {
+            this.showFormError('Please enter a name');
+            return;
+        }
         
         // Validate phone number (10 digits)
         if (!/^\d{10}$/.test(phoneNumber)) {
@@ -530,9 +564,12 @@ export class InvitationComponent {
         }
         
         const invitationData = {
-            invited_name: formData.get('invited_name'),
-            invited_phone: countryCode + phoneNumber
+            name: name,
+            phone: countryCode + phoneNumber
         };
+        
+        // Debug: Log final invitation data
+        console.log('Final invitation data:', invitationData);
 
         try {
             this.showLoading(true);
@@ -580,7 +617,7 @@ export class InvitationComponent {
 
         try {
             const response = await fetch(`${this.apiBaseUrl}/invitations.php`, {
-                method: 'PUT',
+                method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${this.getSessionToken()}`,
                     'Content-Type': 'application/json'
@@ -612,7 +649,7 @@ export class InvitationComponent {
 
         try {
             const response = await fetch(`${this.apiBaseUrl}/invitations.php`, {
-                method: 'PUT',
+                method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${this.getSessionToken()}`,
                     'Content-Type': 'application/json'

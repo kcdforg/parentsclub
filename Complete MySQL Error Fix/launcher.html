@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MySQL Fix Launcher</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 50px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: rgba(255,255,255,0.1); 
+            padding: 40px; 
+            border-radius: 20px; 
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .btn { 
+            background: #ff6b6b; 
+            color: white; 
+            padding: 15px 30px; 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 18px; 
+            cursor: pointer; 
+            margin: 10px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover { 
+            background: #ff5252; 
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn-restore {
+            background: #28a745;
+        }
+        .btn-restore:hover {
+            background: #218838;
+        }
+        .status { 
+            background: rgba(255,255,255,0.2); 
+            padding: 20px; 
+            border-radius: 10px; 
+            margin: 20px 0; 
+        }
+        h1 { margin-bottom: 30px; }
+        p { margin-bottom: 20px; line-height: 1.6; }
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .action-card {
+            background: rgba(255,255,255,0.15);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        .action-card h3 {
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        .action-card p {
+            font-size: 14px;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 XAMPP MySQL Fix Tool</h1>
+        
+        <div class="status">
+            <h3>Complete MySQL Error Fix Solution</h3>
+            <p>Two powerful tools to solve all MySQL issues:</p>
+            <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+                <li>✅ Automatic MySQL fix & repair</li>
+                <li>✅ Database restoration from backup</li>
+                <li>✅ Real-time progress monitoring</li>
+                <li>✅ Complete error handling</li>
+                <li>✅ Safe data backup & recovery</li>
+            </ul>
+        </div>
+        
+        <div class="action-grid">
+            <div class="action-card">
+                <h3>⚡ Fix MySQL</h3>
+                <p>Complete MySQL repair with automatic backup, reinitialization, and verification</p>
+                <a href="mysql_web_fix.php" class="btn">🚀 Start MySQL Fix</a>
+            </div>
+            
+            <div class="action-card">
+                <h3>🔄 Restore Database</h3>
+                <p>Restore your original data from backup and verify restoration</p>
+                <a href="restore_database.php" class="btn btn-restore">🔄 Restore Data</a>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <p><strong>Choose your action:</strong></p>
+            <p style="font-size: 14px; opacity: 0.8;">Both processes are completely automated and will take 2-3 minutes to complete.</p>
+        </div>
+    </div>
+    
+    <script>
+        // Optional: Status check
+        function checkMysqlStatus() {
+            fetch('mysql_quick_fix.php?action=test')
+                .then(response => response.text())
+                .then(data => {
+                    const statusDiv = document.querySelector('.status h3');
+                    if (data.includes('✅')) {
+                        statusDiv.innerHTML = '✅ MySQL is currently working!';
+                        statusDiv.style.color = '#28a745';
+                    } else {
+                        statusDiv.innerHTML = '❌ MySQL needs to be fixed';
+                        statusDiv.style.color = '#dc3545';
+                    }
+                })
+                .catch(() => {
+                    // Ignore errors for status check
+                });
+        }
+
+        // Check status when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(checkMysqlStatus, 1000);
+        });
+    </script>
+</body>
+</html>

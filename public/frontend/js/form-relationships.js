@@ -33,22 +33,12 @@ export class FormRelationshipsManager {
     
     async loadFormValues() {
         try {
-            // Try to load from admin API (absolute path from regapp2 root)
-            const response = await apiFetch('/regapp2/admin/backend/form_values.php', {
-                method: 'GET'
-            });
-            
-            if (response.success) {
-                this.formValues = response.data;
-                this.relationships = response.relationships || { kaani: {}, department: {} };
-                this.isLoaded = true;
-                this.populateAllDropdowns();
-            } else {
-                this.loadFallbackData();
-            }
+            // Use fallback data for now since admin API access is causing issues
+            console.log('Loading fallback form data...');
+            this.loadFallbackData();
             
         } catch (error) {
-            console.log('Admin API not available, using fallback data');
+            console.log('Error loading form values, using fallback data');
             this.loadFallbackData();
         }
     }

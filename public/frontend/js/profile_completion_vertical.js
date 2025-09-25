@@ -52,6 +52,9 @@ async function initializePage() {
     // Initialize location fields (districts, post offices)
     initializeLocationFields('#memberDetailsForm');
     
+    // Setup permanent address state-district dependency
+    setupPermanentAddressStateDependency();
+    
     // Initialize sections
     initializeSections();
     
@@ -81,8 +84,19 @@ async function initializePage() {
 }
 
 function initializeEventListeners() {
-    // Section save buttons
-    document.getElementById('saveMemberDetails')?.addEventListener('click', () => saveMemberDetails());
+    // Granular save buttons for Member Details
+    document.getElementById('savePersonalDetails')?.addEventListener('click', () => savePersonalDetails());
+    document.getElementById('saveContactDetails')?.addEventListener('click', () => saveContactDetails());
+    document.getElementById('saveCurrentAddress')?.addEventListener('click', () => saveCurrentAddress());
+    document.getElementById('savePermanentAddress')?.addEventListener('click', () => savePermanentAddress());
+    document.getElementById('saveKulamDetails')?.addEventListener('click', () => saveKulamDetails());
+    document.getElementById('saveEducationDetails')?.addEventListener('click', () => saveEducationDetails());
+    document.getElementById('saveProfessionDetails')?.addEventListener('click', () => saveProfessionDetails());
+    
+    // Phone number management
+    setupPhoneNumberManagement();
+    
+    // Section save buttons  
     document.getElementById('saveSpouseDetails')?.addEventListener('click', () => saveSpouseDetails());
     document.getElementById('saveChildrenDetails')?.addEventListener('click', () => saveChildrenDetails());
     // Individual family tree save buttons are handled by components
@@ -98,22 +112,57 @@ function initializeEventListeners() {
 }
 
 function setupFormChangeListeners() {
-    // Member details form
-    const memberForm = document.getElementById('memberDetailsForm');
-    if (memberForm) {
-        memberForm.addEventListener('input', () => {
-            if (sectionSaveStates['member-details']) {
-                setSaveButtonState('saveMemberDetails', 'saveMemberText', 'save');
-                sectionSaveStates['member-details'] = false;
-            }
-        });
-        memberForm.addEventListener('change', () => {
-            if (sectionSaveStates['member-details']) {
-                setSaveButtonState('saveMemberDetails', 'saveMemberText', 'save');
-                sectionSaveStates['member-details'] = false;
-            }
-        });
-    }
+    // Personal Details listeners
+    const personalFields = ['firstName', 'secondName', 'gender', 'dateOfBirth'];
+    personalFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', () => setSaveButtonState('savePersonalDetails', 'savePersonalText', 'modified'));
+            field.addEventListener('change', () => setSaveButtonState('savePersonalDetails', 'savePersonalText', 'modified'));
+        }
+    });
+    
+    // Contact Details listeners
+    const contactFields = ['phone', 'countryCode', 'secondaryPhone', 'secondaryCountryCode', 'email'];
+    contactFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', () => setSaveButtonState('saveContactDetails', 'saveContactText', 'modified'));
+            field.addEventListener('change', () => setSaveButtonState('saveContactDetails', 'saveContactText', 'modified'));
+        }
+    });
+    
+    // Current Address listeners
+    const currentAddressFields = ['addressLine1', 'addressLine2', 'city', 'district', 'state', 'country', 'pinCode'];
+    currentAddressFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', () => setSaveButtonState('saveCurrentAddress', 'saveCurrentAddressText', 'modified'));
+            field.addEventListener('change', () => setSaveButtonState('saveCurrentAddress', 'saveCurrentAddressText', 'modified'));
+        }
+    });
+    
+    // Permanent Address listeners
+    const permanentAddressFields = ['permanentAddressLine1', 'permanentAddressLine2', 'permanentCity', 'permanentDistrict', 'permanentState', 'permanentCountry', 'permanentPinCode', 'sameAsCurrentAddress'];
+    permanentAddressFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', () => setSaveButtonState('savePermanentAddress', 'savePermanentAddressText', 'modified'));
+            field.addEventListener('change', () => setSaveButtonState('savePermanentAddress', 'savePermanentAddressText', 'modified'));
+        }
+    });
+    
+    // Kulam Details listeners
+    const kulamFields = ['kulam', 'kulamOther', 'kulaDeivam', 'kulaDeivamOther', 'kaani', 'kaaniOther'];
+    kulamFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', () => setSaveButtonState('saveKulamDetails', 'saveKulamText', 'modified'));
+            field.addEventListener('change', () => setSaveButtonState('saveKulamDetails', 'saveKulamText', 'modified'));
+        }
+    });
+    
+    // Education and Profession details will be handled when entries are added dynamically
     
     // Spouse details form
     const spouseForm = document.getElementById('spouseDetailsForm');
@@ -328,7 +377,7 @@ function addEducationEntry(type, childNumber = null) {
         <div class="education-entry border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50" id="${entryId}">
             <div class="flex justify-between items-center mb-4">
                 <h6 class="text-sm font-semibold text-gray-900">Education ${entryNumber}</h6>
-                <button type="button" class="remove-education-btn text-red-600 hover:text-red-800 p-1 rounded text-sm">
+                <button type="button" class="remove-education-btn text-red-600 hover:text-red-800 p-2 rounded-md font-medium transition-colors" title="Remove Education">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -401,11 +450,31 @@ function addEducationEntry(type, childNumber = null) {
     
     container.insertAdjacentHTML('beforeend', educationHTML);
     
+    // Show save button for member education when first entry is added
+    if (type === 'member') {
+        const saveButtonContainer = document.getElementById('educationSaveButtonContainer');
+        if (saveButtonContainer) {
+            saveButtonContainer.classList.remove('hidden');
+        }
+    }
+
     // Add event listener for remove button
     const newEntry = container.lastElementChild;
     const removeBtn = newEntry.querySelector('.remove-education-btn');
     removeBtn.addEventListener('click', () => {
         newEntry.remove();
+        
+        // Check if container is now empty and hide save button if needed
+        if (type === 'member') {
+            const memberContainer = document.getElementById('memberEducationContainer');
+            const saveButtonContainer = document.getElementById('educationSaveButtonContainer');
+            if (memberContainer && memberContainer.children.length === 0 && saveButtonContainer) {
+                saveButtonContainer.classList.add('hidden');
+            } else if (saveButtonContainer && !saveButtonContainer.classList.contains('hidden')) {
+                setSaveButtonState('saveEducationDetails', 'saveEducationText', 'modified');
+            }
+        }
+        
         // Reset save state when form is modified
         if (type === 'member' && sectionSaveStates['member-details']) {
             setSaveButtonState('saveMemberDetails', 'saveMemberText', 'save');
@@ -434,9 +503,8 @@ function addEducationEntry(type, childNumber = null) {
     const inputs = newEntry.querySelectorAll('input, select');
     inputs.forEach(input => {
         input.addEventListener('input', () => {
-            if (type === 'member' && sectionSaveStates['member-details']) {
-                setSaveButtonState('saveMemberDetails', 'saveMemberText', 'save');
-                sectionSaveStates['member-details'] = false;
+            if (type === 'member') {
+                setSaveButtonState('saveEducationDetails', 'saveEducationText', 'modified');
             } else if (type === 'spouse' && sectionSaveStates['spouse-details']) {
                 setSaveButtonState('saveSpouseDetails', 'saveSpouseText', 'save');
                 sectionSaveStates['spouse-details'] = false;
@@ -543,7 +611,7 @@ function addProfessionEntry(type, childNumber = null) {
         <div class="profession-entry border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50" id="${entryId}">
             <div class="flex justify-between items-center mb-4">
                 <h6 class="text-sm font-semibold text-gray-900">Profession ${entryNumber}</h6>
-                <button type="button" class="remove-profession-btn text-red-600 hover:text-red-800 p-1 rounded text-sm">
+                <button type="button" class="remove-profession-btn text-red-600 hover:text-red-800 p-2 rounded-md font-medium transition-colors" title="Remove Profession">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -633,11 +701,31 @@ function addProfessionEntry(type, childNumber = null) {
     
     container.insertAdjacentHTML('beforeend', professionHTML);
     
+    // Show save button for member profession when first entry is added
+    if (type === 'member') {
+        const saveButtonContainer = document.getElementById('professionSaveButtonContainer');
+        if (saveButtonContainer) {
+            saveButtonContainer.classList.remove('hidden');
+        }
+    }
+
     // Add event listener for remove button
     const newEntry = container.lastElementChild;
     const removeBtn = newEntry.querySelector('.remove-profession-btn');
     removeBtn.addEventListener('click', () => {
         newEntry.remove();
+        
+        // Check if container is now empty and hide save button if needed
+        if (type === 'member') {
+            const memberContainer = document.getElementById('memberProfessionContainer');
+            const saveButtonContainer = document.getElementById('professionSaveButtonContainer');
+            if (memberContainer && memberContainer.children.length === 0 && saveButtonContainer) {
+                saveButtonContainer.classList.add('hidden');
+            } else if (saveButtonContainer && !saveButtonContainer.classList.contains('hidden')) {
+                setSaveButtonState('saveProfessionDetails', 'saveProfessionText', 'modified');
+            }
+        }
+        
         // Reset save state when form is modified
         if (type === 'member' && sectionSaveStates['member-details']) {
             setSaveButtonState('saveMemberDetails', 'saveMemberText', 'save');
@@ -682,9 +770,8 @@ function addProfessionEntry(type, childNumber = null) {
     const inputs = newEntry.querySelectorAll('input, select');
     inputs.forEach(input => {
         input.addEventListener('input', () => {
-            if (type === 'member' && sectionSaveStates['member-details']) {
-                setSaveButtonState('saveMemberDetails', 'saveMemberText', 'save');
-                sectionSaveStates['member-details'] = false;
+            if (type === 'member') {
+                setSaveButtonState('saveProfessionDetails', 'saveProfessionText', 'modified');
             } else if (type === 'spouse' && sectionSaveStates['spouse-details']) {
                 setSaveButtonState('saveSpouseDetails', 'saveSpouseText', 'save');
                 sectionSaveStates['spouse-details'] = false;
@@ -931,6 +1018,271 @@ function validateSession() {
     }
     return true;
 }
+
+// =============================================================================
+// GRANULAR SAVE FUNCTIONS
+// =============================================================================
+
+async function savePersonalDetails() {
+    if (!validateSession()) return;
+    
+    try {
+        setSaveButtonState('savePersonalDetails', 'savePersonalText', 'save', true);
+        
+        // Validate DOB age
+        const dobInput = document.getElementById('dateOfBirth');
+        if (dobInput && dobInput.value && !validateMemberAge(dobInput.value)) {
+            throw new Error('You must be at least 18 years old to register.');
+        }
+        
+        const personalData = {
+            first_name: document.getElementById('firstName')?.value || '',
+            second_name: document.getElementById('secondName')?.value || '',
+            gender: document.getElementById('gender')?.value || '',
+            date_of_birth: document.getElementById('dateOfBirth')?.value || ''
+        };
+        
+        const response = await apiFetch('profile_completion.php', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'save_personal_details',
+                memberDetails: personalData
+            })
+        });
+        
+        if (response.success) {
+            setSaveButtonState('savePersonalDetails', 'savePersonalText', 'saved');
+            showNotification('Personal details saved successfully!', 'success');
+        } else {
+            throw new Error(response.error || 'Failed to save personal details.');
+        }
+    } catch (error) {
+        console.error('Error saving personal details:', error);
+        setSaveButtonState('savePersonalDetails', 'savePersonalText', 'save');
+        showNotification('Failed to save personal details: ' + error.message, 'error');
+    }
+}
+
+async function saveContactDetails() {
+    if (!validateSession()) return;
+    
+    try {
+        setSaveButtonState('saveContactDetails', 'saveContactText', 'save', true);
+        
+        const contactData = {
+            phone: document.getElementById('phone')?.value || '',
+            country_code: document.getElementById('countryCode')?.value || '+91',
+            secondary_phone: document.getElementById('secondaryPhone')?.value || '',
+            secondary_country_code: document.getElementById('secondaryCountryCode')?.value || '+91',
+            email: document.getElementById('email')?.value || ''
+        };
+        
+        // DEBUG: Log contact data being sent
+        console.log('🔍 CONTACT DEBUG - Data being sent:', contactData);
+        console.log('🔍 CONTACT DEBUG - Secondary phone field element:', document.getElementById('secondaryPhone'));
+        console.log('🔍 CONTACT DEBUG - Secondary phone value:', document.getElementById('secondaryPhone')?.value);
+        
+        console.log('🔍 CONTACT DEBUG - About to call API...');
+        
+        const response = await apiFetch('profile_completion.php', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'save_contact_details',
+                memberDetails: contactData
+            })
+        });
+        
+        console.log('🔍 CONTACT DEBUG - API Response received:', response);
+        console.log('🔍 CONTACT DEBUG - Response success:', response.success);
+        console.log('🔍 CONTACT DEBUG - Response error:', response.error);
+        
+        if (response.success) {
+            setSaveButtonState('saveContactDetails', 'saveContactText', 'saved');
+            showNotification('Contact details saved successfully!', 'success');
+        } else {
+            throw new Error(response.error || 'Failed to save contact details.');
+        }
+    } catch (error) {
+        console.error('Error saving contact details:', error);
+        setSaveButtonState('saveContactDetails', 'saveContactText', 'save');
+        showNotification('Failed to save contact details: ' + error.message, 'error');
+    }
+}
+
+async function saveCurrentAddress() {
+    if (!validateSession()) return;
+    
+    try {
+        setSaveButtonState('saveCurrentAddress', 'saveCurrentAddressText', 'save', true);
+        
+        const addressData = {
+            address_line1: document.getElementById('addressLine1')?.value || '',
+            address_line2: document.getElementById('addressLine2')?.value || '',
+            city: document.getElementById('city')?.value || '',
+            district: document.getElementById('district')?.value || '',
+            state: document.getElementById('state')?.value || '',
+            country: document.getElementById('country')?.value || '',
+            pin_code: document.getElementById('pinCode')?.value || ''
+        };
+        
+        const response = await apiFetch('profile_completion.php', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'save_current_address',
+                memberDetails: addressData
+            })
+        });
+        
+        if (response.success) {
+            setSaveButtonState('saveCurrentAddress', 'saveCurrentAddressText', 'saved');
+            showNotification('Current address saved successfully!', 'success');
+        } else {
+            throw new Error(response.error || 'Failed to save current address.');
+        }
+    } catch (error) {
+        console.error('Error saving current address:', error);
+        setSaveButtonState('saveCurrentAddress', 'saveCurrentAddressText', 'save');
+        showNotification('Failed to save current address: ' + error.message, 'error');
+    }
+}
+
+async function savePermanentAddress() {
+    if (!validateSession()) return;
+    
+    try {
+        setSaveButtonState('savePermanentAddress', 'savePermanentAddressText', 'save', true);
+        
+        const permanentData = {
+            permanent_address_line1: document.getElementById('permanentAddressLine1')?.value || '',
+            permanent_address_line2: document.getElementById('permanentAddressLine2')?.value || '',
+            permanent_city: document.getElementById('permanentCity')?.value || '',
+            permanent_district: document.getElementById('permanentDistrict')?.value || '',
+            permanent_state: document.getElementById('permanentState')?.value || '',
+            permanent_country: document.getElementById('permanentCountry')?.value || '',
+            permanent_pin_code: document.getElementById('permanentPinCode')?.value || '',
+            same_as_current: document.getElementById('sameAsCurrentAddress')?.checked || false
+        };
+        
+        const response = await apiFetch('profile_completion.php', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'save_permanent_address',
+                memberDetails: permanentData
+            })
+        });
+        
+        if (response.success) {
+            setSaveButtonState('savePermanentAddress', 'savePermanentAddressText', 'saved');
+            showNotification('Permanent address saved successfully!', 'success');
+        } else {
+            throw new Error(response.error || 'Failed to save permanent address.');
+        }
+    } catch (error) {
+        console.error('Error saving permanent address:', error);
+        setSaveButtonState('savePermanentAddress', 'savePermanentAddressText', 'save');
+        showNotification('Failed to save permanent address: ' + error.message, 'error');
+    }
+}
+
+async function saveKulamDetails() {
+    if (!validateSession()) return;
+    
+    try {
+        setSaveButtonState('saveKulamDetails', 'saveKulamText', 'save', true);
+        
+        const kulamData = {
+            kulam: document.getElementById('kulam')?.value || '',
+            kulam_other: document.getElementById('kulamOther')?.value || '',
+            kula_deivam: document.getElementById('kulaDeivam')?.value || '',
+            kula_deivam_other: document.getElementById('kulaDeivamOther')?.value || '',
+            kaani: document.getElementById('kaani')?.value || '',
+            kaani_other: document.getElementById('kaaniOther')?.value || ''
+        };
+        
+        const response = await apiFetch('profile_completion.php', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'save_kulam_details',
+                memberDetails: kulamData
+            })
+        });
+        
+        if (response.success) {
+            setSaveButtonState('saveKulamDetails', 'saveKulamText', 'saved');
+            showNotification('Kulam details saved successfully!', 'success');
+        } else {
+            throw new Error(response.error || 'Failed to save kulam details.');
+        }
+    } catch (error) {
+        console.error('Error saving kulam details:', error);
+        setSaveButtonState('saveKulamDetails', 'saveKulamText', 'save');
+        showNotification('Failed to save kulam details: ' + error.message, 'error');
+    }
+}
+
+async function saveEducationDetails() {
+    if (!validateSession()) return;
+    
+    try {
+        setSaveButtonState('saveEducationDetails', 'saveEducationText', 'save', true);
+        
+        // Collect education data from dynamic forms
+        const educationData = collectEducationData('member');
+        
+        const response = await apiFetch('profile_completion.php', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'save_education_details',
+                memberDetails: { education: educationData }
+            })
+        });
+        
+        if (response.success) {
+            setSaveButtonState('saveEducationDetails', 'saveEducationText', 'saved');
+            showNotification('Education details saved successfully!', 'success');
+        } else {
+            throw new Error(response.error || 'Failed to save education details.');
+        }
+    } catch (error) {
+        console.error('Error saving education details:', error);
+        setSaveButtonState('saveEducationDetails', 'saveEducationText', 'save');
+        showNotification('Failed to save education details: ' + error.message, 'error');
+    }
+}
+
+async function saveProfessionDetails() {
+    if (!validateSession()) return;
+    
+    try {
+        setSaveButtonState('saveProfessionDetails', 'saveProfessionText', 'save', true);
+        
+        // Collect profession data from dynamic forms
+        const professionData = getProfessionData('member');
+        
+        const response = await apiFetch('profile_completion.php', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'save_profession_details',
+                memberDetails: { profession: professionData }
+            })
+        });
+        
+        if (response.success) {
+            setSaveButtonState('saveProfessionDetails', 'saveProfessionText', 'saved');
+            showNotification('Profession details saved successfully!', 'success');
+        } else {
+            throw new Error(response.error || 'Failed to save profession details.');
+        }
+    } catch (error) {
+        console.error('Error saving profession details:', error);
+        setSaveButtonState('saveProfessionDetails', 'saveProfessionText', 'save');
+        showNotification('Failed to save profession details: ' + error.message, 'error');
+    }
+}
+
+// =============================================================================
+// EXISTING SAVE FUNCTIONS
+// =============================================================================
 
 async function saveMemberDetails() {
     if (!validateSession()) return;
@@ -1547,7 +1899,7 @@ function addChildForm() {
     childForm.innerHTML = `
         <div class="flex justify-between items-center mb-4">
             <h4 class="text-lg font-semibold text-gray-900">Child ${childrenCount}</h4>
-            <button type="button" class="remove-child-btn text-red-600 hover:text-red-800 p-2 rounded">
+            <button type="button" class="remove-child-btn text-red-600 hover:text-red-800 p-2 rounded-md font-medium transition-colors" title="Remove Child">
                 <i class="fas fa-trash"></i>
             </button>
         </div>
@@ -1795,6 +2147,9 @@ function populateLocationData() {
         'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
     ];
     
+    const countries = ['India', 'United States', 'United Kingdom', 'Canada', 'Australia'];
+    
+    // Populate current address dropdowns
     const stateSelect = document.getElementById('state');
     if (stateSelect) {
         states.forEach(state => {
@@ -1805,7 +2160,6 @@ function populateLocationData() {
         });
     }
     
-    const countries = ['India', 'United States', 'United Kingdom', 'Canada', 'Australia'];
     const countrySelect = document.getElementById('country');
     if (countrySelect) {
         countries.forEach(country => {
@@ -1816,6 +2170,28 @@ function populateLocationData() {
         });
         countrySelect.value = 'India';
     }
+    
+    // Populate permanent address dropdowns
+    const permanentStateSelect = document.getElementById('permanentState');
+    if (permanentStateSelect) {
+        states.forEach(state => {
+            const option = document.createElement('option');
+            option.value = state;
+            option.textContent = state;
+            permanentStateSelect.appendChild(option);
+        });
+    }
+    
+    const permanentCountrySelect = document.getElementById('permanentCountry');
+    if (permanentCountrySelect) {
+        countries.forEach(country => {
+            const option = document.createElement('option');
+            option.value = country;
+            option.textContent = country;
+            permanentCountrySelect.appendChild(option);
+        });
+        permanentCountrySelect.value = 'India';
+    }
 }
 
 async function loadExistingProfile() {
@@ -1825,6 +2201,11 @@ async function loadExistingProfile() {
         });
 
         console.log('API response data in loadExistingProfile:', data);
+        if (data.user) {
+            console.log('✅ User DOB from API:', data.user.date_of_birth);
+            console.log('✅ User email from API:', data.user.email);
+            console.log('✅ User secondary phone from API:', data.user.secondary_phone);
+        }
         
         if (data.success && data.user) {
             // Use user data from account.php
@@ -2072,10 +2453,14 @@ function populateForm(profile) {
     
     // Populate date of birth
     const dobInput = document.getElementById('dateOfBirth');
+    
     if (dobInput) {
         const dob = profile.date_of_birth;
-        if (dob && dob !== '0000-00-00' && dob !== '1900-01-01' && dob !== 'NULL') {
+        
+        if (dob && dob !== '0000-00-00' && dob !== '1900-01-01' && dob !== 'NULL' && dob !== null && dob !== '') {
             dobInput.value = dob;
+            console.log('✅ DOB field populated with:', dob);
+            
             // Update age display immediately and ensure it's visible
             updateAgeDisplay(dob, 'memberAgeField', 'ageFieldContainer');
             // Force show the age field container
@@ -2085,12 +2470,15 @@ function populateForm(profile) {
                 console.log('✅ Age field container made visible');
             }
         } else {
+            console.log('❌ DOB value is invalid/empty:', dob);
             // Leave field blank if no valid DOB in database
             dobInput.value = '';
             // Hide age display
             const ageDisplay = document.getElementById('ageFieldContainer');
             if (ageDisplay) ageDisplay.classList.add('hidden');
         }
+    } else {
+        console.log('❌ dateOfBirth input element not found!');
     }
     
     // Populate phone and email
@@ -2103,13 +2491,22 @@ function populateForm(profile) {
         'phoneToUse': phoneToUse
     });
     
-    if (emailInput && (profile.email || storedUserData.email)) {
-        const emailToUse = profile.email || storedUserData.email || '';
-        emailInput.value = emailToUse;
-        if (storedUserData.email && storedUserData.created_via_invitation) {
-            emailInput.readOnly = true;
-            emailInput.classList.add('bg-gray-50');
+    if (emailInput) {
+        if (profile.email || storedUserData.email) {
+            const emailToUse = profile.email || storedUserData.email || '';
+            emailInput.value = emailToUse;
+            console.log('✅ Email field populated with:', emailToUse);
+            
+            if (storedUserData.email && storedUserData.created_via_invitation) {
+                emailInput.readOnly = true;
+                emailInput.classList.add('bg-gray-50');
+                console.log('✅ Email made readonly (invitation user)');
+            }
+        } else {
+            console.log('❌ No email data found in profile or storedUserData');
         }
+    } else {
+        console.log('❌ email input element not found!');
     }
 
     if (phoneToUse) {
@@ -2126,14 +2523,31 @@ function populateForm(profile) {
         if (phoneInput) {
             phoneInput.value = phoneNumber;
             console.log('✅ Phone number set to:', phoneInput.value);
-            if (storedUserData.phone && storedUserData.created_via_invitation) {
-                phoneInput.readOnly = true;
-                phoneInput.classList.add('bg-gray-50');
-                console.log('✅ Phone made readonly (invitation user)');
-            }
+            // Primary phone should always be editable
+            phoneInput.readOnly = false;
+            phoneInput.classList.remove('bg-gray-50');
         }
     } else {
         console.log('❌ No phone data available to populate');
+    }
+    
+    // Handle secondary phone population
+    const secondaryPhoneToUse = profile.secondary_phone || '';
+    if (secondaryPhoneToUse) {
+        const { countryCode: secCountryCode, phoneNumber: secPhoneNumber } = parsePhoneNumber(secondaryPhoneToUse);
+        const secondaryCountryCodeSelect = document.getElementById('secondaryCountryCode');
+        const secondaryPhoneInput = document.getElementById('secondaryPhone');
+        
+        console.log('Parsed secondary phone data:', { secCountryCode, secPhoneNumber });
+        
+        if (secondaryCountryCodeSelect) {
+            secondaryCountryCodeSelect.value = secCountryCode || '+91';
+            console.log('✅ Secondary country code set to:', secondaryCountryCodeSelect.value);
+        }
+        if (secondaryPhoneInput) {
+            secondaryPhoneInput.value = secPhoneNumber;
+            console.log('✅ Secondary phone number set to:', secondaryPhoneInput.value);
+        }
     }
     
     // Handle address fields - populate from individual database columns
@@ -2143,7 +2557,6 @@ function populateForm(profile) {
     const pinCodeInput = document.getElementById('pinCode');
     const stateInput = document.getElementById('state');
     const districtInput = document.getElementById('district');
-    const postOfficeAreaInput = document.getElementById('postOfficeArea');
     const countryInput = document.getElementById('country');
     
     if (addressLine1Input) addressLine1Input.value = profile.address_line1 || '';
@@ -2151,6 +2564,7 @@ function populateForm(profile) {
     if (cityInput) cityInput.value = profile.city || '';
     if (pinCodeInput) pinCodeInput.value = profile.pin_code || '';
     if (stateInput) stateInput.value = profile.state || '';
+    if (districtInput) districtInput.value = profile.district || '';
     if (countryInput) countryInput.value = profile.country || 'India';
     
     console.log('Address fields populated:', {
@@ -2159,18 +2573,94 @@ function populateForm(profile) {
         city: profile.city,
         state: profile.state,
         district: profile.district,
-        post_office_area: profile.post_office_area,
         country: profile.country,
         pin_code: profile.pin_code
     });
     
-    // Pre-populate location fields (district and post office area) after basic fields are set
+    // Handle permanent address fields - populate from individual database columns
+    const permanentAddressLine1Input = document.getElementById('permanentAddressLine1');
+    const permanentAddressLine2Input = document.getElementById('permanentAddressLine2');
+    const permanentCityInput = document.getElementById('permanentCity');
+    const permanentDistrictInput = document.getElementById('permanentDistrict');
+    const permanentStateInput = document.getElementById('permanentState');
+    const permanentCountryInput = document.getElementById('permanentCountry');
+    const permanentPinCodeInput = document.getElementById('permanentPinCode');
+    const sameAsCurrentInput = document.getElementById('sameAsCurrentAddress');
+    
+    if (permanentAddressLine1Input) permanentAddressLine1Input.value = profile.permanent_address_line1 || '';
+    if (permanentAddressLine2Input) permanentAddressLine2Input.value = profile.permanent_address_line2 || '';
+    if (permanentCityInput) permanentCityInput.value = profile.permanent_city || '';
+    // Set permanent address dropdown values with fallback option creation
+    if (permanentStateInput && profile.permanent_state) {
+        // Check if the option exists, if not create it
+        if (!permanentStateInput.querySelector(`option[value="${profile.permanent_state}"]`)) {
+            const option = document.createElement('option');
+            option.value = profile.permanent_state;
+            option.textContent = profile.permanent_state;
+            permanentStateInput.appendChild(option);
+            console.log('Created missing state option:', profile.permanent_state);
+        }
+        permanentStateInput.value = profile.permanent_state;
+        console.log('Set permanent state to:', profile.permanent_state);
+    }
+    
+    if (permanentDistrictInput && profile.permanent_district) {
+        // Check if the option exists, if not create it
+        if (!permanentDistrictInput.querySelector(`option[value="${profile.permanent_district}"]`)) {
+            const option = document.createElement('option');
+            option.value = profile.permanent_district;
+            option.textContent = profile.permanent_district;
+            permanentDistrictInput.appendChild(option);
+            console.log('Created missing district option:', profile.permanent_district);
+        }
+        permanentDistrictInput.value = profile.permanent_district;
+        console.log('Set permanent district to:', profile.permanent_district);
+    }
+    
+    if (permanentCountryInput) {
+        if (profile.permanent_country && !permanentCountryInput.querySelector(`option[value="${profile.permanent_country}"]`)) {
+            const option = document.createElement('option');
+            option.value = profile.permanent_country;
+            option.textContent = profile.permanent_country;
+            permanentCountryInput.appendChild(option);
+        }
+        permanentCountryInput.value = profile.permanent_country || '';
+    }
+    if (permanentPinCodeInput) permanentPinCodeInput.value = profile.permanent_pin_code || '';
+    
+    // Only check "Same as Current Address" if addresses actually match
+    if (sameAsCurrentInput) {
+        const addressesMatch = (
+            (profile.permanent_address_line1 || '') === (profile.address_line1 || '') &&
+            (profile.permanent_address_line2 || '') === (profile.address_line2 || '') &&
+            (profile.permanent_city || '') === (profile.city || '') &&
+            (profile.permanent_district || '') === (profile.district || '') &&
+            (profile.permanent_state || '') === (profile.state || '') &&
+            (profile.permanent_country || '') === (profile.country || '') &&
+            (profile.permanent_pin_code || '') === (profile.pin_code || '')
+        );
+        
+        sameAsCurrentInput.checked = addressesMatch;
+        console.log('Same as current address checked:', addressesMatch, 'based on address comparison');
+    }
+    
+    console.log('Permanent address fields populated:', {
+        permanent_address_line1: profile.permanent_address_line1,
+        permanent_address_line2: profile.permanent_address_line2,
+        permanent_city: profile.permanent_city,
+        permanent_state: profile.permanent_state,
+        permanent_district: profile.permanent_district,
+        permanent_country: profile.permanent_country,
+        permanent_pin_code: profile.permanent_pin_code,
+        same_as_current_address: profile.same_as_current_address
+    });
+    
+    // Pre-populate location fields (district) after basic fields are set
     setTimeout(async () => {
-        if (profile.state || profile.district || profile.post_office_area) {
+        if (profile.state || profile.district) {
             await prePopulateLocationFields({
                 state: profile.state,
                 district: profile.district,
-                post_office_area: profile.post_office_area,
                 pin_code: profile.pin_code
             }, '#memberDetailsForm');
         }
@@ -2328,11 +2818,11 @@ function initializeDOBFields() {
                 // Hide age display when field is empty
                 const ageDisplay = document.getElementById('ageFieldContainer');
                 if (ageDisplay) ageDisplay.classList.add('hidden');
-                const dobHelp = document.getElementById('dobHelp');
-                if (dobHelp) {
-                    dobHelp.textContent = '📅 Please enter your actual date of birth';
-                    dobHelp.className = 'text-sm text-blue-600 mt-1';
-                }
+                    const dobHelp = document.getElementById('dobHelp');
+                    if (dobHelp) {
+                        dobHelp.textContent = '';
+                        dobHelp.className = 'text-sm text-blue-600 mt-1';
+                    }
             }
             debouncedAutoPopulateSpouseGender();
         });
@@ -2361,11 +2851,11 @@ function initializeDOBFields() {
                 // Hide age display when field is empty
                 const spouseAgeDisplay = document.getElementById('spouseAgeFieldContainer');
                 if (spouseAgeDisplay) spouseAgeDisplay.classList.add('hidden');
-                const spouseDobHelp = document.getElementById('spouseDobHelp');
-                if (spouseDobHelp) {
-                    spouseDobHelp.textContent = '📅 Please enter the actual date of birth';
-                    spouseDobHelp.className = 'text-sm text-blue-600 mt-1';
-                }
+                    const spouseDobHelp = document.getElementById('spouseDobHelp');
+                    if (spouseDobHelp) {
+                        spouseDobHelp.textContent = '';
+                        spouseDobHelp.className = 'text-sm text-blue-600 mt-1';
+                    }
             }
         });
     }
@@ -2437,9 +2927,10 @@ function validateMemberAge(dateOfBirth) {
         }
         return false;
     } else {
+        // For valid age (>=18), hide the inline age display since we have a dedicated age field
         if (dobHelp) {
-            dobHelp.textContent = `✅ Age: ${age} years`;
-            dobHelp.className = 'text-sm text-green-600 mt-1';
+            dobHelp.textContent = '';
+            dobHelp.className = 'text-sm text-blue-600 mt-1';
         }
         return true;
     }
@@ -2458,12 +2949,20 @@ function validateSpouseAge(dateOfBirth) {
     }
     
     const spouseDobHelp = document.getElementById('spouseDobHelp');
-    if (spouseDobHelp) {
-        spouseDobHelp.textContent = `✅ Age: ${age} years`;
-        spouseDobHelp.className = 'text-sm text-green-600 mt-1';
+    if (age < 18) {
+        if (spouseDobHelp) {
+            spouseDobHelp.textContent = `❌ Spouse must be at least 18 years old. Current age: ${age}`;
+            spouseDobHelp.className = 'text-sm text-red-600 mt-1';
+        }
+        return false;
+    } else {
+        // For valid age (>=18), hide the inline age display since we have a dedicated age field
+        if (spouseDobHelp) {
+            spouseDobHelp.textContent = '';
+            spouseDobHelp.className = 'text-sm text-blue-600 mt-1';
+        }
+        return true;
     }
-    
-    return true;
 }
 
 function autoPopulateSpouseGender() {
@@ -2474,13 +2973,13 @@ function autoPopulateSpouseGender() {
     
     console.log('Auto-populating spouse gender. Member gender:', memberGender);
     
-    // Set opposite gender for spouse (only for Male/Female, not Others)
-    if (memberGender === 'Male') {
-        spouseGenderSelect.value = 'Female';
-        console.log('Set spouse gender to Female');
-    } else if (memberGender === 'Female') {
-        spouseGenderSelect.value = 'Male';
-        console.log('Set spouse gender to Male');
+    // Set opposite gender for spouse (only for male/female, not others)
+    if (memberGender === 'male') {
+        spouseGenderSelect.value = 'female';
+        console.log('Set spouse gender to female');
+    } else if (memberGender === 'female') {
+        spouseGenderSelect.value = 'male';
+        console.log('Set spouse gender to male');
     }
     // For "others" gender, leave spouse gender empty for manual selection
 }
@@ -2495,15 +2994,27 @@ function setSaveButtonState(buttonId, textId, state, isLoading = false) {
     if (isLoading) {
         button.disabled = true;
         textElement.textContent = 'Saving...';
-        button.className = 'bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors';
-    } else if (state === 'saved') {
+        button.className = 'bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm';
+    } else {
         button.disabled = false;
-        textElement.textContent = 'Saved';
-        button.className = 'bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium transition-colors';
-    } else { // state === 'save'
-        button.disabled = false;
-        textElement.textContent = 'Save';
-        button.className = 'bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-medium transition-colors';
+        
+        switch(state) {
+            case 'save': // Unaltered form data - Grey
+                textElement.textContent = 'Save';
+                button.className = 'bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm';
+                break;
+            case 'modified': // Altered form data - Blue
+                textElement.textContent = 'Save';
+                button.className = 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm';
+                break;
+            case 'saved': // Saved form data - Green
+                textElement.textContent = 'Saved';
+                button.className = 'bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm';
+                break;
+            default: // Fallback to save state
+                textElement.textContent = 'Save';
+                button.className = 'bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm';
+        }
     }
 }
 
@@ -3081,6 +3592,130 @@ function togglePermanentAddressFields(isSameAsCurrent) {
     }
 }
 
+// ====================================================================
+// PHONE NUMBER MANAGEMENT
+// ====================================================================
+
+/**
+ * Setup phone number management functionality
+ */
+function setupPhoneNumberManagement() {
+    const primaryPhone = document.getElementById('phone');
+    const secondaryPhone = document.getElementById('secondaryPhone');
+    const setAsPrimaryBtn = document.getElementById('setAsPrimaryBtn');
+    
+    // Enable/disable "Set as Primary" button based on secondary phone input
+    if (secondaryPhone && setAsPrimaryBtn) {
+        secondaryPhone.addEventListener('input', function() {
+            if (this.value.trim() && this.value !== primaryPhone?.value) {
+                setAsPrimaryBtn.disabled = false;
+                setAsPrimaryBtn.classList.remove('disabled:text-gray-400', 'disabled:cursor-not-allowed');
+            } else {
+                setAsPrimaryBtn.disabled = true;
+                setAsPrimaryBtn.classList.add('disabled:text-gray-400', 'disabled:cursor-not-allowed');
+            }
+        });
+        
+        // Handle "Set as Primary" button click
+        setAsPrimaryBtn.addEventListener('click', async function() {
+            await swapPrimaryAndSecondaryPhone();
+        });
+    }
+}
+
+/**
+ * Swap primary and secondary phone numbers
+ */
+async function swapPrimaryAndSecondaryPhone() {
+    const primaryPhone = document.getElementById('phone');
+    const secondaryPhone = document.getElementById('secondaryPhone');
+    const primaryCountry = document.getElementById('countryCode');
+    const secondaryCountry = document.getElementById('secondaryCountryCode');
+    const setAsPrimaryBtn = document.getElementById('setAsPrimaryBtn');
+    
+    if (!primaryPhone || !secondaryPhone || !secondaryPhone.value.trim()) {
+        return;
+    }
+    
+    // Show confirmation dialog
+    const confirmed = confirm(
+        `Are you sure you want to set ${secondaryCountry.value} ${secondaryPhone.value} as your primary phone number?\n\n` +
+        `Current primary: ${primaryCountry.value} ${primaryPhone.value}\n` +
+        `Will become secondary: ${primaryCountry.value} ${primaryPhone.value}`
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+        // Save the swap to database
+        const memberDetails = {
+            phone: secondaryPhone.value,
+            country_code: secondaryCountry.value,
+            secondary_phone: primaryPhone.value,
+            secondary_country_code: primaryCountry.value
+        };
+        
+        setAsPrimaryBtn.textContent = 'Swapping...';
+        setAsPrimaryBtn.disabled = true;
+        
+        const response = await apiFetch('profile_completion.php', {
+            action: 'save_contact_details',
+            memberDetails: memberDetails
+        });
+        
+        if (response.success) {
+            // Swap the values in the UI
+            const tempPhone = primaryPhone.value;
+            const tempCountry = primaryCountry.value;
+            
+            primaryPhone.value = secondaryPhone.value;
+            primaryCountry.value = secondaryCountry.value;
+            secondaryPhone.value = tempPhone;
+            secondaryCountry.value = tempCountry;
+            
+            // Reset button state
+            setAsPrimaryBtn.textContent = 'Set as Primary';
+            setAsPrimaryBtn.disabled = true;
+            
+            // Show success message
+            showToast('Phone numbers swapped successfully!', 'success');
+            
+            // Mark contact details as saved
+            setSaveButtonState('saveContactDetails', 'saveContactText', 'saved');
+            
+        } else {
+            throw new Error(response.error || 'Failed to swap phone numbers');
+        }
+        
+    } catch (error) {
+        console.error('Error swapping phone numbers:', error);
+        setAsPrimaryBtn.textContent = 'Set as Primary';
+        setAsPrimaryBtn.disabled = false;
+        showToast('Error swapping phone numbers: ' + error.message, 'error');
+    }
+}
+
+/**
+ * Show toast message
+ */
+function showToast(message, type = 'info') {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-medium z-50 ${
+        type === 'success' ? 'bg-green-600' : 
+        type === 'error' ? 'bg-red-600' : 
+        'bg-blue-600'
+    }`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
 /**
  * Copy current address data to permanent address fields
  */
@@ -3089,9 +3724,10 @@ function copyCurrentToPermanentAddress() {
         { current: 'addressLine1', permanent: 'permanentAddressLine1' },
         { current: 'addressLine2', permanent: 'permanentAddressLine2' },
         { current: 'city', permanent: 'permanentCity' },
-        { current: 'pinCode', permanent: 'permanentPinCode' },
         { current: 'state', permanent: 'permanentState' },
-        { current: 'country', permanent: 'permanentCountry' }
+        { current: 'district', permanent: 'permanentDistrict' },
+        { current: 'country', permanent: 'permanentCountry' },
+        { current: 'pinCode', permanent: 'permanentPinCode' }
     ];
 
     addressMappings.forEach(mapping => {
@@ -3100,12 +3736,80 @@ function copyCurrentToPermanentAddress() {
         
         if (currentField && permanentField) {
             permanentField.value = currentField.value;
+            
+            // If it's a select field and the option doesn't exist, create it
+            if (permanentField.tagName === 'SELECT' && currentField.value && !permanentField.querySelector(`option[value="${currentField.value}"]`)) {
+                const option = document.createElement('option');
+                option.value = currentField.value;
+                option.textContent = currentField.value;
+                permanentField.appendChild(option);
+                permanentField.value = currentField.value;
+            }
+            
+            // Enable the permanent district field if state is selected
+            if (mapping.permanent === 'permanentState' && currentField.value) {
+                const permanentDistrictField = document.getElementById('permanentDistrict');
+                if (permanentDistrictField) {
+                    permanentDistrictField.disabled = false;
+                }
+            }
         }
     });
 }
 
 // Make function globally available for HTML onclick
 window.togglePermanentAddressFields = togglePermanentAddressFields;
+
+/**
+ * Setup state-district dependency for permanent address
+ */
+function setupPermanentAddressStateDependency() {
+    const permanentStateSelect = document.getElementById('permanentState');
+    const permanentDistrictSelect = document.getElementById('permanentDistrict');
+    
+    if (!permanentStateSelect || !permanentDistrictSelect) {
+        console.log('Permanent address state/district selects not found');
+        return;
+    }
+    
+    // Districts data (simplified for now - can be expanded)
+    const stateDistrictsMap = {
+        'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Salem', 'Tiruchirappalli', 'Tirunelveli', 'Erode', 'Vellore', 'Thoothukudi', 'Dindigul'],
+        'Karnataka': ['Bangalore', 'Mysore', 'Hubli', 'Mangalore', 'Belgaum', 'Gulbarga', 'Shimoga', 'Tumkur', 'Bellary', 'Bijapur'],
+        'Kerala': ['Thiruvananthapuram', 'Kochi', 'Kozhikode', 'Kollam', 'Thrissur', 'Palakkad', 'Alappuzha', 'Kottayam', 'Kannur', 'Kasaragod'],
+        'Andhra Pradesh': ['Visakhapatnam', 'Vijayawada', 'Guntur', 'Nellore', 'Kurnool', 'Rajahmundry', 'Tirupati', 'Kakinada', 'Anantapur', 'Vizianagaram'],
+        'Telangana': ['Hyderabad', 'Warangal', 'Nizamabad', 'Khammam', 'Karimnagar', 'Ramagundam', 'Mahbubnagar', 'Nalgonda', 'Adilabad', 'Medak'],
+        'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Nashik', 'Aurangabad', 'Solapur', 'Amravati', 'Kolhapur', 'Sangli', 'Jalgaon']
+    };
+    
+    permanentStateSelect.addEventListener('change', function() {
+        const selectedState = this.value;
+        
+        // Clear existing district options
+        permanentDistrictSelect.innerHTML = '<option value="">Select District</option>';
+        
+        if (selectedState && stateDistrictsMap[selectedState]) {
+            // Enable district dropdown
+            permanentDistrictSelect.disabled = false;
+            
+            // Populate districts for selected state
+            stateDistrictsMap[selectedState].forEach(district => {
+                const option = document.createElement('option');
+                option.value = district;
+                option.textContent = district;
+                permanentDistrictSelect.appendChild(option);
+            });
+            
+            console.log(`✅ Populated ${stateDistrictsMap[selectedState].length} districts for ${selectedState}`);
+        } else {
+            // Disable district dropdown if no state selected
+            permanentDistrictSelect.disabled = true;
+            console.log('🔒 District dropdown disabled - no state selected');
+        }
+    });
+    
+    console.log('✅ Permanent address state-district dependency setup complete');
+}
 
 // ====================================================================
 // RESIDENCE AUTO-POPULATE FUNCTIONALITY

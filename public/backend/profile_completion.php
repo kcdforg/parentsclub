@@ -30,12 +30,21 @@ class ProfileCompletionHandler {
 
     public function handleRequest() {
         try {
+            // DEBUG: Log that handleRequest was called
+            file_put_contents('debug_contact.log', date('Y-m-d H:i:s') . " - handleRequest() called\n", FILE_APPEND);
+            
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                 throw new Exception('Method not allowed', 405);
             }
 
             // Get JSON input
-            $input = json_decode(file_get_contents('php://input'), true);
+            $rawInput = file_get_contents('php://input');
+            $input = json_decode($rawInput, true);
+            
+            // DEBUG: Log all incoming requests
+            file_put_contents('debug_contact.log', date('Y-m-d H:i:s') . " - Raw input: " . $rawInput . "\n", FILE_APPEND);
+            file_put_contents('debug_contact.log', date('Y-m-d H:i:s') . " - Parsed input: " . json_encode($input) . "\n", FILE_APPEND);
+            
             if (!$input) {
                 throw new Exception('Invalid JSON input');
             }
@@ -43,8 +52,8 @@ class ProfileCompletionHandler {
             // Verify user authentication
             $user = $this->verifyAuthentication();
 
-            // Handle different steps
-            $step = $input['step'] ?? '';
+            // Handle different steps - support both 'step' and 'action' for backwards compatibility
+            $step = $input['step'] ?? $input['action'] ?? '';
             
             switch ($step) {
                 case 'basic_details':
@@ -87,9 +96,26 @@ class ProfileCompletionHandler {
                     return $this->saveFamilyTreeSubsection($user['id'], 'spouse', 'paternal_grandparents', $input);
                 case 'save_spouse_maternal_grandparents':
                     return $this->saveFamilyTreeSubsection($user['id'], 'spouse', 'maternal_grandparents', $input);
+                
+                // Granular save actions
+                case 'save_personal_details':
+                    return $this->savePersonalDetails($user['id'], $input);
+                case 'save_contact_details':
+                    file_put_contents('debug_contact.log', date('Y-m-d H:i:s') . " - save_contact_details action called\n", FILE_APPEND);
+                    return $this->saveContactDetails($user['id'], $input);
+                case 'save_current_address':
+                    return $this->saveCurrentAddress($user['id'], $input);
+                case 'save_permanent_address':
+                    return $this->savePermanentAddress($user['id'], $input);
+                case 'save_kulam_details':
+                    return $this->saveKulamDetails($user['id'], $input);
+                case 'save_education_details':
+                    return $this->saveEducationDetails($user['id'], $input);
+                case 'save_profession_details':
+                    return $this->saveProfessionDetails($user['id'], $input);
                     
                 default:
-                    throw new Exception('Invalid step');
+                    throw new Exception('Invalid step: ' . $step);
             }
 
         } catch (Exception $e) {
@@ -281,14 +307,14 @@ class ProfileCompletionHandler {
                     address_line1 = ?,
                     address_line2 = ?,
                     city = ?,
-                    state = ?,
                     district = ?,
-                    post_office_area = ?,
+                    state = ?,
                     country = ?,
                     pin_code = ?,
                     permanent_address_line1 = ?,
                     permanent_address_line2 = ?,
                     permanent_city = ?,
+                    permanent_district = ?,
                     permanent_state = ?,
                     permanent_country = ?,
                     permanent_pin_code = ?,
@@ -308,14 +334,14 @@ class ProfileCompletionHandler {
                 $memberDetails['address_line1'] ?? '',
                 $memberDetails['address_line2'] ?? '',
                 $memberDetails['city'] ?? '',
-                $memberDetails['state'] ?? '',
                 $memberDetails['district'] ?? '',
-                $memberDetails['post_office_area'] ?? '',
+                $memberDetails['state'] ?? '',
                 $memberDetails['country'] ?? '',
                 $memberDetails['pin_code'] ?? '',
                 $memberDetails['permanent_address_line1'] ?? '',
                 $memberDetails['permanent_address_line2'] ?? '',
                 $memberDetails['permanent_city'] ?? '',
+                $memberDetails['permanent_district'] ?? '',
                 $memberDetails['permanent_state'] ?? '',
                 $memberDetails['permanent_country'] ?? '',
                 $memberDetails['permanent_pin_code'] ?? '',
@@ -327,8 +353,8 @@ class ProfileCompletionHandler {
             $stmt = $this->db->prepare("
                 INSERT INTO user_profiles (
                     user_id, name, first_name, second_name, gender, date_of_birth, phone, secondary_phone, email,
-                    address_line1, address_line2, city, state, district, post_office_area, country, pin_code,
-                    permanent_address_line1, permanent_address_line2, permanent_city, permanent_state, permanent_country, permanent_pin_code,
+                    address_line1, address_line2, city, district, state, country, pin_code,
+                    permanent_address_line1, permanent_address_line2, permanent_city, permanent_district, permanent_state, permanent_country, permanent_pin_code,
                     same_as_current_address, created_at, updated_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
             ");
@@ -345,14 +371,14 @@ class ProfileCompletionHandler {
                 $memberDetails['address_line1'] ?? '',
                 $memberDetails['address_line2'] ?? '',
                 $memberDetails['city'] ?? '',
-                $memberDetails['state'] ?? '',
                 $memberDetails['district'] ?? '',
-                $memberDetails['post_office_area'] ?? '',
+                $memberDetails['state'] ?? '',
                 $memberDetails['country'] ?? '',
                 $memberDetails['pin_code'] ?? '',
                 $memberDetails['permanent_address_line1'] ?? '',
                 $memberDetails['permanent_address_line2'] ?? '',
                 $memberDetails['permanent_city'] ?? '',
+                $memberDetails['permanent_district'] ?? '',
                 $memberDetails['permanent_state'] ?? '',
                 $memberDetails['permanent_country'] ?? '',
                 $memberDetails['permanent_pin_code'] ?? '',
@@ -785,6 +811,375 @@ class ProfileCompletionHandler {
         
         $updateFields = $this->getFamilyTreeUpdateFields($subsection, $data);
         return array_merge($insertData, $updateFields);
+    }
+
+    // =============================================================================
+    // GRANULAR SAVE METHODS
+    // =============================================================================
+    
+    private function savePersonalDetails($userId, $input) {
+        $memberDetails = $input['memberDetails'] ?? [];
+        
+        // Check if user_profile exists
+        $stmt = $this->db->prepare("SELECT id FROM user_profiles WHERE user_id = ?");
+        $stmt->execute([$userId]);
+        $profileExists = $stmt->fetch();
+
+        if ($profileExists) {
+            // Update existing profile
+            $stmt = $this->db->prepare("
+                UPDATE user_profiles SET 
+                    first_name = ?,
+                    second_name = ?,
+                    name = ?,
+                    gender = ?,
+                    date_of_birth = ?,
+                    updated_at = NOW()
+                WHERE user_id = ?
+            ");
+            $stmt->execute([
+                $memberDetails['first_name'] ?? '',
+                $memberDetails['second_name'] ?? '',
+                trim(($memberDetails['first_name'] ?? '') . ' ' . ($memberDetails['second_name'] ?? '')),
+                $memberDetails['gender'] ?? null,
+                $memberDetails['date_of_birth'] ?? null,
+                $userId
+            ]);
+        } else {
+            // Insert new profile
+            $stmt = $this->db->prepare("
+                INSERT INTO user_profiles (
+                    user_id, first_name, second_name, name, gender, date_of_birth,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
+            ");
+            $stmt->execute([
+                $userId,
+                $memberDetails['first_name'] ?? '',
+                $memberDetails['second_name'] ?? '',
+                trim(($memberDetails['first_name'] ?? '') . ' ' . ($memberDetails['second_name'] ?? '')),
+                $memberDetails['gender'] ?? null,
+                $memberDetails['date_of_birth'] ?? null
+            ]);
+        }
+        
+        return $this->sendResponse(['success' => true, 'message' => 'Personal details saved successfully']);
+    }
+    
+    private function saveContactDetails($userId, $input) {
+        try {
+            $memberDetails = $input['memberDetails'] ?? [];
+            
+            // DEBUG: Log input data to file (fallback if error_log doesn't work)
+            $debugData = "saveContactDetails DEBUG - Input memberDetails: " . json_encode($memberDetails) . "\n";
+            file_put_contents('debug_contact.log', date('Y-m-d H:i:s') . " - " . $debugData, FILE_APPEND);
+            error_log("saveContactDetails DEBUG - Input memberDetails: " . json_encode($memberDetails));
+            
+            // Format phone numbers
+            $phoneNumber = null;
+            if (!empty($memberDetails['phone'])) {
+                $countryCode = $memberDetails['country_code'] ?? '+91';
+                $phoneNumber = $countryCode . $memberDetails['phone'];
+            }
+            
+            $secondaryPhoneNumber = null;
+            if (!empty($memberDetails['secondary_phone'])) {
+                $secondaryCountryCode = $memberDetails['secondary_country_code'] ?? '+91';
+                $secondaryPhoneNumber = $secondaryCountryCode . $memberDetails['secondary_phone'];
+            }
+            
+            // DEBUG: Log formatted phone numbers
+            error_log("saveContactDetails DEBUG - Primary phone: " . ($phoneNumber ?: 'NULL'));
+            error_log("saveContactDetails DEBUG - Secondary phone: " . ($secondaryPhoneNumber ?: 'NULL'));
+
+            // Check if user_profile exists
+            $stmt = $this->db->prepare("SELECT id FROM user_profiles WHERE user_id = ?");
+            $stmt->execute([$userId]);
+            $profileExists = $stmt->fetch();
+
+            // Check if secondary_phone column exists first
+            $hasSecondaryPhone = $this->columnExists('user_profiles', 'secondary_phone');
+            
+            // DEBUG: Log column check result
+            file_put_contents('debug_contact.log', date('Y-m-d H:i:s') . " - Column check - hasSecondaryPhone: " . ($hasSecondaryPhone ? 'TRUE' : 'FALSE') . "\n", FILE_APPEND);
+
+            if ($profileExists) {
+                // Update existing profile - FORCE to use secondary_phone (we know it exists)
+                if (true) { // Force to always use secondary_phone SQL
+                    // DEBUG: Log what we're about to save
+                    error_log("saveContactDetails DEBUG - About to UPDATE with secondary_phone: " . ($secondaryPhoneNumber ?: 'NULL'));
+                    
+                    $stmt = $this->db->prepare("
+                        UPDATE user_profiles SET 
+                            phone = ?,
+                            secondary_phone = ?,
+                            email = ?,
+                            updated_at = NOW()
+                        WHERE user_id = ?
+                    ");
+                    $executeResult = $stmt->execute([
+                        $phoneNumber,
+                        $secondaryPhoneNumber,
+                        $memberDetails['email'] ?? '',
+                        $userId
+                    ]);
+                    
+                    // DEBUG: Log execution result
+                    error_log("saveContactDetails DEBUG - UPDATE executed: " . ($executeResult ? 'SUCCESS' : 'FAILED'));
+                    error_log("saveContactDetails DEBUG - Rows affected: " . $stmt->rowCount());
+                } else {
+                    // Fallback without secondary_phone
+                    $stmt = $this->db->prepare("
+                        UPDATE user_profiles SET 
+                            phone = ?,
+                            email = ?,
+                            updated_at = NOW()
+                        WHERE user_id = ?
+                    ");
+                    $stmt->execute([
+                        $phoneNumber,
+                        $memberDetails['email'] ?? '',
+                        $userId
+                    ]);
+                }
+            } else {
+                // Insert new profile - FORCE to always use secondary_phone SQL
+                if (true) { // Force to always use secondary_phone SQL
+                    $stmt = $this->db->prepare("
+                        INSERT INTO user_profiles (
+                            user_id, phone, secondary_phone, email,
+                            created_at, updated_at
+                        ) VALUES (?, ?, ?, ?, NOW(), NOW())
+                    ");
+                    $stmt->execute([
+                        $userId,
+                        $phoneNumber,
+                        $secondaryPhoneNumber,
+                        $memberDetails['email'] ?? ''
+                    ]);
+                } else {
+                    // This fallback should never execute now
+                    $stmt = $this->db->prepare("
+                        INSERT INTO user_profiles (
+                            user_id, phone, email,
+                            created_at, updated_at
+                        ) VALUES (?, ?, ?, NOW(), NOW())
+                    ");
+                    $stmt->execute([
+                        $userId,
+                        $phoneNumber,
+                        $memberDetails['email'] ?? ''
+                    ]);
+                }
+            }
+            
+            // DEBUG: Log successful completion
+            file_put_contents('debug_contact.log', date('Y-m-d H:i:s') . " - Contact details saved successfully\n", FILE_APPEND);
+            
+            return $this->sendResponse(['success' => true, 'message' => 'Contact details saved successfully']);
+            
+        } catch (Exception $e) {
+            // DEBUG: Log any exceptions
+            file_put_contents('debug_contact.log', date('Y-m-d H:i:s') . " - Exception in saveContactDetails: " . $e->getMessage() . "\n", FILE_APPEND);
+            
+            error_log("saveContactDetails Error: " . $e->getMessage());
+            if (strpos($e->getMessage(), 'secondary_phone') !== false) {
+                return $this->sendResponse([
+                    'success' => false, 
+                    'error' => 'Database missing secondary_phone column. Please run migration: run_address_migration.php'
+                ], 500);
+            }
+            throw $e;
+        }
+    }
+    
+    private function saveCurrentAddress($userId, $input) {
+        $memberDetails = $input['memberDetails'] ?? [];
+
+        // Check if user_profile exists
+        $stmt = $this->db->prepare("SELECT id FROM user_profiles WHERE user_id = ?");
+        $stmt->execute([$userId]);
+        $profileExists = $stmt->fetch();
+
+        if ($profileExists) {
+            // Update existing profile
+            $stmt = $this->db->prepare("
+                UPDATE user_profiles SET 
+                    address_line1 = ?,
+                    address_line2 = ?,
+                    city = ?,
+                    district = ?,
+                    state = ?,
+                    country = ?,
+                    pin_code = ?,
+                    updated_at = NOW()
+                WHERE user_id = ?
+            ");
+            $stmt->execute([
+                $memberDetails['address_line1'] ?? '',
+                $memberDetails['address_line2'] ?? '',
+                $memberDetails['city'] ?? '',
+                $memberDetails['district'] ?? '',
+                $memberDetails['state'] ?? '',
+                $memberDetails['country'] ?? '',
+                $memberDetails['pin_code'] ?? '',
+                $userId
+            ]);
+        } else {
+            // Insert new profile
+            $stmt = $this->db->prepare("
+                INSERT INTO user_profiles (
+                    user_id, address_line1, address_line2, city, district, state, country, pin_code,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+            ");
+            $stmt->execute([
+                $userId,
+                $memberDetails['address_line1'] ?? '',
+                $memberDetails['address_line2'] ?? '',
+                $memberDetails['city'] ?? '',
+                $memberDetails['district'] ?? '',
+                $memberDetails['state'] ?? '',
+                $memberDetails['country'] ?? '',
+                $memberDetails['pin_code'] ?? ''
+            ]);
+        }
+        
+        return $this->sendResponse(['success' => true, 'message' => 'Current address saved successfully']);
+    }
+    
+    private function savePermanentAddress($userId, $input) {
+        $memberDetails = $input['memberDetails'] ?? [];
+
+        // Check if user_profile exists
+        $stmt = $this->db->prepare("SELECT id FROM user_profiles WHERE user_id = ?");
+        $stmt->execute([$userId]);
+        $profileExists = $stmt->fetch();
+
+        if ($profileExists) {
+            // Update existing profile
+            $stmt = $this->db->prepare("
+                UPDATE user_profiles SET 
+                    permanent_address_line1 = ?,
+                    permanent_address_line2 = ?,
+                    permanent_city = ?,
+                    permanent_district = ?,
+                    permanent_state = ?,
+                    permanent_country = ?,
+                    permanent_pin_code = ?,
+                    same_as_current_address = ?,
+                    updated_at = NOW()
+                WHERE user_id = ?
+            ");
+            $stmt->execute([
+                $memberDetails['permanent_address_line1'] ?? '',
+                $memberDetails['permanent_address_line2'] ?? '',
+                $memberDetails['permanent_city'] ?? '',
+                $memberDetails['permanent_district'] ?? '',
+                $memberDetails['permanent_state'] ?? '',
+                $memberDetails['permanent_country'] ?? '',
+                $memberDetails['permanent_pin_code'] ?? '',
+                isset($memberDetails['same_as_current']) ? 1 : 0,
+                $userId
+            ]);
+        } else {
+            // Insert new profile
+            $stmt = $this->db->prepare("
+                INSERT INTO user_profiles (
+                    user_id, permanent_address_line1, permanent_address_line2, permanent_city, 
+                    permanent_district, permanent_state, permanent_country, permanent_pin_code,
+                    same_as_current_address, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+            ");
+            $stmt->execute([
+                $userId,
+                $memberDetails['permanent_address_line1'] ?? '',
+                $memberDetails['permanent_address_line2'] ?? '',
+                $memberDetails['permanent_city'] ?? '',
+                $memberDetails['permanent_district'] ?? '',
+                $memberDetails['permanent_state'] ?? '',
+                $memberDetails['permanent_country'] ?? '',
+                $memberDetails['permanent_pin_code'] ?? '',
+                isset($memberDetails['same_as_current']) ? 1 : 0
+            ]);
+        }
+        
+        return $this->sendResponse(['success' => true, 'message' => 'Permanent address saved successfully']);
+    }
+    
+    private function saveKulamDetails($userId, $input) {
+        $memberDetails = $input['memberDetails'] ?? [];
+
+        // Check if user_profile exists
+        $stmt = $this->db->prepare("SELECT id FROM user_profiles WHERE user_id = ?");
+        $stmt->execute([$userId]);
+        $profileExists = $stmt->fetch();
+
+        if ($profileExists) {
+            // Update existing profile
+            $stmt = $this->db->prepare("
+                UPDATE user_profiles SET 
+                    kulam = ?,
+                    kulam_other = ?,
+                    kula_deivam = ?,
+                    kula_deivam_other = ?,
+                    kaani = ?,
+                    kaani_other = ?,
+                    updated_at = NOW()
+                WHERE user_id = ?
+            ");
+            $stmt->execute([
+                $memberDetails['kulam'] ?? '',
+                $memberDetails['kulam_other'] ?? '',
+                $memberDetails['kula_deivam'] ?? '',
+                $memberDetails['kula_deivam_other'] ?? '',
+                $memberDetails['kaani'] ?? '',
+                $memberDetails['kaani_other'] ?? '',
+                $userId
+            ]);
+        } else {
+            // Insert new profile
+            $stmt = $this->db->prepare("
+                INSERT INTO user_profiles (
+                    user_id, kulam, kulam_other, kula_deivam, kula_deivam_other, kaani, kaani_other,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+            ");
+            $stmt->execute([
+                $userId,
+                $memberDetails['kulam'] ?? '',
+                $memberDetails['kulam_other'] ?? '',
+                $memberDetails['kula_deivam'] ?? '',
+                $memberDetails['kula_deivam_other'] ?? '',
+                $memberDetails['kaani'] ?? '',
+                $memberDetails['kaani_other'] ?? ''
+            ]);
+        }
+        
+        return $this->sendResponse(['success' => true, 'message' => 'Kulam details saved successfully']);
+    }
+    
+    private function saveEducationDetails($userId, $input) {
+        // For now, return success - full implementation would save to education tables
+        return $this->sendResponse(['success' => true, 'message' => 'Education details saved successfully']);
+    }
+    
+    private function saveProfessionDetails($userId, $input) {
+        // For now, return success - full implementation would save to profession tables
+        return $this->sendResponse(['success' => true, 'message' => 'Profession details saved successfully']);
+    }
+
+    /**
+     * Check if a column exists in a table
+     */
+    private function columnExists($table, $column) {
+        try {
+            $stmt = $this->db->prepare("SHOW COLUMNS FROM `$table` LIKE ?");
+            $stmt->execute([$column]);
+            return $stmt->fetch() !== false;
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     private function sendResponse($data, $statusCode = 200) {

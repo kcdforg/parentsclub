@@ -63,8 +63,10 @@ async function checkInvitation() {
             const expiredRedirectMessage = 'This invitation has expired. Please request a new invitation.';
 
             if (data.error === loginRedirectMessage) {
-                // If invitation is already used, redirect to login page
-                window.location.href = 'login.html';
+                // If invitation is already used, redirect to login page with helpful message
+                const loginUrl = new URL('login.html', window.location.origin + window.location.pathname.replace('register.html', ''));
+                loginUrl.searchParams.set('message', 'invitation_used');
+                window.location.href = loginUrl.toString();
             } else if (data.error === expiredRedirectMessage) {
                 // If invitation is expired, show error and invitation required message
                 showError(data.error);

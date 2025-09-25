@@ -4,8 +4,8 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
-require_once '../../config/database.php';
-require_once '../../config/session.php';
+require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../config/session.php';
 
 // Check request method
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -38,6 +38,12 @@ function listInvitations() {
         }
 
         $db = Database::getInstance()->getConnection();
+        
+        // Get admin user details
+        $adminStmt = $db->prepare("SELECT username FROM admin_users WHERE id = ?");
+        $adminStmt->execute([$session['user_id']]);
+        $adminUser = $adminStmt->fetch();
+        $adminUsername = $adminUser ? $adminUser['username'] : 'admin';
         
         // Check and update expired invitations
         checkExpiredInvitations($db);
@@ -110,6 +116,14 @@ function listInvitations() {
                 'start' => $start,
                 'end' => $end,
                 'limit' => $limit
+            ],
+            'user_info' => [
+                'type' => 'admin',
+                'role' => 'admin',
+                'name' => $adminUsername,
+                'can_create' => true,
+                'can_view_all' => true,
+                'can_manage_all' => true
             ]
         ]);
         
@@ -140,6 +154,9 @@ function createInvitation() {
 
         $input = json_decode(file_get_contents('php://input'), true);
         
+        // Debug: Log received input
+        error_log("DEBUG: Invitation creation input: " . print_r($input, true));
+        
         // Handle approval/rejection actions
         if (isset($input['action'])) {
             handleInvitationAction($input, $session);
@@ -147,6 +164,13 @@ function createInvitation() {
         }
         
         if (!isset($input['name']) || !isset($input['phone'])) {
+            // Debug: Log which fields are missing
+            $missing = [];
+            if (!isset($input['name'])) $missing[] = 'name';
+            if (!isset($input['phone'])) $missing[] = 'phone';
+            error_log("DEBUG: Missing fields: " . implode(', ', $missing));
+            error_log("DEBUG: Available fields: " . implode(', ', array_keys($input ?: [])));
+            
             http_response_code(400);
             echo json_encode(['error' => 'Name and phone are required']);
             return;

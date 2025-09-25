@@ -45,7 +45,25 @@ try {
                        up.marriageType,
                        up.hasChildren,
                        up.isMarried,
-                       up.profile_completed as up_profile_completed
+                       up.profile_completed as up_profile_completed,
+                       up.date_of_birth,
+                       up.email as profile_email,
+                       up.secondary_phone,
+                       up.address_line1,
+                       up.address_line2,
+                       up.city,
+                       up.district,
+                       up.state,
+                       up.country,
+                       up.pin_code,
+                       up.permanent_address_line1,
+                       up.permanent_address_line2,
+                       up.permanent_city,
+                       up.permanent_district,
+                       up.permanent_state,
+                       up.permanent_country,
+                       up.permanent_pin_code,
+                       up.same_as_current_address
                 FROM users u 
                 LEFT JOIN user_profiles up ON u.id = up.user_id 
                 WHERE u.id = ?
@@ -76,7 +94,7 @@ try {
             // Format user data for frontend compatibility
             $userData = [
                 'id' => $account['id'],
-                'email' => $account['email'],
+                'email' => $account['profile_email'] ?: $account['email'], // Profile email takes priority
                 'phone' => $account['phone'],
                 'enrollment_number' => $account['enrollment_number'],
                 'user_number' => $account['user_number'],
@@ -91,7 +109,25 @@ try {
                 'gender' => $account['gender'],
                 'marriageType' => $account['marriageType'],
                 'hasChildren' => $account['hasChildren'],
-                'isMarried' => $account['isMarried']
+                'isMarried' => $account['isMarried'],
+                // Add missing profile fields for auto-population
+                'date_of_birth' => $account['date_of_birth'],
+                'secondary_phone' => $account['secondary_phone'],
+                'address_line1' => $account['address_line1'],
+                'address_line2' => $account['address_line2'],
+                'city' => $account['city'],
+                'district' => $account['district'],
+                'state' => $account['state'],
+                'country' => $account['country'],
+                'pin_code' => $account['pin_code'],
+                'permanent_address_line1' => $account['permanent_address_line1'],
+                'permanent_address_line2' => $account['permanent_address_line2'],
+                'permanent_city' => $account['permanent_city'],
+                'permanent_district' => $account['permanent_district'],
+                'permanent_state' => $account['permanent_state'],
+                'permanent_country' => $account['permanent_country'],
+                'permanent_pin_code' => $account['permanent_pin_code'],
+                'same_as_current_address' => (bool)$account['same_as_current_address']
             ];
             
             echo json_encode([

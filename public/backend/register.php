@@ -149,7 +149,7 @@ try {
         
         // Create partial profile with invited name. Other fields are NULL for now until intro questions completed.
         $stmt = $db->prepare("
-            INSERT INTO user_profiles (user_id, name, intro_completed, questions_completed, profile_completed) 
+            INSERT INTO user_profiles (user_id, full_name, intro_completed, questions_completed, profile_completed) 
             VALUES (?, ?, FALSE, FALSE, FALSE)
         ");
         $stmt->execute([$userId, $invitedName]);

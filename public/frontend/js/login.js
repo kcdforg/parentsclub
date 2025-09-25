@@ -3,6 +3,7 @@ import { apiFetch } from './api.js';
 // User login functionality
 document.addEventListener('DOMContentLoaded', function() {
     checkExistingSession();
+    checkInvitationUsedMessage();
     initializeEventListeners();
 });
 
@@ -49,6 +50,19 @@ async function checkExistingSession() {
             // If there's an error checking session, just go to dashboard
             window.location.href = 'dashboard.html';
         }
+    }
+}
+
+function checkInvitationUsedMessage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const message = urlParams.get('message');
+    
+    if (message === 'invitation_used') {
+        // Show helpful message about invitation already being used
+        showInfoMessage('This invitation has already been used to create an account. Please log in with your phone number and password.');
+        
+        // Clear the URL parameter
+        window.history.replaceState({}, document.title, window.location.pathname);
     }
 }
 
@@ -216,6 +230,31 @@ function showError(message) {
     const errorText = document.getElementById('errorText');
     errorText.textContent = message;
     errorDiv.classList.remove('hidden');
+}
+
+function showInfoMessage(message) {
+    // Create or show info message element
+    let infoDiv = document.getElementById('infoMessage');
+    if (!infoDiv) {
+        // Create info message element if it doesn't exist
+        infoDiv = document.createElement('div');
+        infoDiv.id = 'infoMessage';
+        infoDiv.className = 'bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-4';
+        infoDiv.innerHTML = '<i class="fas fa-info-circle mr-2"></i><span id="infoText"></span>';
+        
+        // Insert after the header but before the form
+        const loginForm = document.getElementById('loginForm');
+        loginForm.parentNode.insertBefore(infoDiv, loginForm);
+    }
+    
+    const infoText = document.getElementById('infoText');
+    infoText.textContent = message;
+    infoDiv.classList.remove('hidden');
+    
+    // Auto-hide after 10 seconds
+    setTimeout(() => {
+        infoDiv.classList.add('hidden');
+    }, 10000);
 }
 
 function hideError() {

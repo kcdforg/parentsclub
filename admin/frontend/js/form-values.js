@@ -91,7 +91,7 @@ class FormValuesManager {
             this.showLoading();
             
             // Load all form values from the backend
-            const response = await apiFetch('../backend/form_values.php', {
+            const response = await apiFetch('form_values.php', {
                 method: 'GET'
             });
             

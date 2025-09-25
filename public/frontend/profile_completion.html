@@ -77,89 +77,107 @@
                 <div class="section-content" id="member-details-content" style="display: block;">
                     <div class="p-6">
                         <form id="memberDetailsForm" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">
-                                First Name <span class="text-red-500">*</span>
-                            </label>
-                            <div class="relative">
-                                <input type="text" id="firstName" name="first_name" required
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                                       placeholder="Enter your first name">
-                                <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <!-- Personal Details Sub-section -->
+                    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                        <div class="flex items-center mb-4">
+                            <h5 class="text-md font-semibold text-gray-900 flex items-center">
+                                <i class="fas fa-user mr-2 text-blue-500"></i>Personal Details
+                            </h5>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">
+                                    First Name <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <input type="text" id="firstName" name="first_name" required
+                                           class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                           placeholder="Enter your first name">
+                                    <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="secondName" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Second Name
+                                </label>
+                                <div class="relative">
+                                    <input type="text" id="secondName" name="second_name"
+                                           class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                           placeholder="Enter your second name (optional)">
+                                    <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="gender" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Gender <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <select id="gender" name="gender" required
+                                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
+                                        <option value="" disabled>Select your gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="others">Others</option>
+                                    </select>
+                                    <i class="fas fa-venus-mars absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="dateOfBirth" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Date of Birth <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <input type="date" id="dateOfBirth" name="date_of_birth" required
+                                           class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                           placeholder="DD-MM-YYYY">
+                                    <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">You must be at least 18 years old</p>
+                                <p id="dobHelp" class="text-sm text-blue-600 mt-1"></p>
+                            </div>
+
+                            <div id="ageFieldContainer" class="hidden">
+                                <label for="memberAgeField" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Age (Auto-calculated)
+                                </label>
+                                <div class="relative">
+                                    <input type="text" id="memberAgeField" readonly
+                                           class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                                           placeholder="Age will be calculated from DOB">
+                                    <i class="fas fa-clock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
                             </div>
                         </div>
                         
-                        <div>
-                            <label for="secondName" class="block text-sm font-medium text-gray-700 mb-2">
-                                Second Name
-                            </label>
-                            <div class="relative">
-                                <input type="text" id="secondName" name="second_name"
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                                       placeholder="Enter your second name (optional)">
-                                <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                            </div>
+                        <!-- Save Button at Bottom Center -->
+                        <div class="flex justify-center mt-6">
+                            <button type="button" id="savePersonalDetails" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                <span id="savePersonalText">Save</span>
+                                <i id="savePersonalSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                            </button>
                         </div>
-
-                        <div>
-                            <label for="gender" class="block text-sm font-medium text-gray-700 mb-2">
-                                Gender <span class="text-red-500">*</span>
-                            </label>
-                            <div class="relative">
-                                <select id="gender" name="gender" required
-                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
-                                    <option value="" disabled>Select your gender</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Others">Others</option>
-                                </select>
-                                <i class="fas fa-venus-mars absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label for="dateOfBirth" class="block text-sm font-medium text-gray-700 mb-2">
-                                Date of Birth <span class="text-red-500">*</span>
-                            </label>
-                            <div class="relative">
-                                <input type="date" id="dateOfBirth" name="date_of_birth" required
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                                       placeholder="DD-MM-YYYY">
-                                <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">You must be at least 18 years old</p>
-                            <p id="dobHelp" class="text-sm text-blue-600 mt-1">📅 Please enter your actual date of birth</p>
-                        </div>
-
-                        <div id="ageFieldContainer" class="hidden">
-                            <label for="memberAgeField" class="block text-sm font-medium text-gray-700 mb-2">
-                                Age (Auto-calculated)
-                            </label>
-                            <div class="relative">
-                                <input type="text" id="memberAgeField" readonly
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
-                                       placeholder="Age will be calculated from DOB">
-                                <i class="fas fa-clock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                            </div>
-                        </div>
-
                     </div>
 
                     <!-- Contact Details Section -->
-                    <div class="border-t border-gray-200 pt-6 mt-6">
-                        <h4 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-                            <i class="fas fa-address-book mr-2 text-blue-500"></i>Contact Details
-                        </h4>
+                    <div class="bg-blue-50 rounded-lg p-4 mb-6">
+                        <div class="flex items-center mb-4">
+                            <h5 class="text-md font-semibold text-blue-900 flex items-center">
+                                <i class="fas fa-address-book mr-2 text-blue-500"></i>Contact Details
+                            </h5>
+                        </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Primary Phone <span class="text-red-500">*</span>
+                                    Primary Phone <span class="text-red-500">*</span> <span class="text-gray-500 text-xs">(Used for login and notifications)</span>
                                 </label>
                                 <div class="flex">
                                     <select id="countryCode" name="country_code" 
-                                            class="px-3 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary bg-gray-50">
+                                            class="px-3 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white">
                                         <option value="+91" selected>🇮🇳 +91</option>
                                         <option value="+1">🇺🇸 +1</option>
                                         <option value="+44">🇬🇧 +44</option>
@@ -176,13 +194,13 @@
                                            placeholder="9876543210" maxlength="10">
                                 </div>
                                 <p class="text-xs text-gray-500 mt-1">
-                                    Auto-populated, used for login, no duplicates allowed
+                                    This number will be used for login and important notifications
                                 </p>
                             </div>
 
                             <div>
                                 <label for="secondaryPhone" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Secondary Phone (Optional)
+                                    Secondary Phone <span class="text-gray-500 text-xs">(Optional contact number)</span>
                                 </label>
                                 <div class="flex">
                                     <select id="secondaryCountryCode" name="secondary_country_code" 
@@ -202,14 +220,19 @@
                                            class="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-primary focus:border-primary"
                                            placeholder="9876543210" maxlength="10">
                                 </div>
-                                <p class="text-xs text-gray-500 mt-1">
-                                    Additional contact number (optional)
-                                </p>
+                                <div class="flex items-center justify-between mt-2">
+                                    <p class="text-xs text-gray-500">
+                                        Additional contact number (optional)
+                                    </p>
+                                    <button type="button" id="setAsPrimaryBtn" class="text-xs text-blue-600 hover:text-blue-800 font-medium disabled:text-gray-400 disabled:cursor-not-allowed" disabled>
+                                        Set as Primary
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="md:col-span-2">
                                 <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Email (Optional)
+                                    Email <span class="text-gray-500 text-xs">(For important updates and communications)</span>
                                 </label>
                                 <div class="relative">
                                     <input type="email" id="email" name="email"
@@ -219,125 +242,129 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Save Button at Bottom Center -->
+                        <div class="flex justify-center mt-6">
+                            <button type="button" id="saveContactDetails" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                <span id="saveContactText">Save</span>
+                                <i id="saveContactSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Address Details Section -->
-                    <div class="border-t border-gray-200 pt-6 mt-6">
-                        <h4 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-                            <i class="fas fa-home mr-2 text-purple-500"></i>Address Details
-                        </h4>
-
-                        <!-- Current Address -->
-                        <div class="bg-blue-50 rounded-lg p-4 mb-6">
-                            <h5 class="text-md font-semibold text-blue-900 mb-4">Current Address</h5>
+                    <!-- Current Address Section -->
+                    <div class="bg-purple-50 rounded-lg p-4 mb-6">
+                        <div class="flex items-center mb-4">
+                            <h5 class="text-md font-semibold text-purple-900 flex items-center">
+                                <i class="fas fa-home mr-2 text-purple-500"></i>Current Address
+                            </h5>
+                        </div>
+                        
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="md:col-span-2">
                                     <label for="addressLine1" class="block text-sm font-medium text-gray-700 mb-2">
-                                        Address Line 1 <span class="text-red-500">*</span>
+                                        Address Line 1 <span class="text-red-500">*</span> <span class="text-gray-500 text-xs">(Door No., Apartment)</span>
                                     </label>
                                     <div class="relative">
                                         <input type="text" id="addressLine1" name="address_line1" required
                                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                                               placeholder="Address Line 1">
+                                               placeholder="Door No., Apartment">
                                         <i class="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                     </div>
                                 </div>
 
-                        <div class="md:col-span-2">
-                            <label for="addressLine2" class="block text-sm font-medium text-gray-700 mb-2">
-                                Address Line 2
-                            </label>
-                            <div class="relative">
-                                <input type="text" id="addressLine2" name="address_line2"
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                                       placeholder="Address Line 2 (Optional)">
-                                <i class="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                            </div>
-                        </div>
+                                <div class="md:col-span-2">
+                                    <label for="addressLine2" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Address Line 2 <span class="text-gray-500 text-xs">(Land Mark, Area/Village name, Post Office)</span>
+                                    </label>
+                                    <div class="relative">
+                                        <input type="text" id="addressLine2" name="address_line2"
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                               placeholder="Land Mark, Area/Village name, Post Office">
+                                        <i class="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                </div>
 
-                        <div>
-                            <label for="city" class="block text-sm font-medium text-gray-700 mb-2">City <span class="text-red-500">*</span></label>
-                            <div class="relative">
-                                <input type="text" id="city" name="city" required
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                                       placeholder="City">
-                                <i class="fas fa-city absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                            </div>
-                        </div>
+                                <div>
+                                    <label for="city" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Nearest City/Town/Taluk <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <input type="text" id="city" name="city" required
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                               placeholder="Nearest City/Town/Taluk">
+                                        <i class="fas fa-city absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                </div>
 
-                        <div>
-                            <label for="pinCode" class="block text-sm font-medium text-gray-700 mb-2">
-                                PIN Code <span class="text-red-500">*</span>
-                            </label>
-                            <div class="relative">
-                                <input type="text" id="pinCode" name="pin_code" required maxlength="6"
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                                       placeholder="123456">
-                                <i class="fas fa-location-dot absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">6-digit postal code</p>
-                        </div>
+                                <div>
+                                    <label for="state" class="block text-sm font-medium text-gray-700 mb-2">State <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select id="state" name="state" required
+                                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
+                                            <option value="">Select State</option>
+                                            <!-- States will be populated by JavaScript -->
+                                        </select>
+                                        <i class="fas fa-map-marked-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                </div>
 
-                        <div>
-                            <label for="state" class="block text-sm font-medium text-gray-700 mb-2">State <span class="text-red-500">*</span></label>
-                            <div class="relative">
-                                <select id="state" name="state" required
-                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
-                                    <option value="">Select State</option>
-                                    <!-- States will be populated by JavaScript -->
-                                </select>
-                                <i class="fas fa-map-marked-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                            </div>
-                        </div>
+                                <div>
+                                    <label for="district" class="block text-sm font-medium text-gray-700 mb-2">District <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select id="district" name="district" required
+                                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white"
+                                                disabled>
+                                            <option value="">Select District</option>
+                                            <!-- Districts will be populated by JavaScript based on state -->
+                                        </select>
+                                        <i class="fas fa-building absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Please select state first</p>
+                                </div>
 
-                        <div>
-                            <label for="district" class="block text-sm font-medium text-gray-700 mb-2">District <span class="text-red-500">*</span></label>
-                            <div class="relative">
-                                <select id="district" name="district" required
-                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white"
-                                        disabled>
-                                    <option value="">Select District</option>
-                                    <!-- Districts will be populated by JavaScript based on state -->
-                                </select>
-                                <i class="fas fa-building absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">Please select state first</p>
-                        </div>
+                                <div>
+                                    <label for="country" class="block text-sm font-medium text-gray-700 mb-2">Country <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select id="country" name="country" required
+                                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
+                                            <option value="">Select Country</option>
+                                            <!-- Countries will be populated by JavaScript -->
+                                        </select>
+                                        <i class="fas fa-globe absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                </div>
 
-                        <div>
-                            <label for="postOfficeArea" class="block text-sm font-medium text-gray-700 mb-2">Post Office Area</label>
-                            <div class="relative">
-                                <select id="postOfficeArea" name="post_office_area"
-                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white"
-                                        disabled>
-                                    <option value="">Select Post Office Area</option>
-                                    <!-- Post office areas will be populated by JavaScript based on PIN code -->
-                                </select>
-                                <i class="fas fa-mail-bulk absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <div>
+                                    <label for="pinCode" class="block text-sm font-medium text-gray-700 mb-2">
+                                        PIN Code <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <input type="text" id="pinCode" name="pin_code" required maxlength="6"
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                               placeholder="123456">
+                                        <i class="fas fa-location-dot absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">6-digit postal code</p>
+                                </div>
                             </div>
-                            <p class="text-xs text-gray-500 mt-1">Will be populated based on PIN code</p>
-                        </div>
-
-                        <div>
-                            <label for="country" class="block text-sm font-medium text-gray-700 mb-2">Country <span class="text-red-500">*</span></label>
-                            <div class="relative">
-                                <select id="country" name="country" required
-                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
-                                    <option value="">Select Country</option>
-                                    <!-- Countries will be populated by JavaScript -->
-                                </select>
-                                <i class="fas fa-globe absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                            </div>
-                        </div>
+                            
+                            <!-- Save Button at Bottom Center -->
+                            <div class="flex justify-center mt-6">
+                                <button type="button" id="saveCurrentAddress" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                    <span id="saveCurrentAddressText">Save</span>
+                                    <i id="saveCurrentAddressSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                        <!-- Permanent Address -->
-                        <div class="bg-green-50 rounded-lg p-4">
-                            <div class="flex items-center justify-between mb-4">
+                    <!-- Permanent Address Section -->
+                    <div class="bg-green-50 rounded-lg p-4">
+                        <div class="flex items-center mb-4">
+                            <div class="flex items-center">
                                 <h5 class="text-md font-semibold text-green-900">Permanent Address</h5>
-                                <div class="flex items-center">
+                                <div class="flex items-center ml-4">
                                     <input type="checkbox" id="sameAsCurrentAddress" name="same_as_current" 
                                            class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                                            onchange="togglePermanentAddressFields(this.checked)">
@@ -346,6 +373,7 @@
                                     </label>
                                 </div>
                             </div>
+                        </div>
 
                             <div id="permanentAddressFields" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="md:col-span-2">
@@ -355,7 +383,7 @@
                                     <div class="relative">
                                         <input type="text" id="permanentAddressLine1" name="permanent_address_line1"
                                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                                               placeholder="Permanent Address Line 1">
+                                               placeholder="Door No., Road/Street">
                                         <i class="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                     </div>
                                 </div>
@@ -367,30 +395,18 @@
                                     <div class="relative">
                                         <input type="text" id="permanentAddressLine2" name="permanent_address_line2"
                                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                                               placeholder="Permanent Address Line 2 (Optional)">
+                                               placeholder="Area Name, Land Mark/Post Office">
                                         <i class="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label for="permanentCity" class="block text-sm font-medium text-gray-700 mb-2">City <span class="text-red-500">*</span></label>
+                                    <label for="permanentCity" class="block text-sm font-medium text-gray-700 mb-2">Nearest City/Town/Taluk <span class="text-red-500">*</span></label>
                                     <div class="relative">
                                         <input type="text" id="permanentCity" name="permanent_city"
                                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                                               placeholder="City">
+                                               placeholder="Nearest City/Town/Taluk">
                                         <i class="fas fa-city absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label for="permanentPinCode" class="block text-sm font-medium text-gray-700 mb-2">
-                                        PIN Code <span class="text-red-500">*</span>
-                                    </label>
-                                    <div class="relative">
-                                        <input type="text" id="permanentPinCode" name="permanent_pin_code" maxlength="6"
-                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                                               placeholder="123456">
-                                        <i class="fas fa-location-dot absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                     </div>
                                 </div>
 
@@ -407,6 +423,20 @@
                                 </div>
 
                                 <div>
+                                    <label for="permanentDistrict" class="block text-sm font-medium text-gray-700 mb-2">District <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <select id="permanentDistrict" name="permanent_district"
+                                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors bg-white"
+                                                disabled>
+                                            <option value="">Select District</option>
+                                            <!-- Districts will be populated by JavaScript based on state -->
+                                        </select>
+                                        <i class="fas fa-building absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Please select state first</p>
+                                </div>
+
+                                <div>
                                     <label for="permanentCountry" class="block text-sm font-medium text-gray-700 mb-2">Country <span class="text-red-500">*</span></label>
                                     <div class="relative">
                                         <select id="permanentCountry" name="permanent_country"
@@ -417,15 +447,38 @@
                                         <i class="fas fa-globe absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                     </div>
                                 </div>
+
+                                <div>
+                                    <label for="permanentPinCode" class="block text-sm font-medium text-gray-700 mb-2">
+                                        PIN Code <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <input type="text" id="permanentPinCode" name="permanent_pin_code" maxlength="6"
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                               placeholder="123456">
+                                        <i class="fas fa-location-dot absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">6-digit postal code</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Save Button at Bottom Center -->
+                            <div class="flex justify-center mt-6">
+                                <button type="button" id="savePermanentAddress" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                    <span id="savePermanentAddressText">Save</span>
+                                    <i id="savePermanentAddressSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
 
                     <!-- Kulam Details Section -->
-                    <div class="border-t border-gray-200 pt-6 mt-6">
-                        <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                            <i class="fas fa-temple mr-2 text-orange-500"></i>Kulam Details
-                        </h4>
+                    <div class="bg-orange-50 rounded-lg p-4 mb-6">
+                        <div class="flex items-center mb-4">
+                            <h5 class="text-md font-semibold text-orange-900 flex items-center">
+                                <i class="fas fa-temple mr-2 text-orange-500"></i>Kulam Details
+                            </h5>
+                        </div>
                         
                         <!-- Gender-Based Kulam Collection Note -->
                         <div class="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-4">
@@ -497,32 +550,60 @@
                                        class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary hidden">
                             </div>
                         </div>
+                        
+                        <!-- Save Button at Bottom Center -->
+                        <div class="flex justify-center mt-6">
+                            <button type="button" id="saveKulamDetails" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                <span id="saveKulamText">Save</span>
+                                <i id="saveKulamSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Education Details Section -->
-                    <div class="border-t border-gray-200 pt-6 mt-6">
-                        <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                            <i class="fas fa-graduation-cap mr-2 text-blue-500"></i>Education Details
-                        </h4>
+                    <div class="bg-blue-50 rounded-lg p-4 mb-6">
+                        <div class="flex items-center mb-4">
+                            <h5 class="text-md font-semibold text-blue-900 flex items-center">
+                                <i class="fas fa-graduation-cap mr-2 text-blue-500"></i>Education Details
+                            </h5>
+                        </div>
                         <div id="memberEducationContainer">
                             <!-- Education entries will be added here dynamically with new format -->
                         </div>
                         <button type="button" id="addMemberEducationBtn" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
                             <i class="fas fa-plus mr-2"></i>Add Education
                         </button>
+                        
+                        <!-- Save Button - Only shown when there are education entries -->
+                        <div id="educationSaveButtonContainer" class="flex justify-center mt-6 hidden">
+                            <button type="button" id="saveEducationDetails" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                <span id="saveEducationText">Save</span>
+                                <i id="saveEducationSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Profession Details Section -->
-                    <div class="border-t border-gray-200 pt-6 mt-6">
-                        <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                            <i class="fas fa-briefcase mr-2 text-green-500"></i>Profession Details
-                        </h4>
+                    <div class="bg-green-50 rounded-lg p-4 mb-6">
+                        <div class="flex items-center mb-4">
+                            <h5 class="text-md font-semibold text-green-900 flex items-center">
+                                <i class="fas fa-briefcase mr-2 text-green-500"></i>Profession Details
+                            </h5>
+                        </div>
                         <div id="memberProfessionContainer">
                             <!-- Profession entries will be added here dynamically -->
                         </div>
                         <button type="button" id="addMemberProfessionBtn" class="mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
                             <i class="fas fa-plus mr-2"></i>Add Profession
                         </button>
+                        
+                        <!-- Save Button - Only shown when there are profession entries -->
+                        <div id="professionSaveButtonContainer" class="flex justify-center mt-6 hidden">
+                            <button type="button" id="saveProfessionDetails" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                <span id="saveProfessionText">Save</span>
+                                <i id="saveProfessionSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Error Message -->
@@ -537,12 +618,6 @@
                         <span id="successText"></span>
                     </div>
 
-                            <div class="flex justify-end pt-6">
-                                <button type="button" id="saveMemberDetails" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-                                    <span id="saveMemberText">Save</span>
-                                    <i id="saveMemberSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
-                                </button>
-                            </div>
                         </form>
                     </div>
                 </div>
@@ -602,9 +677,9 @@
                                     <select id="spouseGender" name="spouse_gender" required
                                                 class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors bg-white">
                                         <option value="">Select Gender</option>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                        <option value="Others">Others</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="others">Others</option>
                                     </select>
                                         <i class="fas fa-venus-mars absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                     </div>
@@ -620,8 +695,8 @@
                                                placeholder="DD-MM-YYYY">
                                         <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                     </div>
-                                    <p class="text-xs text-gray-500 mt-1">Enter spouse's date of birth</p>
-                                    <p id="spouseDobHelp" class="text-sm text-blue-600 mt-1">📅 Please enter the actual date of birth</p>
+                                    <p class="text-xs text-gray-500 mt-1">You must be at least 18 years old</p>
+                                    <p id="spouseDobHelp" class="text-sm text-blue-600 mt-1"></p>
                                 </div>
 
                                 <div id="spouseAgeFieldContainer" class="hidden">
